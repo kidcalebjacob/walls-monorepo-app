@@ -3,7 +3,6 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 
 import { config as loadDotenv } from "dotenv";
-import { loadEnvConfig } from "@next/env";
 
 /**
  * Resolve monorepo root from an app directory (e.g. apps/public-site).
@@ -46,11 +45,6 @@ export function loadMonorepoEnv(appDir: string): string {
     console.warn(
       `[walls/config] ${envFile} not found. Set env vars in Vercel or add a root .env for local production builds.`,
     );
-  }
-
-  // Next's loader always merges `.env` in dev — skip so production `.env` is not loaded locally.
-  if (!isDev) {
-    loadEnvConfig(monorepoRoot, false);
   }
 
   return monorepoRoot;
