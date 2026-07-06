@@ -164,6 +164,18 @@ Configure Supabase auth cookies for your parent domain (e.g. `.walls.agency`) so
 
 Local dev uses `localhost` origins; cookies are **not** shared across ports — log in via the portal redirect flow when testing AdPilot locally.
 
+### Deploying to Vercel
+
+Create **one Vercel project per app** with **Root Directory** set to `apps/<name>` (e.g. `apps/adpilot`).
+
+| App | Build command |
+| --- | ------------- |
+| AdPilot | `cd ../.. && pnpm turbo build --filter=adpilot` |
+| Portal | `cd ../.. && pnpm turbo build --filter=portal` |
+| Public site | `cd ../.. && pnpm turbo build --filter=public-site` |
+
+Set only the env vars each app needs in that project’s Vercel settings. Legacy walls-app keys (Stripe, Wise, AWS, etc.) are listed in `turbo.json` → `globalPassThroughEnv` so Turborepo won’t warn if they’re still on a project, but **AdPilot does not use them** — you can remove them from the AdPilot Vercel project to keep things clean.
+
 ### Client auth context
 
 ```tsx
