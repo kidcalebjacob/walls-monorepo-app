@@ -1,6 +1,6 @@
 import { useRouter } from "next/navigation";
 
-import { getSupabaseClient } from "@walls/auth";
+import { getSupabaseClient, navigateAfterLogin } from "@walls/auth";
 
 import { useRedirectParam } from "./useRedirectParam";
 
@@ -21,8 +21,7 @@ export function useRedirectAfterLogin() {
       }
 
       if (redirect) {
-        router.push(redirect);
-        router.refresh();
+        navigateAfterLogin(redirect, "/", router);
         return;
       }
 
@@ -53,12 +52,10 @@ export function useRedirectAfterLogin() {
         console.error("Error fetching user platform:", userError);
       }
 
-      router.push(redirectPath);
-      router.refresh();
+      navigateAfterLogin(null, redirectPath, router);
     } catch (error) {
       console.error("Error during redirect:", error);
-      router.push("/");
-      router.refresh();
+      navigateAfterLogin(null, "/", router);
     }
   };
 }

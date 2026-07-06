@@ -13,3 +13,13 @@ export {
   isMfaSecondFactorPending,
   type MfaAssuranceUser,
 } from "./mfa-assurance";
+export {
+  handleProtectedAppRequest,
+  protectedAppMiddlewareMatcher,
+  type ProtectedAppMiddlewareOptions,
+} from "./protected-app-middleware";
+export {
+  isAllowedPostLoginRedirect,
+  navigateAfterLogin,
+  resolvePostLoginRedirect,
+} from "./post-login-redirect";

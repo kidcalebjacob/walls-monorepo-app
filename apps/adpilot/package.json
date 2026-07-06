@@ -9,6 +9,7 @@
     "lint": "eslint"
   },
   "dependencies": {
+    "@supabase/ssr": "^0.6.1",
     "@walls/auth": "workspace:*",
     "@walls/config": "workspace:*",
     "@walls/supabase": "workspace:*",

@@ -1,0 +1,167 @@
+import type { User } from "@supabase/supabase-js";
+import { createServerClient } from "@supabase/ssr";
+import { NextResponse, type NextRequest } from "next/server";
+
+import { isMfaSecondFactorPending } from "./mfa-assurance";
+
+export interface ProtectedAppMiddlewareOptions {
+  /** Routes that skip auth (default: none). */
+  publicPaths?: string[];
+  /** Portal origin, e.g. https://walls.agency */
+  portalLoginUrl?: string;
+  /**
+   * When set, user must have a row in user_app_access for this apps.slug.
+   * Omit to only require a valid portal session.
+   */
+  appSlug?: string;
+}
+
+export const protectedAppMiddlewareMatcher = [
+  "/((?!_next/static|_next/image|favicon.ico|icon.svg|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico)$).*)",
+];
+
+function getPortalLoginOrigin(): string {
+  const configured = process.env.NEXT_PUBLIC_WALLS_AGENCY_URL?.replace(/\/$/, "");
+  if (configured) return configured;
+  return "http://localhost:3002";
+}
+
+function isPublicPath(pathname: string, publicPaths: string[]): boolean {
+  return publicPaths.some(
+    (path) => pathname === path || pathname.startsWith(`${path}/`),
+  );
+}
+
+function redirectToPortalLogin(
+  request: NextRequest,
+  portalLoginOrigin: string,
+): NextResponse {
+  const loginUrl = new URL("/login", portalLoginOrigin);
+  loginUrl.searchParams.set("redirect", request.nextUrl.href);
+  return NextResponse.redirect(loginUrl);
+}
+
+async function isUserAuthenticated(
+  supabase: ReturnType<typeof createServerClient>,
+  user: User | null,
+): Promise<boolean> {
+  if (!user) return false;
+
+  const {
+    data: { session },
+  } = await supabase.auth.getSession();
+
+  return !isMfaSecondFactorPending(user, session?.access_token);
+}
+
+async function userHasAppAccess(
+  supabase: ReturnType<typeof createServerClient>,
+  userId: string,
+  appSlug: string,
+): Promise<boolean> {
+  const { data: appRow, error: appError } = await supabase
+    .from("apps")
+    .select("id")
+    .eq("is_active", true)
+    .eq("slug", appSlug)
+    .maybeSingle();
+
+  if (appError || !appRow?.id) {
+    return true;
+  }
+
+  const { data: accessRow, error: accessError } = await supabase
+    .from("user_app_access")
+    .select("id")
+    .eq("user_id", userId)
+    .eq("app_id", appRow.id)
+    .maybeSingle();
+
+  if (accessError) {
+    console.error("[auth] Error checking user_app_access:", accessError);
+    return false;
+  }
+
+  return !!accessRow;
+}
+
+/**
+ * Middleware handler for internal apps (AdPilot, etc.).
+ * Unauthenticated users are sent to the portal login with a return URL.
+ */
+export async function handleProtectedAppRequest(
+  request: NextRequest,
+  options: ProtectedAppMiddlewareOptions = {},
+): Promise<NextResponse> {
+  const publicPaths = options.publicPaths ?? [];
+  const portalLoginOrigin = options.portalLoginUrl ?? getPortalLoginOrigin();
+  const pathname = request.nextUrl.pathname;
+
+  if (isPublicPath(pathname, publicPaths)) {
+    return NextResponse.next();
+  }
+
+  let response = NextResponse.next({
+    request: {
+      headers: request.headers,
+    },
+  });
+
+  const supabase = createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      cookies: {
+        get(name: string) {
+          return request.cookies.get(name)?.value;
+        },
+        set(name: string, value: string, cookieOptions: Record<string, unknown>) {
+          response.cookies.set({ name, value, ...cookieOptions });
+        },
+        remove(name: string, cookieOptions: Record<string, unknown>) {
+          response.cookies.set({ name, value: "", ...cookieOptions });
+        },
+      },
+    },
+  );
+
+  try {
+    const {
+      data: { user },
+      error: userError,
+    } = await supabase.auth.getUser();
+
+    const authenticated = !userError && (await isUserAuthenticated(supabase, user));
+
+    if (!authenticated) {
+      return redirectToPortalLogin(request, portalLoginOrigin);
+    }
+
+    const { data: userRow, error: statusError } = await supabase
+      .from("users")
+      .select("status")
+      .eq("id", user!.id)
+      .maybeSingle();
+
+    if (statusError) {
+      console.error("[auth] Error fetching user status:", statusError);
+    }
+
+    if (userRow?.status && userRow.status !== "active") {
+      await supabase.auth.signOut();
+      return redirectToPortalLogin(request, portalLoginOrigin);
+    }
+
+    if (options.appSlug) {
+      const hasAccess = await userHasAppAccess(supabase, user!.id, options.appSlug);
+      if (!hasAccess) {
+        return redirectToPortalLogin(request, portalLoginOrigin);
+      }
+    }
+
+    return response;
+  } catch (error) {
+    console.error("[auth] Protected app middleware error:", error);
+    return redirectToPortalLogin(request, portalLoginOrigin);
+  }
+}

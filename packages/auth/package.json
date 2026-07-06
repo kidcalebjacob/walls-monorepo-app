@@ -8,12 +8,15 @@
     "./context": "./src/AuthContext.tsx",
     "./provider": "./src/AuthProvider.tsx",
     "./client": "./src/supabase-client.ts",
-    "./mfa": "./src/mfa-assurance.ts"
+    "./mfa": "./src/mfa-assurance.ts",
+    "./middleware": "./src/protected-app-middleware.ts",
+    "./post-login-redirect": "./src/post-login-redirect.ts"
   },
   "scripts": {
     "lint": "tsc --noEmit"
   },
   "dependencies": {
+    "@supabase/ssr": "^0.6.1",
     "@supabase/supabase-js": "^2.49.8",
     "@walls/supabase": "workspace:*"
   },
@@ -22,6 +25,7 @@
     "typescript": "^5"
   },
   "peerDependencies": {
+    "next": ">=15.0.0",
     "react": ">=18.0.0",
     "react-dom": ">=18.0.0"
   }

@@ -117,13 +117,55 @@ import { createClient } from "@walls/supabase/server";
 
 ## Shared auth
 
-Auth lives on **walls.agency** (and internal apps like AdPilot), not on the public marketing site.
+Auth lives on **walls.agency** (portal), not on the public marketing site.
 
-`@walls/auth` is for agency / app domains only. Wire it in those apps:
+### Portal (`apps/portal`)
+
+Login, reset password, and MFA. After login, users are sent to `?redirect=` (another internal app) or their `user_platform.url_redirect`.
+
+### Private internal apps (AdPilot, etc.)
+
+Every non-public app should use `@walls/auth/middleware` so unauthenticated users are sent to the portal:
+
+```ts
+// apps/<internal-app>/middleware.ts
+import { type NextRequest } from "next/server";
+import {
+  handleProtectedAppRequest,
+  protectedAppMiddlewareMatcher,
+} from "@walls/auth/middleware";
+
+export async function middleware(request: NextRequest) {
+  return handleProtectedAppRequest(request, {
+    appSlug: "adpilot", // optional user_app_access check
+  });
+}
+
+export const config = { matcher: protectedAppMiddlewareMatcher };
+```
+
+The middleware checks:
+
+- Valid Supabase session (via portal login cookies)
+- MFA completed when enrolled
+- `users.status === "active"`
+- Optional `user_app_access` for the app slug
+
+Redirects go to `NEXT_PUBLIC_WALLS_AGENCY_URL/login?redirect=<full return URL>`.
+
+### Production SSO
+
+Configure Supabase auth cookies for your parent domain (e.g. `.walls.agency`) so a session from the portal is visible on `adpilot.walls.agency`. Set in root `.env`:
+
+- `NEXT_PUBLIC_WALLS_AGENCY_URL` — portal origin
+- `NEXT_PUBLIC_ADPILOT_URL` — AdPilot origin (for safe post-login redirects)
+
+Local dev uses `localhost` origins; cookies are **not** shared across ports — log in via the portal redirect flow when testing AdPilot locally.
+
+### Client auth context
 
 ```tsx
-// apps/<app>/components/providers.tsx
-"use client";
+// apps/<internal-app>/components/providers.tsx
 import { AuthProvider } from "@walls/auth";
 
 export function Providers({ children }: { children: React.ReactNode }) {
@@ -131,12 +173,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
 }
 ```
 
-The public site (`apps/public-site`) links its Portal button to `NEXT_PUBLIC_WALLS_AGENCY_URL` and does not mount `AuthProvider`.
-
-```ts
-// In agency / internal app client components
-import { useAuth, getSupabaseClient } from "@walls/auth";
-```
+The public site links its Portal button to `NEXT_PUBLIC_WALLS_AGENCY_URL` and does not mount `AuthProvider`.
 
 
 

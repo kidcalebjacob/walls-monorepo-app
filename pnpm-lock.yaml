@@ -14,6 +14,9 @@ importers:
 
   apps/adpilot:
     dependencies:
+      '@supabase/ssr':
+        specifier: ^0.6.1
+        version: 0.6.1(@supabase/supabase-js@2.110.0)
       '@walls/auth':
         specifier: workspace:*
         version: link:../../packages/auth
@@ -203,12 +206,18 @@ importers:
 
   packages/auth:
     dependencies:
+      '@supabase/ssr':
+        specifier: ^0.6.1
+        version: 0.6.1(@supabase/supabase-js@2.110.0)
       '@supabase/supabase-js':
         specifier: ^2.49.8
         version: 2.110.0
       '@walls/supabase':
         specifier: workspace:*
         version: link:../supabase
+      next:
+        specifier: '>=15.0.0'
+        version: 16.2.10(@babel/core@7.29.7)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
       react:
         specifier: '>=18.0.0'
         version: 19.2.4
