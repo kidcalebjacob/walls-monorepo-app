@@ -75,6 +75,8 @@ pnpm dev:portal
 pnpm dev
 ```
 
+Dev servers use **webpack** (`next dev --webpack`) instead of Turbopack. Turbopack can hang on first compile in this monorepo (stuck on `Compiling /login ...`); webpack is stable for local development. Production `next build` is unaffected.
+
 
 
 ## Scripts

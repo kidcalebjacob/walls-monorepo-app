@@ -37,10 +37,10 @@ export default function RootLayout({
       data-app="adpilot"
       className={`${geistSans.variable} ${geistMono.variable} h-full bg-background antialiased`}
     >
-      <body className="flex min-h-full bg-background text-foreground">
+      <body className="min-h-full bg-walls-white text-foreground">
         <Providers>
           <AppSidebar />
-          <div className="relative flex min-h-full flex-1 flex-col bg-walls-white">
+          <div className="relative min-h-full bg-walls-white">
             <PrivateAppChrome
               dashboardPath="/"
               settingsPath="/settings"

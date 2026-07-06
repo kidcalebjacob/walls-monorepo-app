@@ -469,7 +469,7 @@ export default function UserProfileButton({
           <DropdownMenuContent
             align="end"
             sideOffset={12}
-            className="w-[400px] p-4 rounded-[20px] bg-gray-50 shadow-xs drop-shadow-[0_4px_12px_rgba(0,0,0,0.2)] overflow-hidden"
+            className="w-[400px] border-0 p-4 rounded-[20px] bg-gray-50 shadow-xs outline-none ring-0 drop-shadow-[0_4px_12px_rgba(0,0,0,0.2)] overflow-hidden"
           >
             <motion.div
               initial={{ opacity: 0, scale: 0.8, y: -10 }}

@@ -4,6 +4,17 @@ import { createServerClient } from "@supabase/ssr";
 const PUBLIC_PATHS = ["/login", "/reset-password"];
 
 export async function middleware(request: NextRequest) {
+  const { pathname } = request.nextUrl;
+
+  if (pathname === "/") {
+    return NextResponse.redirect(new URL("/login", request.url));
+  }
+
+  if (!PUBLIC_PATHS.some((path) => pathname.startsWith(path))) {
+    return NextResponse.redirect(new URL("/login", request.url));
+  }
+
+  // Refresh auth cookies on public auth pages without a network round-trip.
   let response = NextResponse.next({
     request: {
       headers: request.headers,
@@ -28,17 +39,7 @@ export async function middleware(request: NextRequest) {
     },
   );
 
-  await supabase.auth.getUser();
-
-  const { pathname } = request.nextUrl;
-
-  if (pathname === "/") {
-    return NextResponse.redirect(new URL("/login", request.url));
-  }
-
-  if (!PUBLIC_PATHS.some((path) => pathname.startsWith(path))) {
-    return NextResponse.redirect(new URL("/login", request.url));
-  }
+  await supabase.auth.getSession();
 
   return response;
 }
