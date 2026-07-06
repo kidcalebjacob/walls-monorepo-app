@@ -4,6 +4,7 @@
 
 function configuredOrigins(): string[] {
   const values = [
+    process.env.NEXT_PUBLIC_PORTAL_URL,
     process.env.NEXT_PUBLIC_WALLS_AGENCY_URL,
     process.env.NEXT_PUBLIC_ADPILOT_URL,
     process.env.NEXT_PUBLIC_WALLS_PUBLIC_SITE_URL,

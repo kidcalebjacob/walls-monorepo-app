@@ -10,6 +10,11 @@ export { AuthProvider, type AuthProviderProps } from "./AuthProvider";
 export { getSupabaseClient } from "./supabase-client";
 export { logoutToPortal } from "./logout";
 export {
+  buildPortalLoginUrl,
+  normalizePortalOrigin,
+  resolvePortalLoginOrigin,
+} from "./portal-url";
+export {
   getAuthenticatorAssuranceFromVerifiedUser,
   getVerifiedTotpFactor,
   isMfaSecondFactorPending,

@@ -9,7 +9,7 @@ pnpm + Turborepo monorepo for the WALLS Entertainment ecosystem.
 | --------------- | ------------------ | ------------------------------------------------------------------------- |
 | **public-site** | `apps/public-site` | Marketing site ([wallsentertainment.com](https://wallsentertainment.com)) |
 | **adpilot**     | `apps/adpilot`     | Ad operations & campaign management                                       |
-| **portal**      | `apps/portal`      | Agency auth portal ([walls.agency](https://walls.agency)) — login & password reset |
+| **portal**      | `apps/portal`      | Agency auth portal ([portal.walls.agency](https://portal.walls.agency)) — login & password reset |
 
 
 Future apps (e.g. `agents.walls.agency`) will live under `apps/`.
@@ -117,7 +117,7 @@ import { createClient } from "@walls/supabase/server";
 
 ## Shared auth
 
-Auth lives on **walls.agency** (portal), not on the public marketing site.
+Auth lives on **portal.walls.agency** (agency portal), not on the public marketing site or internal apps like AdPilot.
 
 ### Portal (`apps/portal`)
 
@@ -153,13 +153,15 @@ The middleware checks:
 - `users.status === "active"`
 - Optional `user_app_access` for the app slug
 
-Redirects go to `NEXT_PUBLIC_WALLS_AGENCY_URL/login?redirect=<full return URL>`.
+Redirects go to `NEXT_PUBLIC_WALLS_AGENCY_URL/login?redirect=<full return URL>` (e.g. `https://portal.walls.agency/login?redirect=https://adpilot.walls.agency/`).
+
+**Important:** On each internal app’s Vercel project (e.g. AdPilot), set `NEXT_PUBLIC_WALLS_AGENCY_URL` to the **portal** origin (`https://portal.walls.agency`), not the app’s own URL. If it points at AdPilot, unauthenticated users get sent to `adpilot.walls.agency/login` (which does not exist).
 
 ### Production SSO
 
 Configure Supabase auth cookies for your parent domain (e.g. `.walls.agency`) so a session from the portal is visible on `adpilot.walls.agency`. Set in **`.env.local`** (dev) or Vercel / **`.env`** (production):
 
-- `NEXT_PUBLIC_WALLS_AGENCY_URL` — portal origin
+- `NEXT_PUBLIC_WALLS_AGENCY_URL` — portal origin (`https://portal.walls.agency` in production)
 - `NEXT_PUBLIC_ADPILOT_URL` — AdPilot origin (for safe post-login redirects)
 
 Local dev uses `localhost` origins; cookies are **not** shared across ports — log in via the portal redirect flow when testing AdPilot locally.

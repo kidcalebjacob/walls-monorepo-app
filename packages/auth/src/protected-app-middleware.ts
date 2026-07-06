@@ -3,11 +3,12 @@ import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
 import { isMfaSecondFactorPending } from "./mfa-assurance";
+import { buildPortalLoginUrl, normalizePortalOrigin } from "./portal-url";
 
 export interface ProtectedAppMiddlewareOptions {
   /** Routes that skip auth (default: none). */
   publicPaths?: string[];
-  /** Portal origin, e.g. https://walls.agency */
+  /** Portal origin override (optional). Defaults from env via resolvePortalLoginOrigin. */
   portalLoginUrl?: string;
   /**
    * When set, user must have a row in user_app_access for this apps.slug.
@@ -20,12 +21,6 @@ export const protectedAppMiddlewareMatcher = [
   "/((?!_next/static|_next/image|favicon.ico|icon.svg|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico)$).*)",
 ];
 
-function getPortalLoginOrigin(): string {
-  const configured = process.env.NEXT_PUBLIC_WALLS_AGENCY_URL?.replace(/\/$/, "");
-  if (configured) return configured;
-  return "http://localhost:3002";
-}
-
 function isPublicPath(pathname: string, publicPaths: string[]): boolean {
   return publicPaths.some(
     (path) => pathname === path || pathname.startsWith(`${path}/`),
@@ -34,11 +29,23 @@ function isPublicPath(pathname: string, publicPaths: string[]): boolean {
 
 function redirectToPortalLogin(
   request: NextRequest,
-  portalLoginOrigin: string,
+  portalLoginUrl?: string,
 ): NextResponse {
-  const loginUrl = new URL("/login", portalLoginOrigin);
-  loginUrl.searchParams.set("redirect", request.nextUrl.href);
-  return NextResponse.redirect(loginUrl);
+  const configuredOrigin = portalLoginUrl
+    ? normalizePortalOrigin(portalLoginUrl)
+    : null;
+
+  if (configuredOrigin && configuredOrigin !== request.nextUrl.origin) {
+    const override = new URL("/login", configuredOrigin);
+    override.searchParams.set("redirect", request.nextUrl.href);
+    return NextResponse.redirect(override);
+  }
+
+  return NextResponse.redirect(
+    buildPortalLoginUrl(request.nextUrl.origin, {
+      redirect: request.nextUrl.href,
+    }),
+  );
 }
 
 async function isUserAuthenticated(
@@ -94,7 +101,6 @@ export async function handleProtectedAppRequest(
   options: ProtectedAppMiddlewareOptions = {},
 ): Promise<NextResponse> {
   const publicPaths = options.publicPaths ?? [];
-  const portalLoginOrigin = options.portalLoginUrl ?? getPortalLoginOrigin();
   const pathname = request.nextUrl.pathname;
 
   if (isPublicPath(pathname, publicPaths)) {
@@ -134,7 +140,7 @@ export async function handleProtectedAppRequest(
     const authenticated = !userError && (await isUserAuthenticated(supabase, user));
 
     if (!authenticated) {
-      return redirectToPortalLogin(request, portalLoginOrigin);
+      return redirectToPortalLogin(request, options.portalLoginUrl);
     }
 
     const { data: userRow, error: statusError } = await supabase
@@ -149,19 +155,19 @@ export async function handleProtectedAppRequest(
 
     if (userRow?.status && userRow.status !== "active") {
       await supabase.auth.signOut();
-      return redirectToPortalLogin(request, portalLoginOrigin);
+      return redirectToPortalLogin(request, options.portalLoginUrl);
     }
 
     if (options.appSlug) {
       const hasAccess = await userHasAppAccess(supabase, user!.id, options.appSlug);
       if (!hasAccess) {
-        return redirectToPortalLogin(request, portalLoginOrigin);
+        return redirectToPortalLogin(request, options.portalLoginUrl);
       }
     }
 
     return response;
   } catch (error) {
     console.error("[auth] Protected app middleware error:", error);
-    return redirectToPortalLogin(request, portalLoginOrigin);
+    return redirectToPortalLogin(request, options.portalLoginUrl);
   }
 }
