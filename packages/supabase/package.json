@@ -1,0 +1,28 @@
+{
+  "name": "@walls/supabase",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    "./client": "./src/client.ts",
+    "./server": "./src/server.ts",
+    "./env": "./src/env.ts"
+  },
+  "scripts": {
+    "lint": "tsc --noEmit",
+    "db:schema": "node scripts/dump-schema.mjs"
+  },
+  "dependencies": {
+    "@supabase/ssr": "^0.6.1",
+    "@supabase/supabase-js": "^2.49.8"
+  },
+  "devDependencies": {
+    "@types/node": "^20",
+    "dotenv": "^16.5.0",
+    "pg": "^8.16.0",
+    "typescript": "^5"
+  },
+  "peerDependencies": {
+    "next": ">=15.0.0"
+  }
+}

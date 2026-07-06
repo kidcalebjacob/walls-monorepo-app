@@ -1,0 +1,65 @@
+/* Shared WALLS monorepo base styles — import after `tailwindcss` in each app. */
+
+@import "./walls-theme.css";
+
+@layer base {
+  html {
+    background-color: var(--background);
+    scroll-behavior: smooth;
+  }
+
+  body {
+    background-color: var(--background);
+    color: var(--foreground);
+  }
+
+  /* Pointer on interactive elements across all apps */
+  button:not(:disabled),
+  [role="button"]:not([aria-disabled="true"]),
+  a[href],
+  label[for],
+  select:not(:disabled),
+  summary,
+  input[type="button"]:not(:disabled),
+  input[type="submit"]:not(:disabled),
+  input[type="reset"]:not(:disabled),
+  input[type="checkbox"]:not(:disabled),
+  input[type="radio"]:not(:disabled),
+  [role="link"],
+  [role="menuitem"]:not([data-disabled]),
+  [role="menuitemcheckbox"]:not([data-disabled]),
+  [role="menuitemradio"]:not([data-disabled]),
+  [role="option"]:not([data-disabled]),
+  [role="tab"]:not([aria-disabled="true"]),
+  [data-slot="trigger"] {
+    cursor: pointer;
+  }
+
+  button:disabled,
+  [aria-disabled="true"],
+  input:disabled,
+  select:disabled,
+  textarea:disabled {
+    cursor: not-allowed;
+  }
+
+  /* No default browser / ring focus outline on form fields */
+  input:focus,
+  input:focus-visible,
+  textarea:focus,
+  textarea:focus-visible,
+  select:focus,
+  select:focus-visible,
+  [role="combobox"]:focus,
+  [role="combobox"]:focus-visible {
+    outline: none;
+    box-shadow: none;
+  }
+
+  input,
+  textarea,
+  select,
+  [role="combobox"] {
+    box-shadow: none;
+  }
+}

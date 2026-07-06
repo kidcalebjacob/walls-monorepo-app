@@ -1,0 +1,27 @@
+{
+  "name": "@walls/auth",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts",
+    "./context": "./src/AuthContext.tsx",
+    "./provider": "./src/AuthProvider.tsx",
+    "./client": "./src/supabase-client.ts"
+  },
+  "scripts": {
+    "lint": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.49.8",
+    "@walls/supabase": "workspace:*"
+  },
+  "devDependencies": {
+    "@types/react": "^19",
+    "typescript": "^5"
+  },
+  "peerDependencies": {
+    "react": ">=18.0.0",
+    "react-dom": ">=18.0.0"
+  }
+}

@@ -1,0 +1,36 @@
+# dependencies
+node_modules
+.pnp
+.pnp.*
+
+# build outputs
+.next
+out
+dist
+build
+.turbo
+
+# env (root .env holds secrets — use .env.example as template)
+.env
+.env.local
+.env.*.local
+
+# debug
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# generated db introspection (run pnpm db:schema to refresh)
+packages/supabase/generated.json
+
+# misc
+.DS_Store
+*.pem
+*.tsbuildinfo
+
+# vercel
+.vercel
+
+# typescript
+next-env.d.ts

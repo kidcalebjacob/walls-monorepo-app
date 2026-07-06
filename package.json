@@ -1,0 +1,17 @@
+{
+  "name": "walls-monorepo",
+  "private": true,
+  "packageManager": "pnpm@10.12.1",
+  "scripts": {
+    "dev": "turbo dev",
+    "dev:public": "turbo dev --filter=public-site",
+    "dev:adpilot": "turbo dev --filter=adpilot",
+    "build": "turbo build",
+    "lint": "turbo lint",
+    "start": "turbo start",
+    "db:schema": "pnpm --filter @walls/supabase db:schema"
+  },
+  "devDependencies": {
+    "turbo": "^2.5.4"
+  }
+}
