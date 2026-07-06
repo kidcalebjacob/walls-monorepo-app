@@ -4,6 +4,7 @@ import { NextResponse, type NextRequest } from "next/server";
 
 import { isMfaSecondFactorPending } from "./mfa-assurance";
 import { buildPortalLoginUrl, normalizePortalOrigin } from "./portal-url";
+import { safeAuthReturnUrl } from "./post-login-redirect";
 
 export interface ProtectedAppMiddlewareOptions {
   /** Routes that skip auth (default: none). */
@@ -31,19 +32,25 @@ function redirectToPortalLogin(
   request: NextRequest,
   portalLoginUrl?: string,
 ): NextResponse {
+  const returnUrl = safeAuthReturnUrl(
+    request.nextUrl.href,
+    request.nextUrl.origin,
+    request.nextUrl.pathname,
+  );
+
   const configuredOrigin = portalLoginUrl
     ? normalizePortalOrigin(portalLoginUrl)
     : null;
 
   if (configuredOrigin && configuredOrigin !== request.nextUrl.origin) {
     const override = new URL("/login", configuredOrigin);
-    override.searchParams.set("redirect", request.nextUrl.href);
+    override.searchParams.set("redirect", returnUrl);
     return NextResponse.redirect(override);
   }
 
   return NextResponse.redirect(
     buildPortalLoginUrl(request.nextUrl.origin, {
-      redirect: request.nextUrl.href,
+      redirect: returnUrl,
     }),
   );
 }

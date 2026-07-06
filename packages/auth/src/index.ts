@@ -31,4 +31,5 @@ export {
   isAllowedPostLoginRedirect,
   navigateAfterLogin,
   resolvePostLoginRedirect,
+  sanitizePostLoginRedirect,
 } from "./post-login-redirect";

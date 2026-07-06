@@ -12,6 +12,7 @@ import {
   getVerifiedTotpFactor,
   isMfaSecondFactorPending,
   isTotpMfaSecondFactorPending,
+  sanitizePostLoginRedirect,
 } from "@walls/auth";
 import { Button } from "@walls/ui/button";
 import { Input } from "@walls/ui/input";
@@ -52,6 +53,25 @@ function LoginPageContent() {
   const mfaInputRef = React.useRef<HTMLInputElement>(null);
   const mfaFactorIdRef = React.useRef<string | null>(null);
   const mfaFlowActiveRef = React.useRef(false);
+  const autoRedirectStartedRef = React.useRef(false);
+
+  React.useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const raw = params.get("redirect");
+    if (!raw) return;
+
+    const sanitized = sanitizePostLoginRedirect(raw);
+    if (sanitized === raw) return;
+
+    if (sanitized) {
+      params.set("redirect", sanitized);
+    } else {
+      params.delete("redirect");
+    }
+
+    const query = params.toString();
+    window.history.replaceState({}, "", `/login${query ? `?${query}` : ""}`);
+  }, []);
 
   React.useEffect(() => {
     redirectAfterLoginRef.current = redirectAfterLogin;
@@ -114,6 +134,9 @@ function LoginPageContent() {
         await supabase.auth.signOut();
         return;
       }
+
+      if (autoRedirectStartedRef.current) return;
+      autoRedirectStartedRef.current = true;
 
       setTimeout(() => {
         redirectAfterLoginRef.current();

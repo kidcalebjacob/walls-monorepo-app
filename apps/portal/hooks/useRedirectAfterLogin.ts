@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { getSupabaseClient, navigateAfterLogin } from "@walls/auth";
 
 import { useRedirectParam } from "./useRedirectParam";
+import { getDefaultPostLoginUrl } from "@/lib/default-app-url";
 
 export function useRedirectAfterLogin() {
   const router = useRouter();
@@ -39,7 +40,7 @@ export function useRedirectAfterLogin() {
         .eq("id", user.id)
         .single();
 
-      let redirectPath = "/";
+      let redirectPath = getDefaultPostLoginUrl();
 
       if (userData) {
         const platform = userData.user_platform as
@@ -56,7 +57,7 @@ export function useRedirectAfterLogin() {
       navigateAfterLogin(null, redirectPath, router);
     } catch (error) {
       console.error("Error during redirect:", error);
-      navigateAfterLogin(null, "/", router);
+      navigateAfterLogin(null, getDefaultPostLoginUrl(), router);
     }
   }, [redirect, router]);
 }

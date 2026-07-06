@@ -1,3 +1,5 @@
+import { sanitizePostLoginRedirect } from "./post-login-redirect";
+
 const DEFAULT_DEV_PORTAL_ORIGIN = "http://localhost:3002";
 const DEFAULT_PROD_PORTAL_ORIGIN = "https://portal.walls.agency";
 
@@ -58,7 +60,10 @@ export function buildPortalLoginUrl(
   const loginUrl = new URL("/login", resolvePortalLoginOrigin(currentAppOrigin));
 
   if (options?.redirect) {
-    loginUrl.searchParams.set("redirect", options.redirect);
+    const safeRedirect = sanitizePostLoginRedirect(options.redirect);
+    if (safeRedirect) {
+      loginUrl.searchParams.set("redirect", safeRedirect);
+    }
   }
   if (options?.logout) {
     loginUrl.searchParams.set("logout", "1");
