@@ -37,15 +37,20 @@ export default function RootLayout({
       data-app="adpilot"
       className={`${geistSans.variable} ${geistMono.variable} h-full bg-background antialiased`}
     >
-      <body className="min-h-full bg-walls-white text-foreground">
-        <div className="overscroll-none">
+      <body className="h-screen overflow-hidden bg-walls-white text-foreground">
+        <div className="h-full overscroll-none overflow-hidden">
           <Providers>
-            <PrivateAppChrome
-              dashboardPath="/"
-              settingsPath="/settings"
-              documentationPath="/documentation"
-            />
-            <AppSidebarLayout>{children}</AppSidebarLayout>
+            <AppSidebarLayout
+              chrome={
+                <PrivateAppChrome
+                  dashboardPath="/"
+                  settingsPath="/settings"
+                  documentationPath="/documentation"
+                />
+              }
+            >
+              {children}
+            </AppSidebarLayout>
           </Providers>
         </div>
       </body>
