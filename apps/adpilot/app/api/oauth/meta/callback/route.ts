@@ -11,8 +11,9 @@ import {
   fetchMetaAdAccounts,
   getAdpilotBaseUrl,
 } from "@/lib/meta-oauth";
-
 import { META_OAUTH_STATE_COOKIE } from "@/lib/start-meta-oauth";
+
+export async function GET(request: NextRequest) {
   const baseUrl = getAdpilotBaseUrl();
   const settingsUrl = new URL("/settings", baseUrl);
 
