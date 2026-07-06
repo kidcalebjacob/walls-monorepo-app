@@ -1,10 +1,12 @@
-import type { User } from "@supabase/supabase-js";
-import { createServerClient } from "@supabase/ssr";
+import type { SupabaseClient, User } from "@supabase/supabase-js";
 import { NextResponse, type NextRequest } from "next/server";
 
 import { isMfaSecondFactorPending } from "./mfa-assurance";
+import { createMiddlewareSupabaseClient } from "./middleware-supabase";
 import { buildPortalLoginUrl, normalizePortalOrigin } from "./portal-url";
 import { safeAuthReturnUrl } from "./post-login-redirect";
+
+export { createMiddlewareSupabaseClient } from "./middleware-supabase";
 
 export interface ProtectedAppMiddlewareOptions {
   /** Routes that skip auth (default: none). */
@@ -56,7 +58,7 @@ function redirectToPortalLogin(
 }
 
 async function isUserAuthenticated(
-  supabase: ReturnType<typeof createServerClient>,
+  supabase: SupabaseClient,
   user: User | null,
 ): Promise<boolean> {
   if (!user) return false;
@@ -69,7 +71,7 @@ async function isUserAuthenticated(
 }
 
 async function userHasAppAccess(
-  supabase: ReturnType<typeof createServerClient>,
+  supabase: SupabaseClient,
   userId: string,
   appSlug: string,
 ): Promise<boolean> {
@@ -120,23 +122,7 @@ export async function handleProtectedAppRequest(
     },
   });
 
-  const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
-      cookies: {
-        get(name: string) {
-          return request.cookies.get(name)?.value;
-        },
-        set(name: string, value: string, cookieOptions: Record<string, unknown>) {
-          response.cookies.set({ name, value, ...cookieOptions });
-        },
-        remove(name: string, cookieOptions: Record<string, unknown>) {
-          response.cookies.set({ name, value: "", ...cookieOptions });
-        },
-      },
-    },
-  );
+  const supabase = createMiddlewareSupabaseClient(request, response);
 
   try {
     const {

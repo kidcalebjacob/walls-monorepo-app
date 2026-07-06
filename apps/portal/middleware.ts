@@ -1,5 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server";
-import { createServerClient } from "@supabase/ssr";
+
+import { createMiddlewareSupabaseClient } from "@walls/auth/middleware";
 
 const PUBLIC_PATHS = ["/login", "/reset-password"];
 
@@ -14,32 +15,15 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(new URL("/login", request.url));
   }
 
-  // Refresh auth cookies on public auth pages without a network round-trip.
+  // Refresh auth cookies on public auth pages (with shared .walls.agency domain).
   let response = NextResponse.next({
     request: {
       headers: request.headers,
     },
   });
 
-  const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
-      cookies: {
-        get(name: string) {
-          return request.cookies.get(name)?.value;
-        },
-        set(name: string, value: string, options: Record<string, unknown>) {
-          response.cookies.set({ name, value, ...options });
-        },
-        remove(name: string, options: Record<string, unknown>) {
-          response.cookies.set({ name, value: "", ...options });
-        },
-      },
-    },
-  );
-
-  await supabase.auth.getSession();
+  const supabase = createMiddlewareSupabaseClient(request, response);
+  await supabase.auth.getUser();
 
   return response;
 }

@@ -1,6 +1,7 @@
 import { createServerClient, type SetAllCookies } from "@supabase/ssr";
 import { cookies } from "next/headers";
 
+import { mergeSupabaseCookieOptions } from "./cookies";
 import { getSupabaseEnv } from "./env";
 
 export async function createClient() {
@@ -8,6 +9,7 @@ export async function createClient() {
   const cookieStore = await cookies();
 
   return createServerClient(url, anonKey, {
+    cookieOptions: mergeSupabaseCookieOptions(),
     cookies: {
       getAll() {
         return cookieStore.getAll();
@@ -15,7 +17,7 @@ export async function createClient() {
       setAll(cookiesToSet: Parameters<SetAllCookies>[0]) {
         try {
           cookiesToSet.forEach(({ name, value, options }) => {
-            cookieStore.set(name, value, options);
+            cookieStore.set(name, value, mergeSupabaseCookieOptions(options));
           });
         } catch {
           // Called from a Server Component — middleware handles session refresh.

@@ -7,7 +7,8 @@
     "./client": "./src/client.ts",
     "./server": "./src/server.ts",
     "./admin": "./src/admin.ts",
-    "./env": "./src/env.ts"
+    "./env": "./src/env.ts",
+    "./cookies": "./src/cookies.ts"
   },
   "scripts": {
     "lint": "tsc --noEmit",

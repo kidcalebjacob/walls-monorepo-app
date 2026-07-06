@@ -159,7 +159,13 @@ Redirects go to `NEXT_PUBLIC_WALLS_AGENCY_URL/login?redirect=<full return URL>` 
 
 ### Production SSO
 
-Configure Supabase auth cookies for your parent domain (e.g. `.walls.agency`) so a session from the portal is visible on `adpilot.walls.agency`. Set in **`.env.local`** (dev) or Vercel / **`.env`** (production):
+Configure Supabase auth cookies for your parent domain so a portal login is visible on `adpilot.walls.agency`:
+
+```bash
+SUPABASE_AUTH_COOKIE_DOMAIN=.walls.agency
+```
+
+Also set in **`.env.local`** (dev) or Vercel / **`.env`** (production) on **both portal and AdPilot** projects:
 
 - `NEXT_PUBLIC_WALLS_AGENCY_URL` — portal origin (`https://portal.walls.agency` in production)
 - `NEXT_PUBLIC_ADPILOT_URL` — AdPilot origin (for safe post-login redirects)
