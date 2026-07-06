@@ -8,10 +8,14 @@ export {
 } from "./AuthContext";
 export { AuthProvider, type AuthProviderProps } from "./AuthProvider";
 export { getSupabaseClient } from "./supabase-client";
+export { logoutToPortal } from "./logout";
 export {
   getAuthenticatorAssuranceFromVerifiedUser,
+  getVerifiedTotpFactor,
   isMfaSecondFactorPending,
+  isTotpMfaSecondFactorPending,
   type MfaAssuranceUser,
+  type MfaFactor,
 } from "./mfa-assurance";
 export {
   handleProtectedAppRequest,

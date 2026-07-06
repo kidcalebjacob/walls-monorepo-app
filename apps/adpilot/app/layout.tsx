@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 
 import { createWallsMetadata } from "@walls/config/metadata";
+import { PrivateAppChrome } from "@walls/ui/private-app-chrome";
 import { AppSidebar } from "@/components/app-sidebar";
 import { Providers } from "@/components/providers";
 
@@ -39,7 +40,12 @@ export default function RootLayout({
       <body className="flex min-h-full bg-background text-foreground">
         <Providers>
           <AppSidebar />
-          <div className="flex min-h-full flex-1 flex-col bg-background">
+          <div className="relative flex min-h-full flex-1 flex-col bg-walls-white">
+            <PrivateAppChrome
+              dashboardPath="/"
+              settingsPath="/settings"
+              documentationPath="/documentation"
+            />
             {children}
           </div>
         </Providers>

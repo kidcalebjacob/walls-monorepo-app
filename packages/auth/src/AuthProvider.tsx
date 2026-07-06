@@ -232,16 +232,30 @@ export const AuthProvider: React.FunctionComponent<AuthProviderProps> = ({
   React.useEffect(() => {
     const supabase = getSupabaseClient();
 
-    supabase.auth.getUser().then(({ data: { user: u }, error: userError }) => {
-      const verifiedUser = userError ? null : (u ?? null);
-      setUser(verifiedUser);
+    const clearUnauthenticatedState = () => {
+      setUser(null);
       setIsLoading(false);
-      if (verifiedUser?.id) {
-        loadProfile(verifiedUser.id, verifiedUser.email ?? undefined);
-      } else {
-        setProfile(null);
-        setProfileLoading(false);
+      setProfile(null);
+      setProfileLoading(false);
+    };
+
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (!session) {
+        clearUnauthenticatedState();
+        return;
       }
+
+      supabase.auth.getUser().then(({ data: { user: u }, error: userError }) => {
+        const verifiedUser = userError ? null : (u ?? null);
+        setUser(verifiedUser);
+        setIsLoading(false);
+        if (verifiedUser?.id) {
+          loadProfile(verifiedUser.id, verifiedUser.email ?? undefined);
+        } else {
+          setProfile(null);
+          setProfileLoading(false);
+        }
+      });
     });
 
     const {
@@ -251,7 +265,10 @@ export const AuthProvider: React.FunctionComponent<AuthProviderProps> = ({
         localStorage.setItem("authToken", session.access_token);
       } else {
         localStorage.removeItem("authToken");
+        clearUnauthenticatedState();
+        return;
       }
+
       supabase.auth.getUser().then(({ data: { user: u }, error: userError }) => {
         const verifiedUser = userError ? null : (u ?? null);
         setUser(verifiedUser);

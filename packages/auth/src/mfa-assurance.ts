@@ -3,9 +3,23 @@
  * (avoids Supabase insecure-session warning on server).
  */
 
-export type MfaAssuranceUser = {
-  factors?: Array<{ status?: string }> | null;
+export type MfaFactor = {
+  id: string;
+  factor_type?: string;
+  status?: string;
 };
+
+export type MfaAssuranceUser = {
+  factors?: MfaFactor[] | null;
+};
+
+export function getVerifiedTotpFactor(
+  user: MfaAssuranceUser,
+): MfaFactor | undefined {
+  return user.factors?.find(
+    (factor) => factor.factor_type === "totp" && factor.status === "verified",
+  );
+}
 
 function decodeJwtPayload(accessToken: string): Record<string, unknown> | null {
   try {
@@ -51,4 +65,13 @@ export function isMfaSecondFactorPending(
   const aal = getAuthenticatorAssuranceFromVerifiedUser(user, accessToken);
   if (!aal) return false;
   return aal.nextLevel === "aal2" && aal.currentLevel !== "aal2";
+}
+
+/** True when the user must complete TOTP before the session reaches aal2. */
+export function isTotpMfaSecondFactorPending(
+  user: MfaAssuranceUser,
+  accessToken: string | null | undefined,
+): boolean {
+  if (!getVerifiedTotpFactor(user)) return false;
+  return isMfaSecondFactorPending(user, accessToken);
 }

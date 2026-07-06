@@ -16,8 +16,51 @@ const publicEnv = {
   NEXT_PUBLIC_ADPILOT_APP_SLUG: process.env.NEXT_PUBLIC_ADPILOT_APP_SLUG,
 };
 
+const supabaseHostname = (() => {
+  const url = publicEnv.NEXT_PUBLIC_SUPABASE_URL;
+  if (!url) return null;
+  try {
+    return new URL(url).hostname;
+  } catch {
+    return null;
+  }
+})();
+
 const nextConfig: NextConfig = {
   env: publicEnv,
+  images: {
+    remotePatterns: [
+      {
+        protocol: "https",
+        hostname: "assets.wallsentertainment.com",
+        pathname: "/**",
+      },
+      ...(supabaseHostname
+        ? [
+            {
+              protocol: "https" as const,
+              hostname: supabaseHostname,
+              pathname: "/storage/v1/object/public/**",
+            },
+          ]
+        : []),
+      {
+        protocol: "https",
+        hostname: "**.supabase.co",
+        pathname: "/storage/v1/object/public/**",
+      },
+      {
+        protocol: "https",
+        hostname: "firebasestorage.googleapis.com",
+        pathname: "/**",
+      },
+      {
+        protocol: "https",
+        hostname: "storage.googleapis.com",
+        pathname: "/**",
+      },
+    ],
+  },
   transpilePackages: [
     "@walls/auth",
     "@walls/config",

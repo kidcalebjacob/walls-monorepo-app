@@ -7,7 +7,12 @@ import { motion } from "framer-motion";
 import Image from "next/image";
 import Link from "next/link";
 
-import { getSupabaseClient, isMfaSecondFactorPending } from "@walls/auth";
+import {
+  getSupabaseClient,
+  getVerifiedTotpFactor,
+  isMfaSecondFactorPending,
+  isTotpMfaSecondFactorPending,
+} from "@walls/auth";
 import { Button } from "@walls/ui/button";
 import { Input } from "@walls/ui/input";
 import { Separator } from "@walls/ui/separator";
@@ -28,22 +33,47 @@ export default function LoginPage() {
   const [imageLoaded, setImageLoaded] = React.useState(false);
   const [shouldSlideOut, setShouldSlideOut] = React.useState(false);
   const [isDesktop, setIsDesktop] = React.useState(false);
-  const redirectAfterLogin = useRedirectAfterLogin();
-
   const [needsMfaVerification, setNeedsMfaVerification] = React.useState(false);
   const [mfaCode, setMfaCode] = React.useState("");
   const [mfaError, setMfaError] = React.useState<string | null>(null);
   const [mfaVerifying, setMfaVerifying] = React.useState(false);
   const [mfaInputFocused, setMfaInputFocused] = React.useState(false);
+
+  const redirectAfterLogin = useRedirectAfterLogin();
+  const redirectAfterLoginRef = React.useRef(redirectAfterLogin);
   const mfaInputRef = React.useRef<HTMLInputElement>(null);
+  const mfaFactorIdRef = React.useRef<string | null>(null);
+  const mfaFlowActiveRef = React.useRef(false);
+
+  React.useEffect(() => {
+    redirectAfterLoginRef.current = redirectAfterLogin;
+  }, [redirectAfterLogin]);
+
+  const beginMfaVerification = React.useCallback((factorId: string) => {
+    const alreadyActive =
+      mfaFlowActiveRef.current && mfaFactorIdRef.current === factorId;
+
+    mfaFlowActiveRef.current = true;
+    mfaFactorIdRef.current = factorId;
+    setNeedsMfaVerification(true);
+
+    if (!alreadyActive) {
+      setMfaError(null);
+      setMfaCode("");
+    }
+  }, []);
+
+  const resetMfaVerification = React.useCallback(() => {
+    mfaFlowActiveRef.current = false;
+    mfaFactorIdRef.current = null;
+    setNeedsMfaVerification(false);
+    setMfaCode("");
+    setMfaError(null);
+  }, []);
 
   React.useEffect(() => {
     const checkAuth = async () => {
       const supabase = getSupabaseClient();
-      const {
-        data: { user: authUser },
-        error,
-      } = await supabase.auth.getUser();
 
       if (window.location.search.includes("logout")) {
         localStorage.removeItem("authToken");
@@ -52,43 +82,70 @@ export default function LoginPage() {
         return;
       }
 
-      if (!authUser || error) return;
-
       const {
         data: { session },
       } = await supabase.auth.getSession();
-      if (isMfaSecondFactorPending(authUser, session?.access_token)) {
+      if (!session) return;
+
+      const {
+        data: { user: authUser },
+        error,
+      } = await supabase.auth.getUser();
+      if (error || !authUser) return;
+
+      if (isTotpMfaSecondFactorPending(authUser, session.access_token)) {
+        const totpFactor = getVerifiedTotpFactor(authUser);
+        if (totpFactor?.id) {
+          beginMfaVerification(totpFactor.id);
+        }
+        return;
+      }
+
+      if (isMfaSecondFactorPending(authUser, session.access_token)) {
         localStorage.removeItem("authToken");
         await supabase.auth.signOut();
         return;
       }
 
       setTimeout(() => {
-        redirectAfterLogin();
+        redirectAfterLoginRef.current();
       }, 100);
     };
 
-    checkAuth();
-  }, [redirectAfterLogin]);
+    void checkAuth();
+    // Only run once on mount — redirectAfterLogin is read via ref.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   React.useEffect(() => {
-    if (hasLogged || needsMfaVerification) return;
+    if (hasLogged || needsMfaVerification || mfaFlowActiveRef.current) return;
+
+    let cancelled = false;
+
     const clearIncompleteMfaSession = async () => {
       const supabase = getSupabaseClient();
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+      if (!session || cancelled || mfaFlowActiveRef.current) return;
+
       const {
         data: { user: authUser },
         error,
       } = await supabase.auth.getUser();
-      if (error || !authUser) return;
-      const {
-        data: { session },
-      } = await supabase.auth.getSession();
-      if (isMfaSecondFactorPending(authUser, session?.access_token)) {
+      if (error || !authUser || cancelled || mfaFlowActiveRef.current) return;
+
+      if (isMfaSecondFactorPending(authUser, session.access_token)) {
         localStorage.removeItem("authToken");
         await supabase.auth.signOut();
       }
     };
-    clearIncompleteMfaSession();
+
+    void clearIncompleteMfaSession();
+
+    return () => {
+      cancelled = true;
+    };
   }, [hasLogged, needsMfaVerification]);
 
   React.useEffect(() => {
@@ -191,10 +248,15 @@ export default function LoginPage() {
         return;
       }
 
-      if (isMfaSecondFactorPending(data.user, data.session?.access_token)) {
-        setNeedsMfaVerification(true);
-        setMfaError(null);
-        setMfaCode("");
+      if (isTotpMfaSecondFactorPending(data.user, data.session?.access_token)) {
+        const totpFactor = getVerifiedTotpFactor(data.user);
+        if (!totpFactor?.id) {
+          setError("Two-factor authentication is required but no authenticator is configured.");
+          await supabase.auth.signOut();
+          return;
+        }
+
+        beginMfaVerification(totpFactor.id);
         return;
       }
 
@@ -222,40 +284,63 @@ export default function LoginPage() {
 
       try {
         const supabase = getSupabaseClient();
-        const { data: factorsData, error: factorsError } =
-          await supabase.auth.mfa.listFactors();
+        const {
+          data: { session },
+        } = await supabase.auth.getSession();
 
-        if (factorsError || !factorsData?.totp?.length) {
+        if (!session) {
+          resetMfaVerification();
+          setMfaError("Your session expired. Please sign in again.");
+          return;
+        }
+
+        let factorId = mfaFactorIdRef.current;
+        if (!factorId) {
+          const totpFactor = getVerifiedTotpFactor(
+            (await supabase.auth.getUser()).data.user ?? {},
+          );
+          factorId = totpFactor?.id ?? null;
+        }
+
+        if (!factorId) {
+          const { data: factorsData, error: factorsError } =
+            await supabase.auth.mfa.listFactors();
+
+          if (factorsError || !factorsData?.totp?.length) {
+            resetMfaVerification();
+            setMfaError("Unable to verify. Please sign in again.");
+            return;
+          }
+
+          factorId = factorsData.totp[0]?.id ?? null;
+        }
+
+        if (!factorId) {
+          resetMfaVerification();
           setMfaError("Unable to verify. Please sign in again.");
           return;
         }
 
-        const totpFactor = factorsData.totp[0];
-        const { data: challengeData, error: challengeError } =
-          await supabase.auth.mfa.challenge({
-            factorId: totpFactor.id,
+        const { data: verifyData, error: verifyError } =
+          await supabase.auth.mfa.challengeAndVerify({
+            factorId,
+            code,
           });
-
-        if (challengeError || !challengeData?.id) {
-          setMfaError(
-            challengeError?.message ?? "Verification failed. Please try again.",
-          );
-          return;
-        }
-
-        const { error: verifyError } = await supabase.auth.mfa.verify({
-          factorId: totpFactor.id,
-          challengeId: challengeData.id,
-          code,
-        });
 
         if (verifyError) {
           setMfaError(verifyError.message);
           return;
         }
 
+        mfaFlowActiveRef.current = false;
+        mfaFactorIdRef.current = null;
         setNeedsMfaVerification(false);
-        await completeLoginSuccess(supabase);
+        await completeLoginSuccess(
+          supabase,
+          verifyData
+            ? { access_token: verifyData.access_token }
+            : session,
+        );
       } catch (err) {
         setMfaError(
           err instanceof Error
@@ -266,7 +351,7 @@ export default function LoginPage() {
         setMfaVerifying(false);
       }
     },
-    [mfaCode, completeLoginSuccess],
+    [completeLoginSuccess, mfaCode, resetMfaVerification],
   );
 
   return (
@@ -290,10 +375,8 @@ export default function LoginPage() {
         <div className="absolute top-4 left-4 pl-6">
           <Button
             onClick={() => {
-              setNeedsMfaVerification(false);
-              setMfaCode("");
-              setMfaError(null);
-              getSupabaseClient().auth.signOut();
+              resetMfaVerification();
+              void getSupabaseClient().auth.signOut();
             }}
             variant="ghost"
             className="group flex items-center gap-2 text-black hover:bg-transparent hover:text-black transition-colors"

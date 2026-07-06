@@ -16,6 +16,8 @@
   --border: #e8e8e8;
   --input: #e8e8e8;
   --ring-offset-background: var(--walls-white);
+  --popover: var(--walls-white);
+  --popover-foreground: #0a0a0a;
 }
 
 @theme inline {
@@ -29,6 +31,10 @@
   --color-border: #e8e8e8;
   --color-input: #e8e8e8;
   --color-ring-offset-background: var(--walls-white);
+  --color-popover: var(--walls-white);
+  --color-popover-foreground: #0a0a0a;
+  --color-walls-blue: var(--walls-blue);
+  --color-walls-yellow: var(--walls-yellow);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 }

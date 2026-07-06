@@ -1,9 +1,6 @@
 import { type NextRequest } from "next/server";
 
-import {
-  handleProtectedAppRequest,
-  protectedAppMiddlewareMatcher,
-} from "@walls/auth/middleware";
+import { handleProtectedAppRequest } from "@walls/auth/middleware";
 
 export async function middleware(request: NextRequest) {
   return handleProtectedAppRequest(request, {
@@ -12,5 +9,7 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: protectedAppMiddlewareMatcher,
+  matcher: [
+    "/((?!_next/static|_next/image|favicon.ico|icon.svg|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico)$).*)",
+  ],
 };

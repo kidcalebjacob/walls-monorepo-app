@@ -19,6 +19,10 @@
     "./scroll-reveal": "./src/components/scroll-reveal.tsx",
     "./separator": "./src/components/separator.tsx",
     "./avatar": "./src/components/avatar.tsx",
+    "./dropdown-menu": "./src/components/dropdown-menu.tsx",
+    "./skeleton": "./src/components/skeleton.tsx",
+    "./user-profile-button": "./src/components/user-profile-button.tsx",
+    "./private-app-chrome": "./src/components/private-app-chrome.tsx",
     "./lib/utils": "./src/lib/utils.ts",
     "./utils": "./src/lib/utils.ts"
   },
@@ -28,13 +32,17 @@
   "dependencies": {
     "@radix-ui/react-avatar": "^1.1.10",
     "@radix-ui/react-dialog": "^1.1.14",
+    "@radix-ui/react-dropdown-menu": "^2.1.15",
+    "@radix-ui/react-portal": "^1.1.13",
     "@radix-ui/react-select": "^2.1.1",
     "@radix-ui/react-separator": "^1.1.7",
     "@radix-ui/react-slot": "^1.2.3",
+    "@walls/auth": "workspace:*",
     "@walls/utils": "workspace:*",
     "class-variance-authority": "^0.7.1",
     "framer-motion": "^12.16.0",
     "lucide-react": "^0.511.0",
+    "react-loading-hook": "^1.1.2",
     "sonner": "^2.0.1"
   },
   "devDependencies": {
@@ -42,6 +50,8 @@
     "typescript": "^5"
   },
   "peerDependencies": {
+    "@walls/auth": "workspace:*",
+    "next": ">=14.0.0",
     "react": ">=18.0.0",
     "react-dom": ">=18.0.0"
   }

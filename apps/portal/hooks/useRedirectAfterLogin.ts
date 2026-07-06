@@ -1,3 +1,4 @@
+import * as React from "react";
 import { useRouter } from "next/navigation";
 
 import { getSupabaseClient, navigateAfterLogin } from "@walls/auth";
@@ -8,7 +9,7 @@ export function useRedirectAfterLogin() {
   const router = useRouter();
   const redirect = useRedirectParam();
 
-  return async function redirectAfterLogin() {
+  return React.useCallback(async function redirectAfterLogin() {
     try {
       const supabase = getSupabaseClient();
       const {
@@ -57,5 +58,5 @@ export function useRedirectAfterLogin() {
       console.error("Error during redirect:", error);
       navigateAfterLogin(null, "/", router);
     }
-  };
+  }, [redirect, router]);
 }

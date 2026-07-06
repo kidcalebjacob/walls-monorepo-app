@@ -130,10 +130,7 @@ Every non-public app should use `@walls/auth/middleware` so unauthenticated user
 ```ts
 // apps/<internal-app>/middleware.ts
 import { type NextRequest } from "next/server";
-import {
-  handleProtectedAppRequest,
-  protectedAppMiddlewareMatcher,
-} from "@walls/auth/middleware";
+import { handleProtectedAppRequest } from "@walls/auth/middleware";
 
 export async function middleware(request: NextRequest) {
   return handleProtectedAppRequest(request, {
@@ -141,7 +138,12 @@ export async function middleware(request: NextRequest) {
   });
 }
 
-export const config = { matcher: protectedAppMiddlewareMatcher };
+// matcher must be inlined — Next.js cannot parse imported config values
+export const config = {
+  matcher: [
+    "/((?!_next/static|_next/image|favicon.ico|icon.svg|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico)$).*)",
+  ],
+};
 ```
 
 The middleware checks:
