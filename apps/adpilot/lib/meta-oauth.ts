@@ -4,7 +4,6 @@ export const META_AD_SCOPES = [
   "ads_read",
   "ads_management",
   "business_management",
-  "read_insights",
 ] as const;
 
 export function getAdpilotBaseUrl(): string {

@@ -168,7 +168,6 @@ export function SettingsPage() {
                       <li>ads_read</li>
                       <li>ads_management</li>
                       <li>business_management</li>
-                      <li>read_insights</li>
                     </ul>
                     <Button
                       asChild
