@@ -110,7 +110,7 @@ function ResizableHeader({
   return (
     <th
       className={cn(
-        "relative bg-walls-white pb-3 pr-4 text-left text-xs font-medium tracking-wide whitespace-nowrap text-neutral-400 uppercase select-none",
+        "relative bg-walls-white py-3 pr-4 text-left text-xs font-medium tracking-wide whitespace-nowrap text-neutral-400 uppercase select-none",
         indented && "pl-3",
       )}
       style={{ width }}
@@ -119,7 +119,7 @@ function ResizableHeader({
       <button
         type="button"
         aria-label={`Resize ${label} column`}
-        className="absolute top-0 right-0 z-20 h-full w-3 cursor-col-resize touch-none border-none bg-transparent p-0 after:absolute after:inset-y-2 after:right-1 after:w-px after:bg-neutral-200 hover:after:bg-neutral-400"
+        className="absolute top-1/2 right-0 z-20 h-4 w-3 -translate-y-1/2 cursor-col-resize touch-none border-none bg-transparent p-0 after:absolute after:top-1/2 after:right-1 after:h-3.5 after:w-px after:-translate-y-1/2 after:bg-neutral-200 hover:after:bg-neutral-400"
         onMouseDown={(event) => {
           event.preventDefault();
           onResizeStart(columnId, event.clientX);
