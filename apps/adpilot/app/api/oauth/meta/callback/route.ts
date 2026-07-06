@@ -1,10 +1,12 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { cookies } from "next/headers";
+import { after } from "next/server";
 
 import {
   getCurrentUserId,
   upsertMetaConnections,
 } from "@/lib/connections-server";
+import { syncMetaConnectionsForUser } from "@/lib/meta-sync";
 import {
   exchangeMetaCodeForToken,
   exchangeMetaForLongLivedToken,
@@ -67,7 +69,16 @@ export async function GET(request: NextRequest) {
       adAccounts,
     });
 
+    after(async () => {
+      try {
+        await syncMetaConnectionsForUser(userId);
+      } catch (syncError) {
+        console.error("[adpilot] Meta sync after OAuth:", syncError);
+      }
+    });
+
     settingsUrl.searchParams.set("connected", "meta");
+    settingsUrl.searchParams.set("syncing", "1");
     return NextResponse.redirect(settingsUrl);
   } catch (err) {
     console.error("[adpilot] Meta OAuth callback:", err);

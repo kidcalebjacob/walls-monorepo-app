@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-07-06T22:34:51.532Z",
+  "generatedAt": "2026-07-06T22:43:02.006Z",
   "source": "packages/supabase/scripts/dump-schema.mjs",
   "schemasIncluded": [
     "public",
@@ -7,11 +7,11 @@
     "storage"
   ],
   "summary": {
-    "tables": 184,
+    "tables": 188,
     "views": 1,
     "materializedViews": 6,
     "enums": 26,
-    "columns": 1818
+    "columns": 1876
   },
   "schemas": {
     "public": {
@@ -188,6 +188,969 @@
             {
               "name": "access_keys_pkey",
               "definition": "CREATE UNIQUE INDEX access_keys_pkey ON public.access_keys USING btree (id)"
+            }
+          ],
+          "rls": {
+            "enabled": false,
+            "forced": false
+          },
+          "policies": []
+        },
+        "ad_account_settings": {
+          "type": "BASE TABLE",
+          "columns": [
+            {
+              "name": "id",
+              "position": 1,
+              "dataType": "uuid",
+              "udtName": "uuid",
+              "nullable": false,
+              "default": "gen_random_uuid()",
+              "maxLength": null,
+              "numericPrecision": null,
+              "numericScale": null
+            },
+            {
+              "name": "created_at",
+              "position": 2,
+              "dataType": "timestamp with time zone",
+              "udtName": "timestamptz",
+              "nullable": false,
+              "default": "now()",
+              "maxLength": null,
+              "numericPrecision": null,
+              "numericScale": null
+            },
+            {
+              "name": "updated_at",
+              "position": 3,
+              "dataType": "timestamp with time zone",
+              "udtName": "timestamptz",
+              "nullable": true,
+              "default": null,
+              "maxLength": null,
+              "numericPrecision": null,
+              "numericScale": null
+            },
+            {
+              "name": "user_connection_id",
+              "position": 4,
+              "dataType": "uuid",
+              "udtName": "uuid",
+              "nullable": false,
+              "default": null,
+              "maxLength": null,
+              "numericPrecision": null,
+              "numericScale": null
+            },
+            {
+              "name": "user_id",
+              "position": 5,
+              "dataType": "uuid",
+              "udtName": "uuid",
+              "nullable": false,
+              "default": null,
+              "maxLength": null,
+              "numericPrecision": null,
+              "numericScale": null
+            },
+            {
+              "name": "settings",
+              "position": 6,
+              "dataType": "jsonb",
+              "udtName": "jsonb",
+              "nullable": false,
+              "default": "'{}'::jsonb",
+              "maxLength": null,
+              "numericPrecision": null,
+              "numericScale": null
+            }
+          ],
+          "primaryKey": [
+            "id"
+          ],
+          "foreignKeys": [
+            {
+              "name": "ad_account_settings_user_connection_id_fkey",
+              "columns": [
+                "user_connection_id"
+              ],
+              "references": {
+                "schema": "public",
+                "table": "user_connections",
+                "columns": [
+                  "id"
+                ]
+              },
+              "onUpdate": "NO ACTION",
+              "onDelete": "CASCADE"
+            },
+            {
+              "name": "ad_account_settings_user_id_fkey",
+              "columns": [
+                "user_id"
+              ],
+              "references": {
+                "schema": "public",
+                "table": "users",
+                "columns": [
+                  "id"
+                ]
+              },
+              "onUpdate": "NO ACTION",
+              "onDelete": "CASCADE"
+            }
+          ],
+          "uniqueConstraints": [
+            {
+              "name": "ad_account_settings_user_connection_id_key",
+              "columns": [
+                "user_connection_id"
+              ]
+            }
+          ],
+          "indexes": [
+            {
+              "name": "ad_account_settings_pkey",
+              "definition": "CREATE UNIQUE INDEX ad_account_settings_pkey ON public.ad_account_settings USING btree (id)"
+            },
+            {
+              "name": "ad_account_settings_user_connection_id_key",
+              "definition": "CREATE UNIQUE INDEX ad_account_settings_user_connection_id_key ON public.ad_account_settings USING btree (user_connection_id)"
+            },
+            {
+              "name": "ad_account_settings_user_idx",
+              "definition": "CREATE INDEX ad_account_settings_user_idx ON public.ad_account_settings USING btree (user_id)"
+            }
+          ],
+          "rls": {
+            "enabled": false,
+            "forced": false
+          },
+          "policies": []
+        },
+        "ad_entities": {
+          "type": "BASE TABLE",
+          "columns": [
+            {
+              "name": "id",
+              "position": 1,
+              "dataType": "uuid",
+              "udtName": "uuid",
+              "nullable": false,
+              "default": "gen_random_uuid()",
+              "maxLength": null,
+              "numericPrecision": null,
+              "numericScale": null
+            },
+            {
+              "name": "created_at",
+              "position": 2,
+              "dataType": "timestamp with time zone",
+              "udtName": "timestamptz",
+              "nullable": false,
+              "default": "now()",
+              "maxLength": null,
+              "numericPrecision": null,
+              "numericScale": null
+            },
+            {
+              "name": "updated_at",
+              "position": 3,
+              "dataType": "timestamp with time zone",
+              "udtName": "timestamptz",
+              "nullable": true,
+              "default": null,
+              "maxLength": null,
+              "numericPrecision": null,
+              "numericScale": null
+            },
+            {
+              "name": "user_id",
+              "position": 4,
+              "dataType": "uuid",
+              "udtName": "uuid",
+              "nullable": false,
+              "default": null,
+              "maxLength": null,
+              "numericPrecision": null,
+              "numericScale": null
+            },
+            {
+              "name": "user_connection_id",
+              "position": 5,
+              "dataType": "uuid",
+              "udtName": "uuid",
+              "nullable": false,
+              "default": null,
+              "maxLength": null,
+              "numericPrecision": null,
+              "numericScale": null
+            },
+            {
+              "name": "provider",
+              "position": 6,
+              "dataType": "text",
+              "udtName": "text",
+              "nullable": false,
+              "default": null,
+              "maxLength": null,
+              "numericPrecision": null,
+              "numericScale": null
+            },
+            {
+              "name": "entity_type",
+              "position": 7,
+              "dataType": "text",
+              "udtName": "text",
+              "nullable": false,
+              "default": null,
+              "maxLength": null,
+              "numericPrecision": null,
+              "numericScale": null
+            },
+            {
+              "name": "provider_entity_id",
+              "position": 8,
+              "dataType": "text",
+              "udtName": "text",
+              "nullable": false,
+              "default": null,
+              "maxLength": null,
+              "numericPrecision": null,
+              "numericScale": null
+            },
+            {
+              "name": "parent_id",
+              "position": 9,
+              "dataType": "uuid",
+              "udtName": "uuid",
+              "nullable": true,
+              "default": null,
+              "maxLength": null,
+              "numericPrecision": null,
+              "numericScale": null
+            },
+            {
+              "name": "name",
+              "position": 10,
+              "dataType": "text",
+              "udtName": "text",
+              "nullable": true,
+              "default": null,
+              "maxLength": null,
+              "numericPrecision": null,
+              "numericScale": null
+            },
+            {
+              "name": "status",
+              "position": 11,
+              "dataType": "text",
+              "udtName": "text",
+              "nullable": true,
+              "default": null,
+              "maxLength": null,
+              "numericPrecision": null,
+              "numericScale": null
+            },
+            {
+              "name": "objective",
+              "position": 12,
+              "dataType": "text",
+              "udtName": "text",
+              "nullable": true,
+              "default": null,
+              "maxLength": null,
+              "numericPrecision": null,
+              "numericScale": null
+            },
+            {
+              "name": "currency_code",
+              "position": 13,
+              "dataType": "text",
+              "udtName": "text",
+              "nullable": true,
+              "default": "'USD'::text",
+              "maxLength": null,
+              "numericPrecision": null,
+              "numericScale": null
+            },
+            {
+              "name": "daily_budget_micros",
+              "position": 14,
+              "dataType": "bigint",
+              "udtName": "int8",
+              "nullable": true,
+              "default": null,
+              "maxLength": null,
+              "numericPrecision": 64,
+              "numericScale": 0
+            },
+            {
+              "name": "lifetime_budget_micros",
+              "position": 15,
+              "dataType": "bigint",
+              "udtName": "int8",
+              "nullable": true,
+              "default": null,
+              "maxLength": null,
+              "numericPrecision": 64,
+              "numericScale": 0
+            },
+            {
+              "name": "start_date",
+              "position": 16,
+              "dataType": "date",
+              "udtName": "date",
+              "nullable": true,
+              "default": null,
+              "maxLength": null,
+              "numericPrecision": null,
+              "numericScale": null
+            },
+            {
+              "name": "end_date",
+              "position": 17,
+              "dataType": "date",
+              "udtName": "date",
+              "nullable": true,
+              "default": null,
+              "maxLength": null,
+              "numericPrecision": null,
+              "numericScale": null
+            },
+            {
+              "name": "raw_payload",
+              "position": 18,
+              "dataType": "jsonb",
+              "udtName": "jsonb",
+              "nullable": false,
+              "default": "'{}'::jsonb",
+              "maxLength": null,
+              "numericPrecision": null,
+              "numericScale": null
+            },
+            {
+              "name": "last_synced_at",
+              "position": 19,
+              "dataType": "timestamp with time zone",
+              "udtName": "timestamptz",
+              "nullable": true,
+              "default": null,
+              "maxLength": null,
+              "numericPrecision": null,
+              "numericScale": null
+            }
+          ],
+          "primaryKey": [
+            "id"
+          ],
+          "foreignKeys": [
+            {
+              "name": "ad_entities_parent_id_fkey",
+              "columns": [
+                "parent_id"
+              ],
+              "references": {
+                "schema": "public",
+                "table": "ad_entities",
+                "columns": [
+                  "id"
+                ]
+              },
+              "onUpdate": "NO ACTION",
+              "onDelete": "CASCADE"
+            },
+            {
+              "name": "ad_entities_user_connection_id_fkey",
+              "columns": [
+                "user_connection_id"
+              ],
+              "references": {
+                "schema": "public",
+                "table": "user_connections",
+                "columns": [
+                  "id"
+                ]
+              },
+              "onUpdate": "NO ACTION",
+              "onDelete": "CASCADE"
+            },
+            {
+              "name": "ad_entities_user_id_fkey",
+              "columns": [
+                "user_id"
+              ],
+              "references": {
+                "schema": "public",
+                "table": "users",
+                "columns": [
+                  "id"
+                ]
+              },
+              "onUpdate": "NO ACTION",
+              "onDelete": "CASCADE"
+            }
+          ],
+          "uniqueConstraints": [
+            {
+              "name": "ad_entities_unique_provider_entity",
+              "columns": [
+                "user_connection_id",
+                "entity_type",
+                "provider_entity_id"
+              ]
+            }
+          ],
+          "indexes": [
+            {
+              "name": "ad_entities_connection_idx",
+              "definition": "CREATE INDEX ad_entities_connection_idx ON public.ad_entities USING btree (user_connection_id)"
+            },
+            {
+              "name": "ad_entities_parent_idx",
+              "definition": "CREATE INDEX ad_entities_parent_idx ON public.ad_entities USING btree (parent_id)"
+            },
+            {
+              "name": "ad_entities_pkey",
+              "definition": "CREATE UNIQUE INDEX ad_entities_pkey ON public.ad_entities USING btree (id)"
+            },
+            {
+              "name": "ad_entities_provider_type_idx",
+              "definition": "CREATE INDEX ad_entities_provider_type_idx ON public.ad_entities USING btree (provider, entity_type)"
+            },
+            {
+              "name": "ad_entities_status_idx",
+              "definition": "CREATE INDEX ad_entities_status_idx ON public.ad_entities USING btree (status) WHERE (status IS NOT NULL)"
+            },
+            {
+              "name": "ad_entities_unique_provider_entity",
+              "definition": "CREATE UNIQUE INDEX ad_entities_unique_provider_entity ON public.ad_entities USING btree (user_connection_id, entity_type, provider_entity_id)"
+            },
+            {
+              "name": "ad_entities_user_id_idx",
+              "definition": "CREATE INDEX ad_entities_user_id_idx ON public.ad_entities USING btree (user_id)"
+            }
+          ],
+          "rls": {
+            "enabled": false,
+            "forced": false
+          },
+          "policies": []
+        },
+        "ad_metrics_daily": {
+          "type": "BASE TABLE",
+          "columns": [
+            {
+              "name": "id",
+              "position": 1,
+              "dataType": "uuid",
+              "udtName": "uuid",
+              "nullable": false,
+              "default": "gen_random_uuid()",
+              "maxLength": null,
+              "numericPrecision": null,
+              "numericScale": null
+            },
+            {
+              "name": "created_at",
+              "position": 2,
+              "dataType": "timestamp with time zone",
+              "udtName": "timestamptz",
+              "nullable": false,
+              "default": "now()",
+              "maxLength": null,
+              "numericPrecision": null,
+              "numericScale": null
+            },
+            {
+              "name": "updated_at",
+              "position": 3,
+              "dataType": "timestamp with time zone",
+              "udtName": "timestamptz",
+              "nullable": true,
+              "default": null,
+              "maxLength": null,
+              "numericPrecision": null,
+              "numericScale": null
+            },
+            {
+              "name": "user_id",
+              "position": 4,
+              "dataType": "uuid",
+              "udtName": "uuid",
+              "nullable": false,
+              "default": null,
+              "maxLength": null,
+              "numericPrecision": null,
+              "numericScale": null
+            },
+            {
+              "name": "user_connection_id",
+              "position": 5,
+              "dataType": "uuid",
+              "udtName": "uuid",
+              "nullable": false,
+              "default": null,
+              "maxLength": null,
+              "numericPrecision": null,
+              "numericScale": null
+            },
+            {
+              "name": "entity_id",
+              "position": 6,
+              "dataType": "uuid",
+              "udtName": "uuid",
+              "nullable": false,
+              "default": null,
+              "maxLength": null,
+              "numericPrecision": null,
+              "numericScale": null
+            },
+            {
+              "name": "metric_date",
+              "position": 7,
+              "dataType": "date",
+              "udtName": "date",
+              "nullable": false,
+              "default": null,
+              "maxLength": null,
+              "numericPrecision": null,
+              "numericScale": null
+            },
+            {
+              "name": "impressions",
+              "position": 8,
+              "dataType": "bigint",
+              "udtName": "int8",
+              "nullable": false,
+              "default": "0",
+              "maxLength": null,
+              "numericPrecision": 64,
+              "numericScale": 0
+            },
+            {
+              "name": "clicks",
+              "position": 9,
+              "dataType": "bigint",
+              "udtName": "int8",
+              "nullable": false,
+              "default": "0",
+              "maxLength": null,
+              "numericPrecision": 64,
+              "numericScale": 0
+            },
+            {
+              "name": "spend_micros",
+              "position": 10,
+              "dataType": "bigint",
+              "udtName": "int8",
+              "nullable": false,
+              "default": "0",
+              "maxLength": null,
+              "numericPrecision": 64,
+              "numericScale": 0
+            },
+            {
+              "name": "reach",
+              "position": 11,
+              "dataType": "bigint",
+              "udtName": "int8",
+              "nullable": true,
+              "default": null,
+              "maxLength": null,
+              "numericPrecision": 64,
+              "numericScale": 0
+            },
+            {
+              "name": "frequency",
+              "position": 12,
+              "dataType": "numeric",
+              "udtName": "numeric",
+              "nullable": true,
+              "default": null,
+              "maxLength": null,
+              "numericPrecision": 12,
+              "numericScale": 4
+            },
+            {
+              "name": "conversions",
+              "position": 13,
+              "dataType": "numeric",
+              "udtName": "numeric",
+              "nullable": false,
+              "default": "0",
+              "maxLength": null,
+              "numericPrecision": 14,
+              "numericScale": 4
+            },
+            {
+              "name": "conversion_value_micros",
+              "position": 14,
+              "dataType": "bigint",
+              "udtName": "int8",
+              "nullable": false,
+              "default": "0",
+              "maxLength": null,
+              "numericPrecision": 64,
+              "numericScale": 0
+            },
+            {
+              "name": "video_views",
+              "position": 15,
+              "dataType": "bigint",
+              "udtName": "int8",
+              "nullable": true,
+              "default": null,
+              "maxLength": null,
+              "numericPrecision": 64,
+              "numericScale": 0
+            },
+            {
+              "name": "link_clicks",
+              "position": 16,
+              "dataType": "bigint",
+              "udtName": "int8",
+              "nullable": true,
+              "default": null,
+              "maxLength": null,
+              "numericPrecision": 64,
+              "numericScale": 0
+            },
+            {
+              "name": "ctr",
+              "position": 17,
+              "dataType": "numeric",
+              "udtName": "numeric",
+              "nullable": true,
+              "default": null,
+              "maxLength": null,
+              "numericPrecision": 8,
+              "numericScale": 4
+            },
+            {
+              "name": "cpc_micros",
+              "position": 18,
+              "dataType": "bigint",
+              "udtName": "int8",
+              "nullable": true,
+              "default": null,
+              "maxLength": null,
+              "numericPrecision": 64,
+              "numericScale": 0
+            },
+            {
+              "name": "cpm_micros",
+              "position": 19,
+              "dataType": "bigint",
+              "udtName": "int8",
+              "nullable": true,
+              "default": null,
+              "maxLength": null,
+              "numericPrecision": 64,
+              "numericScale": 0
+            },
+            {
+              "name": "roas",
+              "position": 20,
+              "dataType": "numeric",
+              "udtName": "numeric",
+              "nullable": true,
+              "default": null,
+              "maxLength": null,
+              "numericPrecision": 12,
+              "numericScale": 4
+            },
+            {
+              "name": "extra_metrics",
+              "position": 21,
+              "dataType": "jsonb",
+              "udtName": "jsonb",
+              "nullable": false,
+              "default": "'{}'::jsonb",
+              "maxLength": null,
+              "numericPrecision": null,
+              "numericScale": null
+            }
+          ],
+          "primaryKey": [
+            "id"
+          ],
+          "foreignKeys": [
+            {
+              "name": "ad_metrics_daily_entity_id_fkey",
+              "columns": [
+                "entity_id"
+              ],
+              "references": {
+                "schema": "public",
+                "table": "ad_entities",
+                "columns": [
+                  "id"
+                ]
+              },
+              "onUpdate": "NO ACTION",
+              "onDelete": "CASCADE"
+            },
+            {
+              "name": "ad_metrics_daily_user_connection_id_fkey",
+              "columns": [
+                "user_connection_id"
+              ],
+              "references": {
+                "schema": "public",
+                "table": "user_connections",
+                "columns": [
+                  "id"
+                ]
+              },
+              "onUpdate": "NO ACTION",
+              "onDelete": "CASCADE"
+            },
+            {
+              "name": "ad_metrics_daily_user_id_fkey",
+              "columns": [
+                "user_id"
+              ],
+              "references": {
+                "schema": "public",
+                "table": "users",
+                "columns": [
+                  "id"
+                ]
+              },
+              "onUpdate": "NO ACTION",
+              "onDelete": "CASCADE"
+            }
+          ],
+          "uniqueConstraints": [
+            {
+              "name": "ad_metrics_daily_unique_entity_date",
+              "columns": [
+                "entity_id",
+                "metric_date"
+              ]
+            }
+          ],
+          "indexes": [
+            {
+              "name": "ad_metrics_daily_connection_date_idx",
+              "definition": "CREATE INDEX ad_metrics_daily_connection_date_idx ON public.ad_metrics_daily USING btree (user_connection_id, metric_date DESC)"
+            },
+            {
+              "name": "ad_metrics_daily_entity_date_idx",
+              "definition": "CREATE INDEX ad_metrics_daily_entity_date_idx ON public.ad_metrics_daily USING btree (entity_id, metric_date DESC)"
+            },
+            {
+              "name": "ad_metrics_daily_pkey",
+              "definition": "CREATE UNIQUE INDEX ad_metrics_daily_pkey ON public.ad_metrics_daily USING btree (id)"
+            },
+            {
+              "name": "ad_metrics_daily_unique_entity_date",
+              "definition": "CREATE UNIQUE INDEX ad_metrics_daily_unique_entity_date ON public.ad_metrics_daily USING btree (entity_id, metric_date)"
+            },
+            {
+              "name": "ad_metrics_daily_user_date_idx",
+              "definition": "CREATE INDEX ad_metrics_daily_user_date_idx ON public.ad_metrics_daily USING btree (user_id, metric_date DESC)"
+            }
+          ],
+          "rls": {
+            "enabled": false,
+            "forced": false
+          },
+          "policies": []
+        },
+        "ad_sync_state": {
+          "type": "BASE TABLE",
+          "columns": [
+            {
+              "name": "id",
+              "position": 1,
+              "dataType": "uuid",
+              "udtName": "uuid",
+              "nullable": false,
+              "default": "gen_random_uuid()",
+              "maxLength": null,
+              "numericPrecision": null,
+              "numericScale": null
+            },
+            {
+              "name": "created_at",
+              "position": 2,
+              "dataType": "timestamp with time zone",
+              "udtName": "timestamptz",
+              "nullable": false,
+              "default": "now()",
+              "maxLength": null,
+              "numericPrecision": null,
+              "numericScale": null
+            },
+            {
+              "name": "updated_at",
+              "position": 3,
+              "dataType": "timestamp with time zone",
+              "udtName": "timestamptz",
+              "nullable": true,
+              "default": null,
+              "maxLength": null,
+              "numericPrecision": null,
+              "numericScale": null
+            },
+            {
+              "name": "user_connection_id",
+              "position": 4,
+              "dataType": "uuid",
+              "udtName": "uuid",
+              "nullable": false,
+              "default": null,
+              "maxLength": null,
+              "numericPrecision": null,
+              "numericScale": null
+            },
+            {
+              "name": "user_id",
+              "position": 5,
+              "dataType": "uuid",
+              "udtName": "uuid",
+              "nullable": false,
+              "default": null,
+              "maxLength": null,
+              "numericPrecision": null,
+              "numericScale": null
+            },
+            {
+              "name": "sync_status",
+              "position": 6,
+              "dataType": "text",
+              "udtName": "text",
+              "nullable": false,
+              "default": "'idle'::text",
+              "maxLength": null,
+              "numericPrecision": null,
+              "numericScale": null
+            },
+            {
+              "name": "entity_cursor",
+              "position": 7,
+              "dataType": "jsonb",
+              "udtName": "jsonb",
+              "nullable": false,
+              "default": "'{}'::jsonb",
+              "maxLength": null,
+              "numericPrecision": null,
+              "numericScale": null
+            },
+            {
+              "name": "insights_cursor",
+              "position": 8,
+              "dataType": "jsonb",
+              "udtName": "jsonb",
+              "nullable": false,
+              "default": "'{}'::jsonb",
+              "maxLength": null,
+              "numericPrecision": null,
+              "numericScale": null
+            },
+            {
+              "name": "last_full_sync_at",
+              "position": 9,
+              "dataType": "timestamp with time zone",
+              "udtName": "timestamptz",
+              "nullable": true,
+              "default": null,
+              "maxLength": null,
+              "numericPrecision": null,
+              "numericScale": null
+            },
+            {
+              "name": "last_incremental_sync_at",
+              "position": 10,
+              "dataType": "timestamp with time zone",
+              "udtName": "timestamptz",
+              "nullable": true,
+              "default": null,
+              "maxLength": null,
+              "numericPrecision": null,
+              "numericScale": null
+            },
+            {
+              "name": "last_insights_sync_at",
+              "position": 11,
+              "dataType": "timestamp with time zone",
+              "udtName": "timestamptz",
+              "nullable": true,
+              "default": null,
+              "maxLength": null,
+              "numericPrecision": null,
+              "numericScale": null
+            },
+            {
+              "name": "last_error",
+              "position": 12,
+              "dataType": "text",
+              "udtName": "text",
+              "nullable": true,
+              "default": null,
+              "maxLength": null,
+              "numericPrecision": null,
+              "numericScale": null
+            }
+          ],
+          "primaryKey": [
+            "id"
+          ],
+          "foreignKeys": [
+            {
+              "name": "ad_sync_state_user_connection_id_fkey",
+              "columns": [
+                "user_connection_id"
+              ],
+              "references": {
+                "schema": "public",
+                "table": "user_connections",
+                "columns": [
+                  "id"
+                ]
+              },
+              "onUpdate": "NO ACTION",
+              "onDelete": "CASCADE"
+            },
+            {
+              "name": "ad_sync_state_user_id_fkey",
+              "columns": [
+                "user_id"
+              ],
+              "references": {
+                "schema": "public",
+                "table": "users",
+                "columns": [
+                  "id"
+                ]
+              },
+              "onUpdate": "NO ACTION",
+              "onDelete": "CASCADE"
+            }
+          ],
+          "uniqueConstraints": [
+            {
+              "name": "ad_sync_state_user_connection_id_key",
+              "columns": [
+                "user_connection_id"
+              ]
+            }
+          ],
+          "indexes": [
+            {
+              "name": "ad_sync_state_pkey",
+              "definition": "CREATE UNIQUE INDEX ad_sync_state_pkey ON public.ad_sync_state USING btree (id)"
+            },
+            {
+              "name": "ad_sync_state_user_connection_id_key",
+              "definition": "CREATE UNIQUE INDEX ad_sync_state_user_connection_id_key ON public.ad_sync_state USING btree (user_connection_id)"
+            },
+            {
+              "name": "ad_sync_state_user_idx",
+              "definition": "CREATE INDEX ad_sync_state_user_idx ON public.ad_sync_state USING btree (user_id)"
             }
           ],
           "rls": {

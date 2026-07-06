@@ -7,6 +7,7 @@ import {
   META_EMPTY_REFRESH_TOKEN,
   META_PROVIDER,
   META_SERVICE,
+  type MetaConnectionRecord,
   type SafeUserConnection,
 } from "@/lib/connections";
 
@@ -37,6 +38,27 @@ export async function listSafeConnectionsForUser(
   }
 
   return (data ?? []) as SafeUserConnection[];
+}
+
+export async function listMetaConnectionsWithTokens(
+  userId: string,
+): Promise<MetaConnectionRecord[]> {
+  const admin = createAdminClient();
+  const { data, error } = await admin
+    .from("user_connections")
+    .select("id, user_id, account_id, access_token, token_payload")
+    .eq("user_id", userId)
+    .eq("provider", META_PROVIDER)
+    .eq("service", META_SERVICE)
+    .is("revoked_at", null)
+    .not("account_id", "is", null);
+
+  if (error) {
+    console.error("[adpilot] list meta connections with tokens:", error);
+    return [];
+  }
+
+  return (data ?? []) as MetaConnectionRecord[];
 }
 
 function hashScopes(scopes: string): string {
