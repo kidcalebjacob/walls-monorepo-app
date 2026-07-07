@@ -220,9 +220,9 @@ export function CampaignsPage() {
     : "All accounts";
 
   return (
-    <div className="flex min-h-full flex-col bg-walls-white">
-      <div className="flex flex-1 flex-col px-6 py-8 md:px-10 md:py-10">
-        <div className="mb-6">
+    <div className="flex h-full min-h-0 flex-col bg-walls-white">
+      <div className="flex min-h-0 flex-1 flex-col px-6 pt-8 pb-6 md:px-10 md:pt-10">
+        <div className="mb-6 shrink-0">
           <SegmentToggle
             equalWidth
             aria-label="Campaign entity type"
@@ -244,7 +244,7 @@ export function CampaignsPage() {
           />
         </div>
 
-        <div className="mb-5 flex flex-wrap items-center gap-3">
+        <div className="mb-5 flex shrink-0 flex-wrap items-center gap-3">
           <div className="flex min-w-0 flex-1 flex-wrap items-center gap-4">
             <div className="relative min-w-0 max-w-sm flex-1">
               <Search className="absolute left-0 top-1/2 h-4 w-4 -translate-y-1/2 text-neutral-400" />
@@ -380,16 +380,17 @@ export function CampaignsPage() {
           ) : null}
         </div>
 
-        <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
-          <SectionLabel>Performance — Last 30 days</SectionLabel>
-          {entityType !== "campaign" ? (
-            <span className="text-[11px] font-light uppercase tracking-wider text-neutral-400">
-              Sorted by active · performance
-            </span>
-          ) : null}
-        </div>
+        <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
+          <div className="mb-2 flex shrink-0 flex-wrap items-center justify-between gap-2">
+            <SectionLabel>Performance — Last 30 days</SectionLabel>
+            {entityType !== "campaign" ? (
+              <span className="text-[11px] font-light uppercase tracking-wider text-neutral-400">
+                Sorted by active · performance
+              </span>
+            ) : null}
+          </div>
 
-        <div className="min-h-0 flex-1 overflow-x-auto overflow-y-auto pb-8 scrollbar-hide">
+          <div className="min-h-0 flex-1 overflow-auto scrollbar-hide">
           <table
             className="w-full table-fixed text-sm"
             style={{ minWidth: tableMinWidth }}
@@ -521,6 +522,7 @@ export function CampaignsPage() {
               )}
             </tbody>
           </table>
+          </div>
         </div>
       </div>
     </div>

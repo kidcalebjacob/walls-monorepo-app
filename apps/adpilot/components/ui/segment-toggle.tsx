@@ -41,7 +41,7 @@ export function SegmentToggle<T extends string>({
       className={cn(
         "shrink-0 whitespace-nowrap rounded-full border border-neutral-200/70 bg-neutral-50/50 p-0.5",
         equalWidth
-          ? cn("grid gap-0.5", options.length === 3 ? "w-[19.5rem] grid-cols-3" : "w-[12.25rem] grid-cols-2")
+          ? cn("grid gap-0.5", options.length === 3 ? "w-[22.5rem] grid-cols-3" : "w-[12.25rem] grid-cols-2")
           : "flex w-max items-center gap-0.5",
         className,
       )}

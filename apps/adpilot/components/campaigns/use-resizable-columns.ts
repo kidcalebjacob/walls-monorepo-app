@@ -33,11 +33,17 @@ export function useResizableColumns(
   defaults: WidthMap,
   storageKey: string,
 ) {
-  const [widths, setWidths] = React.useState<WidthMap>(() =>
-    loadWidths(storageKey, defaults),
-  );
+  const [widths, setWidths] = React.useState<WidthMap>(defaults);
+  const hasLoadedFromStorage = React.useRef(false);
 
   React.useEffect(() => {
+    setWidths(loadWidths(storageKey, defaults));
+    hasLoadedFromStorage.current = true;
+  }, [storageKey, defaults]);
+
+  React.useEffect(() => {
+    if (!hasLoadedFromStorage.current) return;
+
     try {
       window.localStorage.setItem(storageKey, JSON.stringify(widths));
     } catch {
