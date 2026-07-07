@@ -21,7 +21,7 @@ Future apps (e.g. `agents.walls.agency`) will live under `apps/`.
 | ------------------- | ------------------- | ------------------------------------------------------- |
 | **@walls/utils**    | `packages/utils`    | Shared helpers (`cn`, `extractDomain`, `validateEmail`) |
 | **@walls/auth**     | `packages/auth`     | Shared Supabase auth context + provider                 |
-| **@walls/supabase** | `packages/supabase` | Shared Supabase browser + server clients                |
+| **@walls/supabase** | `packages/supabase` | Shared Supabase clients, migrations, schema snapshot (`generated.json`) — see [packages/supabase/README.md](packages/supabase/README.md) |
 | **@walls/ui**       | `packages/ui`       | Shared UI components (Shadcn-style)                     |
 
 
@@ -88,7 +88,7 @@ Dev servers use **webpack** (`next dev --webpack`) instead of Turbopack. Turbopa
 | `pnpm dev:portal`  | Run only the agency portal (port 3002)         |
 | `pnpm build`       | Build all apps                                 |
 | `pnpm lint`        | Lint all apps and packages                     |
-| `pnpm db:schema` | Refresh `packages/supabase/generated.json` from Postgres |
+| `pnpm db:schema` | Refresh `packages/supabase/generated.json` from live Postgres — [full guide](packages/supabase/README.md#pull-the-latest-database-schema) |
 | `pnpm sync:icons` | Copy shared WALLS favicon into each app (skips apps with a custom `app/icon.*` or `app/favicon.ico`) |
 
 
@@ -104,6 +104,8 @@ Dev servers use **webpack** (`next dev --webpack`) instead of Turbopack. Turbopa
 
 
 ## Supabase usage
+
+**Schema snapshot:** After applying migrations in Supabase, run `pnpm db:schema` from the repo root to update `packages/supabase/generated.json`. Setup (connection string, troubleshooting): **[packages/supabase/README.md](packages/supabase/README.md)**.
 
 ```ts
 // Client Component

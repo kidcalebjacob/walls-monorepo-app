@@ -1,7 +1,9 @@
 import { createClient } from "@walls/supabase/server";
 
 import { META_PROVIDER } from "@/lib/connections";
-import { isSalesObjective } from "@/lib/meta-objectives";
+import { isSalesObjective, formatObjectiveLabel } from "@/lib/meta-objectives";
+
+import type { AutomationStatus } from "@/lib/spend-automation-settings";
 
 export type CampaignEntityType = "campaign" | "ad_group" | "ad";
 
@@ -12,6 +14,7 @@ export type EntityPerformanceRow = {
   status: string | null;
   objective: string | null;
   accountName: string;
+  parentId: string | null;
   parentName: string | null;
   userConnectionId: string;
   spendMicros: number;
@@ -20,6 +23,8 @@ export type EntityPerformanceRow = {
   websitePurchases: number | null;
   conversionValueMicros: number;
   dailyBudgetMicros: number | null;
+  adpilotEnabled: boolean;
+  automationStatus: AutomationStatus | null;
   ctr: number;
   roas: number | null;
   lastSyncedAt: string | null;
@@ -319,13 +324,30 @@ export async function listCampaignPerformance(input: {
   }
 
   const entityIds = entityList.map((entity) => entity.id);
-  const { data: metrics } = await supabase
-    .from("ad_metrics_daily")
-    .select(
-      "entity_id, spend_micros, impressions, clicks, conversion_value_micros, website_purchases",
-    )
-    .in("entity_id", entityIds)
-    .gte("metric_date", currentStartIso);
+  const [{ data: metrics }, { data: automations }] = await Promise.all([
+    supabase
+      .from("ad_metrics_daily")
+      .select(
+        "entity_id, spend_micros, impressions, clicks, conversion_value_micros, website_purchases",
+      )
+      .in("entity_id", entityIds)
+      .gte("metric_date", currentStartIso),
+    supabase
+      .from("ad_entity_automation")
+      .select("entity_id, enabled, automation_status")
+      .in("entity_id", entityIds),
+  ]);
+
+  const automationByEntity = new Map<
+    string,
+    { enabled: boolean; status: AutomationStatus }
+  >();
+  for (const row of automations ?? []) {
+    automationByEntity.set(row.entity_id as string, {
+      enabled: Boolean(row.enabled),
+      status: row.automation_status as AutomationStatus,
+    });
+  }
 
   const metricsByEntity = new Map<string, MetricRecord[]>();
   for (const metric of (metrics ?? []) as MetricRecord[]) {
@@ -341,6 +363,7 @@ export async function listCampaignPerformance(input: {
       campaignObjectiveById,
       adGroupToCampaignId,
     );
+    const automation = automationByEntity.get(entity.id);
 
     return {
       id: entity.id,
@@ -350,6 +373,7 @@ export async function listCampaignPerformance(input: {
       objective: entity.objective,
       accountName:
         accountNameByConnection.get(entity.user_connection_id) ?? "Ad account",
+      parentId: entity.parent_id,
       parentName: entity.parent_id
         ? (parentNameById.get(entity.parent_id) ?? null)
         : null,
@@ -364,6 +388,8 @@ export async function listCampaignPerformance(input: {
         budgetByEntityId,
         adGroupToCampaignId,
       ),
+      adpilotEnabled: automation?.enabled ?? false,
+      automationStatus: automation?.status ?? null,
       ctr: totals.ctr,
       roas: totals.roas,
       lastSyncedAt: entity.last_synced_at,

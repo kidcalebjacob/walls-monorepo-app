@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-07-06T22:43:02.006Z",
+  "generatedAt": "2026-07-07T13:50:08.905Z",
   "source": "packages/supabase/scripts/dump-schema.mjs",
   "schemasIncluded": [
     "public",
@@ -7,11 +7,11 @@
     "storage"
   ],
   "summary": {
-    "tables": 188,
+    "tables": 191,
     "views": 1,
     "materializedViews": 6,
     "enums": 26,
-    "columns": 1876
+    "columns": 1915
   },
   "schemas": {
     "public": {
@@ -329,6 +329,394 @@
           },
           "policies": []
         },
+        "ad_automation_profiles": {
+          "type": "BASE TABLE",
+          "columns": [
+            {
+              "name": "id",
+              "position": 1,
+              "dataType": "uuid",
+              "udtName": "uuid",
+              "nullable": false,
+              "default": "gen_random_uuid()",
+              "maxLength": null,
+              "numericPrecision": null,
+              "numericScale": null
+            },
+            {
+              "name": "created_at",
+              "position": 2,
+              "dataType": "timestamp with time zone",
+              "udtName": "timestamptz",
+              "nullable": false,
+              "default": "now()",
+              "maxLength": null,
+              "numericPrecision": null,
+              "numericScale": null
+            },
+            {
+              "name": "updated_at",
+              "position": 3,
+              "dataType": "timestamp with time zone",
+              "udtName": "timestamptz",
+              "nullable": true,
+              "default": null,
+              "maxLength": null,
+              "numericPrecision": null,
+              "numericScale": null
+            },
+            {
+              "name": "user_id",
+              "position": 4,
+              "dataType": "uuid",
+              "udtName": "uuid",
+              "nullable": false,
+              "default": null,
+              "maxLength": null,
+              "numericPrecision": null,
+              "numericScale": null
+            },
+            {
+              "name": "name",
+              "position": 5,
+              "dataType": "text",
+              "udtName": "text",
+              "nullable": false,
+              "default": null,
+              "maxLength": null,
+              "numericPrecision": null,
+              "numericScale": null
+            },
+            {
+              "name": "description",
+              "position": 6,
+              "dataType": "text",
+              "udtName": "text",
+              "nullable": true,
+              "default": null,
+              "maxLength": null,
+              "numericPrecision": null,
+              "numericScale": null
+            },
+            {
+              "name": "is_default",
+              "position": 7,
+              "dataType": "boolean",
+              "udtName": "bool",
+              "nullable": false,
+              "default": "false",
+              "maxLength": null,
+              "numericPrecision": null,
+              "numericScale": null
+            },
+            {
+              "name": "optimization_goal",
+              "position": 8,
+              "dataType": "text",
+              "udtName": "text",
+              "nullable": false,
+              "default": "'roas'::text",
+              "maxLength": null,
+              "numericPrecision": null,
+              "numericScale": null
+            },
+            {
+              "name": "settings",
+              "position": 9,
+              "dataType": "jsonb",
+              "udtName": "jsonb",
+              "nullable": false,
+              "default": "'{}'::jsonb",
+              "maxLength": null,
+              "numericPrecision": null,
+              "numericScale": null
+            }
+          ],
+          "primaryKey": [
+            "id"
+          ],
+          "foreignKeys": [
+            {
+              "name": "ad_automation_profiles_user_id_fkey",
+              "columns": [
+                "user_id"
+              ],
+              "references": {
+                "schema": "public",
+                "table": "users",
+                "columns": [
+                  "id"
+                ]
+              },
+              "onUpdate": "NO ACTION",
+              "onDelete": "CASCADE"
+            }
+          ],
+          "uniqueConstraints": [],
+          "indexes": [
+            {
+              "name": "ad_automation_profiles_pkey",
+              "definition": "CREATE UNIQUE INDEX ad_automation_profiles_pkey ON public.ad_automation_profiles USING btree (id)"
+            },
+            {
+              "name": "ad_automation_profiles_user_default_idx",
+              "definition": "CREATE UNIQUE INDEX ad_automation_profiles_user_default_idx ON public.ad_automation_profiles USING btree (user_id) WHERE (is_default = true)"
+            },
+            {
+              "name": "ad_automation_profiles_user_idx",
+              "definition": "CREATE INDEX ad_automation_profiles_user_idx ON public.ad_automation_profiles USING btree (user_id)"
+            }
+          ],
+          "rls": {
+            "enabled": false,
+            "forced": false
+          },
+          "policies": []
+        },
+        "ad_budget_adjustments": {
+          "type": "BASE TABLE",
+          "columns": [
+            {
+              "name": "id",
+              "position": 1,
+              "dataType": "uuid",
+              "udtName": "uuid",
+              "nullable": false,
+              "default": "gen_random_uuid()",
+              "maxLength": null,
+              "numericPrecision": null,
+              "numericScale": null
+            },
+            {
+              "name": "created_at",
+              "position": 2,
+              "dataType": "timestamp with time zone",
+              "udtName": "timestamptz",
+              "nullable": false,
+              "default": "now()",
+              "maxLength": null,
+              "numericPrecision": null,
+              "numericScale": null
+            },
+            {
+              "name": "user_id",
+              "position": 3,
+              "dataType": "uuid",
+              "udtName": "uuid",
+              "nullable": false,
+              "default": null,
+              "maxLength": null,
+              "numericPrecision": null,
+              "numericScale": null
+            },
+            {
+              "name": "user_connection_id",
+              "position": 4,
+              "dataType": "uuid",
+              "udtName": "uuid",
+              "nullable": false,
+              "default": null,
+              "maxLength": null,
+              "numericPrecision": null,
+              "numericScale": null
+            },
+            {
+              "name": "entity_id",
+              "position": 5,
+              "dataType": "uuid",
+              "udtName": "uuid",
+              "nullable": false,
+              "default": null,
+              "maxLength": null,
+              "numericPrecision": null,
+              "numericScale": null
+            },
+            {
+              "name": "profile_id",
+              "position": 6,
+              "dataType": "uuid",
+              "udtName": "uuid",
+              "nullable": true,
+              "default": null,
+              "maxLength": null,
+              "numericPrecision": null,
+              "numericScale": null
+            },
+            {
+              "name": "previous_daily_budget_micros",
+              "position": 7,
+              "dataType": "bigint",
+              "udtName": "int8",
+              "nullable": true,
+              "default": null,
+              "maxLength": null,
+              "numericPrecision": 64,
+              "numericScale": 0
+            },
+            {
+              "name": "new_daily_budget_micros",
+              "position": 8,
+              "dataType": "bigint",
+              "udtName": "int8",
+              "nullable": true,
+              "default": null,
+              "maxLength": null,
+              "numericPrecision": 64,
+              "numericScale": 0
+            },
+            {
+              "name": "change_pct",
+              "position": 9,
+              "dataType": "numeric",
+              "udtName": "numeric",
+              "nullable": true,
+              "default": null,
+              "maxLength": null,
+              "numericPrecision": 8,
+              "numericScale": 4
+            },
+            {
+              "name": "optimization_goal",
+              "position": 10,
+              "dataType": "text",
+              "udtName": "text",
+              "nullable": true,
+              "default": null,
+              "maxLength": null,
+              "numericPrecision": null,
+              "numericScale": null
+            },
+            {
+              "name": "metric_snapshot",
+              "position": 11,
+              "dataType": "jsonb",
+              "udtName": "jsonb",
+              "nullable": false,
+              "default": "'{}'::jsonb",
+              "maxLength": null,
+              "numericPrecision": null,
+              "numericScale": null
+            },
+            {
+              "name": "decision_reason",
+              "position": 12,
+              "dataType": "text",
+              "udtName": "text",
+              "nullable": true,
+              "default": null,
+              "maxLength": null,
+              "numericPrecision": null,
+              "numericScale": null
+            },
+            {
+              "name": "provider_applied",
+              "position": 13,
+              "dataType": "boolean",
+              "udtName": "bool",
+              "nullable": false,
+              "default": "false",
+              "maxLength": null,
+              "numericPrecision": null,
+              "numericScale": null
+            },
+            {
+              "name": "provider_response",
+              "position": 14,
+              "dataType": "jsonb",
+              "udtName": "jsonb",
+              "nullable": true,
+              "default": null,
+              "maxLength": null,
+              "numericPrecision": null,
+              "numericScale": null
+            }
+          ],
+          "primaryKey": [
+            "id"
+          ],
+          "foreignKeys": [
+            {
+              "name": "ad_budget_adjustments_entity_id_fkey",
+              "columns": [
+                "entity_id"
+              ],
+              "references": {
+                "schema": "public",
+                "table": "ad_entities",
+                "columns": [
+                  "id"
+                ]
+              },
+              "onUpdate": "NO ACTION",
+              "onDelete": "CASCADE"
+            },
+            {
+              "name": "ad_budget_adjustments_profile_id_fkey",
+              "columns": [
+                "profile_id"
+              ],
+              "references": {
+                "schema": "public",
+                "table": "ad_automation_profiles",
+                "columns": [
+                  "id"
+                ]
+              },
+              "onUpdate": "NO ACTION",
+              "onDelete": "SET NULL"
+            },
+            {
+              "name": "ad_budget_adjustments_user_connection_id_fkey",
+              "columns": [
+                "user_connection_id"
+              ],
+              "references": {
+                "schema": "public",
+                "table": "user_connections",
+                "columns": [
+                  "id"
+                ]
+              },
+              "onUpdate": "NO ACTION",
+              "onDelete": "CASCADE"
+            },
+            {
+              "name": "ad_budget_adjustments_user_id_fkey",
+              "columns": [
+                "user_id"
+              ],
+              "references": {
+                "schema": "public",
+                "table": "users",
+                "columns": [
+                  "id"
+                ]
+              },
+              "onUpdate": "NO ACTION",
+              "onDelete": "CASCADE"
+            }
+          ],
+          "uniqueConstraints": [],
+          "indexes": [
+            {
+              "name": "ad_budget_adjustments_entity_created_idx",
+              "definition": "CREATE INDEX ad_budget_adjustments_entity_created_idx ON public.ad_budget_adjustments USING btree (entity_id, created_at DESC)"
+            },
+            {
+              "name": "ad_budget_adjustments_pkey",
+              "definition": "CREATE UNIQUE INDEX ad_budget_adjustments_pkey ON public.ad_budget_adjustments USING btree (id)"
+            },
+            {
+              "name": "ad_budget_adjustments_user_created_idx",
+              "definition": "CREATE INDEX ad_budget_adjustments_user_created_idx ON public.ad_budget_adjustments USING btree (user_id, created_at DESC)"
+            }
+          ],
+          "rls": {
+            "enabled": false,
+            "forced": false
+          },
+          "policies": []
+        },
         "ad_entities": {
           "type": "BASE TABLE",
           "columns": [
@@ -638,6 +1026,276 @@
           },
           "policies": []
         },
+        "ad_entity_automation": {
+          "type": "BASE TABLE",
+          "columns": [
+            {
+              "name": "id",
+              "position": 1,
+              "dataType": "uuid",
+              "udtName": "uuid",
+              "nullable": false,
+              "default": "gen_random_uuid()",
+              "maxLength": null,
+              "numericPrecision": null,
+              "numericScale": null
+            },
+            {
+              "name": "created_at",
+              "position": 2,
+              "dataType": "timestamp with time zone",
+              "udtName": "timestamptz",
+              "nullable": false,
+              "default": "now()",
+              "maxLength": null,
+              "numericPrecision": null,
+              "numericScale": null
+            },
+            {
+              "name": "updated_at",
+              "position": 3,
+              "dataType": "timestamp with time zone",
+              "udtName": "timestamptz",
+              "nullable": true,
+              "default": null,
+              "maxLength": null,
+              "numericPrecision": null,
+              "numericScale": null
+            },
+            {
+              "name": "user_id",
+              "position": 4,
+              "dataType": "uuid",
+              "udtName": "uuid",
+              "nullable": false,
+              "default": null,
+              "maxLength": null,
+              "numericPrecision": null,
+              "numericScale": null
+            },
+            {
+              "name": "user_connection_id",
+              "position": 5,
+              "dataType": "uuid",
+              "udtName": "uuid",
+              "nullable": false,
+              "default": null,
+              "maxLength": null,
+              "numericPrecision": null,
+              "numericScale": null
+            },
+            {
+              "name": "entity_id",
+              "position": 6,
+              "dataType": "uuid",
+              "udtName": "uuid",
+              "nullable": false,
+              "default": null,
+              "maxLength": null,
+              "numericPrecision": null,
+              "numericScale": null
+            },
+            {
+              "name": "enabled",
+              "position": 7,
+              "dataType": "boolean",
+              "udtName": "bool",
+              "nullable": false,
+              "default": "false",
+              "maxLength": null,
+              "numericPrecision": null,
+              "numericScale": null
+            },
+            {
+              "name": "profile_id",
+              "position": 8,
+              "dataType": "uuid",
+              "udtName": "uuid",
+              "nullable": true,
+              "default": null,
+              "maxLength": null,
+              "numericPrecision": null,
+              "numericScale": null
+            },
+            {
+              "name": "settings_override",
+              "position": 9,
+              "dataType": "jsonb",
+              "udtName": "jsonb",
+              "nullable": false,
+              "default": "'{}'::jsonb",
+              "maxLength": null,
+              "numericPrecision": null,
+              "numericScale": null
+            },
+            {
+              "name": "min_daily_budget_micros",
+              "position": 10,
+              "dataType": "bigint",
+              "udtName": "int8",
+              "nullable": true,
+              "default": null,
+              "maxLength": null,
+              "numericPrecision": 64,
+              "numericScale": 0
+            },
+            {
+              "name": "max_daily_budget_micros",
+              "position": 11,
+              "dataType": "bigint",
+              "udtName": "int8",
+              "nullable": true,
+              "default": null,
+              "maxLength": null,
+              "numericPrecision": 64,
+              "numericScale": 0
+            },
+            {
+              "name": "automation_status",
+              "position": 12,
+              "dataType": "text",
+              "udtName": "text",
+              "nullable": false,
+              "default": "'inactive'::text",
+              "maxLength": null,
+              "numericPrecision": null,
+              "numericScale": null
+            },
+            {
+              "name": "last_reviewed_at",
+              "position": 13,
+              "dataType": "timestamp with time zone",
+              "udtName": "timestamptz",
+              "nullable": true,
+              "default": null,
+              "maxLength": null,
+              "numericPrecision": null,
+              "numericScale": null
+            },
+            {
+              "name": "last_adjusted_at",
+              "position": 14,
+              "dataType": "timestamp with time zone",
+              "udtName": "timestamptz",
+              "nullable": true,
+              "default": null,
+              "maxLength": null,
+              "numericPrecision": null,
+              "numericScale": null
+            },
+            {
+              "name": "last_error",
+              "position": 15,
+              "dataType": "text",
+              "udtName": "text",
+              "nullable": true,
+              "default": null,
+              "maxLength": null,
+              "numericPrecision": null,
+              "numericScale": null
+            }
+          ],
+          "primaryKey": [
+            "id"
+          ],
+          "foreignKeys": [
+            {
+              "name": "ad_entity_automation_entity_id_fkey",
+              "columns": [
+                "entity_id"
+              ],
+              "references": {
+                "schema": "public",
+                "table": "ad_entities",
+                "columns": [
+                  "id"
+                ]
+              },
+              "onUpdate": "NO ACTION",
+              "onDelete": "CASCADE"
+            },
+            {
+              "name": "ad_entity_automation_profile_id_fkey",
+              "columns": [
+                "profile_id"
+              ],
+              "references": {
+                "schema": "public",
+                "table": "ad_automation_profiles",
+                "columns": [
+                  "id"
+                ]
+              },
+              "onUpdate": "NO ACTION",
+              "onDelete": "SET NULL"
+            },
+            {
+              "name": "ad_entity_automation_user_connection_id_fkey",
+              "columns": [
+                "user_connection_id"
+              ],
+              "references": {
+                "schema": "public",
+                "table": "user_connections",
+                "columns": [
+                  "id"
+                ]
+              },
+              "onUpdate": "NO ACTION",
+              "onDelete": "CASCADE"
+            },
+            {
+              "name": "ad_entity_automation_user_id_fkey",
+              "columns": [
+                "user_id"
+              ],
+              "references": {
+                "schema": "public",
+                "table": "users",
+                "columns": [
+                  "id"
+                ]
+              },
+              "onUpdate": "NO ACTION",
+              "onDelete": "CASCADE"
+            }
+          ],
+          "uniqueConstraints": [
+            {
+              "name": "ad_entity_automation_entity_id_key",
+              "columns": [
+                "entity_id"
+              ]
+            }
+          ],
+          "indexes": [
+            {
+              "name": "ad_entity_automation_connection_idx",
+              "definition": "CREATE INDEX ad_entity_automation_connection_idx ON public.ad_entity_automation USING btree (user_connection_id)"
+            },
+            {
+              "name": "ad_entity_automation_enabled_idx",
+              "definition": "CREATE INDEX ad_entity_automation_enabled_idx ON public.ad_entity_automation USING btree (enabled, automation_status) WHERE (enabled = true)"
+            },
+            {
+              "name": "ad_entity_automation_entity_id_key",
+              "definition": "CREATE UNIQUE INDEX ad_entity_automation_entity_id_key ON public.ad_entity_automation USING btree (entity_id)"
+            },
+            {
+              "name": "ad_entity_automation_pkey",
+              "definition": "CREATE UNIQUE INDEX ad_entity_automation_pkey ON public.ad_entity_automation USING btree (id)"
+            },
+            {
+              "name": "ad_entity_automation_user_idx",
+              "definition": "CREATE INDEX ad_entity_automation_user_idx ON public.ad_entity_automation USING btree (user_id)"
+            }
+          ],
+          "rls": {
+            "enabled": false,
+            "forced": false
+          },
+          "policies": []
+        },
         "ad_metrics_daily": {
           "type": "BASE TABLE",
           "columns": [
@@ -871,6 +1529,17 @@
               "maxLength": null,
               "numericPrecision": null,
               "numericScale": null
+            },
+            {
+              "name": "website_purchases",
+              "position": 22,
+              "dataType": "numeric",
+              "udtName": "numeric",
+              "nullable": false,
+              "default": "0",
+              "maxLength": null,
+              "numericPrecision": 14,
+              "numericScale": 4
             }
           ],
           "primaryKey": [

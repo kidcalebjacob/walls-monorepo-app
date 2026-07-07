@@ -1,0 +1,359 @@
+import { createClient } from "@walls/supabase/server";
+
+import {
+  DEFAULT_SPEND_AUTOMATION_SETTINGS,
+  parseAutomationSettings,
+  type AutomationStatus,
+  type OptimizationGoal,
+  type SpendAutomationSettings,
+} from "@/lib/spend-automation-settings";
+
+export type AutomationProfile = {
+  id: string;
+  name: string;
+  description: string | null;
+  isDefault: boolean;
+  optimizationGoal: OptimizationGoal;
+  settings: SpendAutomationSettings;
+};
+
+export type EntityAutomationState = {
+  enabled: boolean;
+  profileId: string | null;
+  settingsOverride: Partial<SpendAutomationSettings>;
+  effectiveSettings: SpendAutomationSettings;
+  minDailyBudgetMicros: number | null;
+  maxDailyBudgetMicros: number | null;
+  automationStatus: AutomationStatus;
+  lastReviewedAt: string | null;
+  lastAdjustedAt: string | null;
+  lastError: string | null;
+};
+
+export type BudgetAdjustmentRow = {
+  id: string;
+  createdAt: string;
+  previousDailyBudgetMicros: number | null;
+  newDailyBudgetMicros: number | null;
+  changePct: number | null;
+  optimizationGoal: OptimizationGoal | null;
+  decisionReason: string | null;
+  providerApplied: boolean;
+};
+
+function mapProfile(row: Record<string, unknown>): AutomationProfile {
+  return {
+    id: row.id as string,
+    name: row.name as string,
+    description: (row.description as string | null) ?? null,
+    isDefault: Boolean(row.is_default),
+    optimizationGoal: row.optimization_goal as OptimizationGoal,
+    settings: parseAutomationSettings(row.settings),
+  };
+}
+
+export async function ensureDefaultAutomationProfile(
+  userId: string,
+): Promise<AutomationProfile> {
+  const supabase = await createClient();
+
+  const { data: existing } = await supabase
+    .from("ad_automation_profiles")
+    .select("id, name, description, is_default, optimization_goal, settings")
+    .eq("user_id", userId)
+    .eq("is_default", true)
+    .maybeSingle();
+
+  if (existing) return mapProfile(existing);
+
+  const { data, error } = await supabase
+    .from("ad_automation_profiles")
+    .insert({
+      user_id: userId,
+      name: "Balanced ROAS",
+      description: "Default AdPilot preset — moderate ramp toward ROAS targets.",
+      is_default: true,
+      optimization_goal: "roas",
+      settings: DEFAULT_SPEND_AUTOMATION_SETTINGS,
+    })
+    .select("id, name, description, is_default, optimization_goal, settings")
+    .single();
+
+  if (error) throw error;
+  return mapProfile(data);
+}
+
+export async function listAutomationProfiles(
+  userId: string,
+): Promise<AutomationProfile[]> {
+  const supabase = await createClient();
+
+  await ensureDefaultAutomationProfile(userId);
+
+  const { data, error } = await supabase
+    .from("ad_automation_profiles")
+    .select("id, name, description, is_default, optimization_goal, settings")
+    .eq("user_id", userId)
+    .order("is_default", { ascending: false })
+    .order("name", { ascending: true });
+
+  if (error) throw error;
+  return (data ?? []).map(mapProfile);
+}
+
+export async function createAutomationProfile(input: {
+  userId: string;
+  name: string;
+  description?: string | null;
+  optimizationGoal?: OptimizationGoal;
+  settings?: SpendAutomationSettings;
+  isDefault?: boolean;
+}): Promise<AutomationProfile> {
+  const supabase = await createClient();
+  const now = new Date().toISOString();
+
+  if (input.isDefault) {
+    await supabase
+      .from("ad_automation_profiles")
+      .update({ is_default: false, updated_at: now })
+      .eq("user_id", input.userId);
+  }
+
+  const { data, error } = await supabase
+    .from("ad_automation_profiles")
+    .insert({
+      user_id: input.userId,
+      name: input.name,
+      description: input.description ?? null,
+      is_default: input.isDefault ?? false,
+      optimization_goal: input.optimizationGoal ?? "roas",
+      settings: input.settings ?? DEFAULT_SPEND_AUTOMATION_SETTINGS,
+    })
+    .select("id, name, description, is_default, optimization_goal, settings")
+    .single();
+
+  if (error) throw error;
+  return mapProfile(data);
+}
+
+export async function updateAutomationProfile(input: {
+  userId: string;
+  profileId: string;
+  patch: Partial<{
+    name: string;
+    description: string | null;
+    isDefault: boolean;
+    optimizationGoal: OptimizationGoal;
+    settings: SpendAutomationSettings;
+  }>;
+}): Promise<AutomationProfile> {
+  const supabase = await createClient();
+  const now = new Date().toISOString();
+
+  if (input.patch.isDefault) {
+    await supabase
+      .from("ad_automation_profiles")
+      .update({ is_default: false, updated_at: now })
+      .eq("user_id", input.userId)
+      .neq("id", input.profileId);
+  }
+
+  const row: Record<string, unknown> = { updated_at: now };
+  if (input.patch.name !== undefined) row.name = input.patch.name;
+  if (input.patch.description !== undefined) row.description = input.patch.description;
+  if (input.patch.isDefault !== undefined) row.is_default = input.patch.isDefault;
+  if (input.patch.optimizationGoal !== undefined) {
+    row.optimization_goal = input.patch.optimizationGoal;
+  }
+  if (input.patch.settings !== undefined) row.settings = input.patch.settings;
+
+  const { data, error } = await supabase
+    .from("ad_automation_profiles")
+    .update(row)
+    .eq("id", input.profileId)
+    .eq("user_id", input.userId)
+    .select("id, name, description, is_default, optimization_goal, settings")
+    .single();
+
+  if (error) throw error;
+  return mapProfile(data);
+}
+
+function mapEntityAutomation(
+  row: Record<string, unknown> | null,
+  profile: AutomationProfile | null,
+): EntityAutomationState {
+  const settingsOverride =
+    row?.settings_override && typeof row.settings_override === "object"
+      ? (row.settings_override as Partial<SpendAutomationSettings>)
+      : {};
+  const baseSettings = profile?.settings ?? DEFAULT_SPEND_AUTOMATION_SETTINGS;
+
+  return {
+    enabled: Boolean(row?.enabled),
+    profileId: (row?.profile_id as string | null) ?? profile?.id ?? null,
+    settingsOverride,
+    effectiveSettings: { ...baseSettings, ...settingsOverride },
+    minDailyBudgetMicros:
+      (row?.min_daily_budget_micros as number | null) ?? null,
+    maxDailyBudgetMicros:
+      (row?.max_daily_budget_micros as number | null) ?? null,
+    automationStatus:
+      (row?.automation_status as AutomationStatus) ?? "inactive",
+    lastReviewedAt: (row?.last_reviewed_at as string | null) ?? null,
+    lastAdjustedAt: (row?.last_adjusted_at as string | null) ?? null,
+    lastError: (row?.last_error as string | null) ?? null,
+  };
+}
+
+export async function getEntityAutomation(input: {
+  userId: string;
+  entityId: string;
+}): Promise<EntityAutomationState> {
+  const supabase = await createClient();
+  const defaultProfile = await ensureDefaultAutomationProfile(input.userId);
+
+  const { data: automation } = await supabase
+    .from("ad_entity_automation")
+    .select(
+      "enabled, profile_id, settings_override, min_daily_budget_micros, max_daily_budget_micros, automation_status, last_reviewed_at, last_adjusted_at, last_error",
+    )
+    .eq("user_id", input.userId)
+    .eq("entity_id", input.entityId)
+    .maybeSingle();
+
+  let profile = defaultProfile;
+  if (automation?.profile_id) {
+    const { data: profileRow } = await supabase
+      .from("ad_automation_profiles")
+      .select("id, name, description, is_default, optimization_goal, settings")
+      .eq("id", automation.profile_id)
+      .eq("user_id", input.userId)
+      .maybeSingle();
+    if (profileRow) profile = mapProfile(profileRow);
+  }
+
+  return mapEntityAutomation(automation, profile);
+}
+
+export async function upsertEntityAutomation(input: {
+  userId: string;
+  entityId: string;
+  patch: {
+    enabled?: boolean;
+    profileId?: string | null;
+    settingsOverride?: Partial<SpendAutomationSettings>;
+    minDailyBudgetMicros?: number | null;
+    maxDailyBudgetMicros?: number | null;
+    automationStatus?: AutomationStatus;
+  };
+}): Promise<EntityAutomationState> {
+  const supabase = await createClient();
+  const now = new Date().toISOString();
+
+  const { data: entity, error: entityError } = await supabase
+    .from("ad_entities")
+    .select("id, entity_type, user_connection_id")
+    .eq("id", input.entityId)
+    .eq("user_id", input.userId)
+    .maybeSingle();
+
+  if (entityError) throw entityError;
+  if (!entity) throw new Error("Entity not found");
+
+  if (entity.entity_type !== "campaign" && entity.entity_type !== "ad_group") {
+    throw new Error("Only campaigns and ad sets support budget automation.");
+  }
+
+  const defaultProfile = await ensureDefaultAutomationProfile(input.userId);
+
+  const { data: existing } = await supabase
+    .from("ad_entity_automation")
+    .select(
+      "enabled, profile_id, settings_override, min_daily_budget_micros, max_daily_budget_micros, automation_status",
+    )
+    .eq("user_id", input.userId)
+    .eq("entity_id", input.entityId)
+    .maybeSingle();
+
+  const nextEnabled = input.patch.enabled ?? Boolean(existing?.enabled);
+  const profileId =
+    input.patch.profileId !== undefined
+      ? input.patch.profileId
+      : (existing?.profile_id as string | null) ?? defaultProfile.id;
+  const settingsOverride =
+    input.patch.settingsOverride !== undefined
+      ? input.patch.settingsOverride
+      : (existing?.settings_override as Partial<SpendAutomationSettings> | null) ?? {};
+  const minDailyBudgetMicros =
+    input.patch.minDailyBudgetMicros !== undefined
+      ? input.patch.minDailyBudgetMicros
+      : (existing?.min_daily_budget_micros as number | null) ?? null;
+  const maxDailyBudgetMicros =
+    input.patch.maxDailyBudgetMicros !== undefined
+      ? input.patch.maxDailyBudgetMicros
+      : (existing?.max_daily_budget_micros as number | null) ?? null;
+
+  const automationStatus: AutomationStatus = nextEnabled
+    ? input.patch.automationStatus ??
+      (existing?.automation_status as AutomationStatus) ??
+      "active"
+    : "inactive";
+
+  const row = {
+    user_id: input.userId,
+    user_connection_id: entity.user_connection_id as string,
+    entity_id: input.entityId,
+    enabled: nextEnabled,
+    profile_id: profileId,
+    settings_override: settingsOverride,
+    min_daily_budget_micros: minDailyBudgetMicros,
+    max_daily_budget_micros: maxDailyBudgetMicros,
+    automation_status: automationStatus,
+    updated_at: now,
+  };
+
+  const { error } = await supabase
+    .from("ad_entity_automation")
+    .upsert(row, { onConflict: "entity_id" });
+
+  if (error) throw error;
+
+  return getEntityAutomation({
+    userId: input.userId,
+    entityId: input.entityId,
+  });
+}
+
+export async function listBudgetAdjustments(input: {
+  userId: string;
+  entityId: string;
+  limit?: number;
+}): Promise<BudgetAdjustmentRow[]> {
+  const supabase = await createClient();
+  const limit = input.limit ?? 10;
+
+  const { data, error } = await supabase
+    .from("ad_budget_adjustments")
+    .select(
+      "id, created_at, previous_daily_budget_micros, new_daily_budget_micros, change_pct, optimization_goal, decision_reason, provider_applied",
+    )
+    .eq("user_id", input.userId)
+    .eq("entity_id", input.entityId)
+    .order("created_at", { ascending: false })
+    .limit(limit);
+
+  if (error) throw error;
+
+  return (data ?? []).map((row) => ({
+    id: row.id as string,
+    createdAt: row.created_at as string,
+    previousDailyBudgetMicros:
+      (row.previous_daily_budget_micros as number | null) ?? null,
+    newDailyBudgetMicros: (row.new_daily_budget_micros as number | null) ?? null,
+    changePct: row.change_pct != null ? Number(row.change_pct) : null,
+    optimizationGoal: (row.optimization_goal as OptimizationGoal | null) ?? null,
+    decisionReason: (row.decision_reason as string | null) ?? null,
+    providerApplied: Boolean(row.provider_applied),
+  }));
+}

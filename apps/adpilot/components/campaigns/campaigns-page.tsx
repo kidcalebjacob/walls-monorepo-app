@@ -1,8 +1,11 @@
 "use client";
 
 import * as React from "react";
+import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { motion } from "framer-motion";
 import {
+  Bot,
   ChevronDown,
   ChevronLeft,
   ChevronRight,
@@ -27,6 +30,7 @@ import {
   formatResultCount,
   formatRoas,
 } from "@/lib/format-analytics";
+import { formatObjectiveLabel } from "@/lib/meta-objectives";
 
 import { AnimatedMetricValue } from "@/components/dashboard/animated-metric-value";
 import { SectionLabel } from "@/components/dashboard/dashboard-metrics";
@@ -144,8 +148,27 @@ function isActiveStatus(status: string | null) {
   return normalized === "active" || normalized === "learning";
 }
 
+function entityDetailHref(row: EntityPerformanceRow): string | null {
+  if (row.entityType === "campaign") return `/campaigns/${row.id}`;
+  if (row.entityType === "ad_group" && row.parentId) {
+    return `/campaigns/${row.parentId}/ad-sets/${row.id}`;
+  }
+  return null;
+}
+
 export function CampaignsPage() {
-  const [entityType, setEntityType] = React.useState<CampaignEntityType>("campaign");
+  const searchParams = useSearchParams();
+  const initialEntityType = searchParams.get("type");
+  const [entityType, setEntityType] = React.useState<CampaignEntityType>(() => {
+    if (
+      initialEntityType === "campaign" ||
+      initialEntityType === "ad_group" ||
+      initialEntityType === "ad"
+    ) {
+      return initialEntityType;
+    }
+    return "campaign";
+  });
   const [rows, setRows] = React.useState<EntityPerformanceRow[]>([]);
   const [accounts, setAccounts] = React.useState<CampaignAccountOption[]>([]);
   const [loading, setLoading] = React.useState(true);
@@ -437,7 +460,9 @@ export function CampaignsPage() {
                   </td>
                 </tr>
               ) : (
-                rows.map((row, index) => (
+                rows.map((row, index) => {
+                  const detailHref = entityDetailHref(row);
+                  return (
                   <motion.tr
                     key={row.id}
                     initial={{ opacity: 0 }}
@@ -446,14 +471,34 @@ export function CampaignsPage() {
                     className="border-b border-neutral-50 transition-colors hover:bg-neutral-50/60"
                   >
                     <td className="overflow-hidden py-4 pr-4">
-                      <p className="truncate text-sm font-medium text-neutral-800">
-                        {row.name}
-                      </p>
+                      <div className="flex min-w-0 items-center gap-2">
+                        {detailHref ? (
+                          <Link
+                            href={detailHref}
+                            className="truncate text-sm font-medium text-neutral-800 transition-colors hover:text-[var(--walls-sky)]"
+                          >
+                            {row.name}
+                          </Link>
+                        ) : (
+                          <span className="truncate text-sm font-medium text-neutral-800">
+                            {row.name}
+                          </span>
+                        )}
+                        {row.adpilotEnabled ? (
+                          <span
+                            className="inline-flex shrink-0 items-center gap-1 rounded-full border border-walls-yellow/40 bg-walls-yellow/10 px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide text-neutral-700"
+                            title={`AdPilot ${row.automationStatus ?? "active"}`}
+                          >
+                            <Bot className="h-3 w-3" />
+                            AdPilot
+                          </span>
+                        ) : null}
+                      </div>
                     </td>
                     <td className="overflow-hidden py-4 pr-4 pl-3 text-xs font-light text-neutral-500">
                       <span className="block truncate">
                         {entityType === "campaign"
-                          ? (row.objective ?? "—")
+                          ? formatObjectiveLabel(row.objective)
                           : (row.parentName ?? "—")}
                       </span>
                     </td>
@@ -518,7 +563,8 @@ export function CampaignsPage() {
                       {formatRoas(row.roas)}
                     </td>
                   </motion.tr>
-                ))
+                  );
+                })
               )}
             </tbody>
           </table>
