@@ -10,7 +10,6 @@ import {
   Loader2,
   MousePointerClick,
   Plus,
-  RefreshCw,
   ShoppingBag,
   TrendingUp,
 } from "lucide-react";
@@ -62,7 +61,6 @@ export function DashboardPage() {
   const [connections, setConnections] = React.useState<SafeUserConnection[]>([]);
   const [analytics, setAnalytics] = React.useState<DashboardAnalytics | null>(null);
   const [loading, setLoading] = React.useState(true);
-  const [refreshing, setRefreshing] = React.useState(false);
   const autoSyncStarted = React.useRef(false);
 
   const loadDashboard = React.useCallback(async () => {
@@ -147,16 +145,6 @@ export function DashboardPage() {
     1,
   );
 
-  async function handleRefresh() {
-    setRefreshing(true);
-    try {
-      await fetch("/api/sync/meta", { method: "POST" });
-      await loadDashboard();
-    } finally {
-      setRefreshing(false);
-    }
-  }
-
   if (loading) {
     return (
       <div className="flex min-h-full items-center justify-center bg-walls-white px-6 py-16">
@@ -187,58 +175,7 @@ export function DashboardPage() {
 
   return (
     <div className="min-h-full bg-walls-white">
-      <div className="space-y-16 px-6 py-8 pb-12 md:px-10 md:py-10">
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            <p className="text-xs font-medium uppercase tracking-widest text-neutral-500">
-              Overview
-            </p>
-            <h1 className="mt-1 text-2xl font-semibold tracking-tight text-neutral-900 md:text-3xl">
-              AdPilot
-            </h1>
-            <p className="mt-2 max-w-xl text-sm font-light text-neutral-500">
-              {isSyncing
-                ? "Syncing live data from Meta. This can take a minute for larger accounts."
-                : analytics?.hasData
-                  ? "Live analytics across your connected ad accounts."
-                  : "Meta is connected. Metrics will appear after the first sync completes."}
-            </p>
-          </div>
-
-          <div className="flex flex-wrap items-center gap-2">
-            <span className="text-xs font-light text-neutral-500">
-              {periodLabel}
-              {isSyncing ? " · Syncing" : null}
-            </span>
-            <Button
-              type="button"
-              variant="ghost"
-              size="sm"
-              disabled={refreshing || isSyncing}
-              onClick={() => void handleRefresh()}
-              className="h-8 rounded-full font-light text-neutral-600 hover:bg-neutral-200/60"
-            >
-              {refreshing || isSyncing ? (
-                <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" />
-              ) : (
-                <RefreshCw className="mr-1.5 h-3.5 w-3.5" />
-              )}
-              Refresh
-            </Button>
-            <Button
-              asChild
-              variant="ghost"
-              size="sm"
-              className="h-8 rounded-full font-light text-neutral-600 hover:bg-neutral-200/60"
-            >
-              <Link href="/settings">
-                <Link2 className="mr-1.5 h-3.5 w-3.5" />
-                Connections
-              </Link>
-            </Button>
-          </div>
-        </div>
-
+      <div className="space-y-16 px-6 pt-16 pb-12 md:px-10 md:pt-20 md:pb-10">
         <div className="flex flex-row flex-wrap items-stretch justify-center gap-6 pb-2 pt-2 md:gap-8">
           {stats.map((stat, index) => (
             <HeroStat

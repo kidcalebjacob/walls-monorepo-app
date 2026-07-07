@@ -1,7 +1,6 @@
 "use client";
 
 import * as React from "react";
-import Link from "next/link";
 import { motion } from "framer-motion";
 import {
   ChevronDown,
@@ -14,7 +13,6 @@ import {
   type LucideIcon,
 } from "lucide-react";
 
-import { Button } from "@walls/ui/button";
 import { cn } from "@walls/utils";
 
 import type {
@@ -151,7 +149,6 @@ export function CampaignsPage() {
   const [rows, setRows] = React.useState<EntityPerformanceRow[]>([]);
   const [accounts, setAccounts] = React.useState<CampaignAccountOption[]>([]);
   const [loading, setLoading] = React.useState(true);
-  const [syncing, setSyncing] = React.useState(false);
   const [page, setPage] = React.useState(0);
   const [totalCount, setTotalCount] = React.useState(0);
   const [search, setSearch] = React.useState("");
@@ -182,13 +179,11 @@ export function CampaignsPage() {
         rows?: EntityPerformanceRow[];
         totalCount?: number;
         accounts?: CampaignAccountOption[];
-        syncing?: boolean;
       };
 
       setRows(payload.rows ?? []);
       setTotalCount(payload.totalCount ?? 0);
       setAccounts(payload.accounts ?? []);
-      setSyncing(payload.syncing ?? false);
     } finally {
       setLoading(false);
     }
@@ -227,30 +222,6 @@ export function CampaignsPage() {
   return (
     <div className="flex min-h-full flex-col bg-walls-white">
       <div className="flex flex-1 flex-col px-6 py-8 md:px-10 md:py-10">
-        <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-          <div>
-            <p className="text-xs font-medium uppercase tracking-widest text-neutral-500">
-              Manage
-            </p>
-            <h1 className="mt-1 text-2xl font-semibold tracking-tight text-neutral-900 md:text-3xl">
-              Campaigns
-            </h1>
-            {syncing ? (
-              <p className="mt-2 max-w-2xl text-sm font-light text-neutral-500">
-                Syncing from Meta. New campaigns and ads will appear as data arrives.
-              </p>
-            ) : null}
-          </div>
-          <Button
-            asChild
-            variant="ghost"
-            size="sm"
-            className="h-8 self-start rounded-full font-light text-neutral-600 hover:bg-neutral-200/60 sm:self-auto"
-          >
-            <Link href="/settings">Manage connections</Link>
-          </Button>
-        </div>
-
         <div className="mb-6">
           <SegmentToggle
             equalWidth
