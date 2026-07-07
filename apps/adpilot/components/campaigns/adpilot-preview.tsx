@@ -14,9 +14,9 @@ import {
 } from "lucide-react";
 
 import { Button } from "@walls/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@walls/ui/card";
 import { cn } from "@walls/utils";
 
+import { DetailSection } from "@/components/campaigns/entity-detail-shared";
 import {
   adpilotActionLabel,
   adpilotTrendLabel,
@@ -86,7 +86,7 @@ function StatTile({
   hint?: string;
 }) {
   return (
-    <div className="rounded-[18px] border border-neutral-200/70 bg-neutral-50 p-3">
+    <div className="rounded-[18px] border border-neutral-200/70 bg-transparent p-3">
       <p className="text-[11px] font-light uppercase tracking-wider text-neutral-400">
         {label}
       </p>
@@ -153,7 +153,7 @@ function PreviewResult({ preview }: { preview: AdPilotPreview }) {
         ) : null}
       </div>
 
-      <div className="rounded-[18px] border border-neutral-200/70 bg-walls-white p-4">
+      <div className="rounded-[18px] border border-neutral-200/70 bg-transparent p-4">
         <p className="flex items-center gap-2 text-xs font-light uppercase tracking-wider text-neutral-400">
           <Sparkles className="h-3.5 w-3.5" />
           Why
@@ -263,45 +263,35 @@ export function AdPilotPreviewCard({
   };
 
   return (
-    <Card className="rounded-[32px] border-neutral-200/60 bg-neutral-100 shadow-inner">
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2 text-base font-medium">
-          <Sparkles className="h-4 w-4 text-neutral-500" />
-          Preview AdPilot decision
-        </CardTitle>
-        <p className="text-sm font-light text-neutral-500">
-          See exactly what AdPilot would do to this {entityLabel} right now — a
-          dry run that reads live metrics and applies your guardrails without
-          changing anything on Meta.
-        </p>
-      </CardHeader>
-      <CardContent className="pb-6">
-        <Button
-          type="button"
-          disabled={loading}
-          onClick={() => void run()}
-          className="rounded-full bg-walls-yellow/90 px-6 font-medium text-black hover:bg-walls-yellow"
-        >
-          {loading ? (
-            <>
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              Checking…
-            </>
-          ) : preview ? (
-            "Re-run preview"
-          ) : (
-            "Preview decision"
-          )}
-        </Button>
+    <DetailSection
+      title="Preview AdPilot decision"
+      description={`See exactly what AdPilot would do to this ${entityLabel} right now — a dry run that reads live metrics and applies your guardrails without changing anything on Meta.`}
+    >
+      <Button
+        type="button"
+        disabled={loading}
+        onClick={() => void run()}
+        className="inline-flex items-center gap-2 rounded-none border-0 bg-walls-yellow px-5 py-2.5 text-sm font-medium text-black shadow-none hover:bg-walls-yellow"
+      >
+        {loading ? (
+          <>
+            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            Checking…
+          </>
+        ) : preview ? (
+          "Re-run preview"
+        ) : (
+          "Preview decision"
+        )}
+      </Button>
 
-        {error ? (
-          <div className="mt-4 rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-800">
-            {error}
-          </div>
-        ) : null}
+      {error ? (
+        <div className="mt-4 rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-800">
+          {error}
+        </div>
+      ) : null}
 
-        {preview ? <PreviewResult preview={preview} /> : null}
-      </CardContent>
-    </Card>
+      {preview ? <PreviewResult preview={preview} /> : null}
+    </DetailSection>
   );
 }

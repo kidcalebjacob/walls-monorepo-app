@@ -2,15 +2,18 @@
 
 import * as React from "react";
 import Link from "next/link";
-import { Loader2, Shield, SlidersHorizontal, TrendingUp } from "lucide-react";
+import { Loader2, Shield } from "lucide-react";
 
 import { Button } from "@walls/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@walls/ui/card";
 import { Input } from "@walls/ui/input";
 import { LabeledSwitch } from "@walls/ui/switch";
-import { cn } from "@walls/utils";
 
 import { AdPilotPreviewCard } from "@/components/campaigns/adpilot-preview";
+import {
+  DetailSection,
+  DetailSubLabel,
+  detailSelectableClass,
+} from "@/components/campaigns/entity-detail-shared";
 import type { BudgetAdjustmentRow } from "@/lib/automation-server";
 import type { EntityDetailResult } from "@/lib/entity-detail-server";
 import { formatCurrencyFromMicros } from "@/lib/format-analytics";
@@ -216,27 +219,16 @@ export function EntityAutomationSection({
   if (!detail.canAutomate) return null;
 
   return (
-    <>
+    <div className="space-y-12">
       {error ? (
         <div className="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-800">
           {error}
         </div>
       ) : null}
 
-      <Card className="rounded-[32px] border-neutral-200/60 bg-neutral-100 shadow-inner">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-base font-medium">
-            <SlidersHorizontal className="h-4 w-4 text-neutral-500" />
-            AdPilot budget control
-          </CardTitle>
-          <p className="text-sm font-light text-neutral-500">
-            Grant permission for AdPilot to adjust this {entityLabel}&apos;s daily
-            budget. Click Save AdPilot settings to enroll this {entityLabel} — workspace
-            presets are templates only and are not changed from this page.
-          </p>
-        </CardHeader>
-        <CardContent className="space-y-6 pb-6">
-          <div className="rounded-[24px] border border-neutral-200/70 bg-walls-white p-5 shadow-sm">
+      <DetailSection title="AdPilot budget control">
+        <div className="space-y-10">
+          <div>
             <LabeledSwitch
               size="lg"
               checked={enabled}
@@ -261,14 +253,14 @@ export function EntityAutomationSection({
             ) : null}
           </div>
 
-          <div className="rounded-[24px] border border-neutral-200/70 bg-walls-white p-5 shadow-sm">
-            <p className="text-sm font-medium text-foreground">Automation preset</p>
+          <div>
+            <DetailSubLabel>Automation preset</DetailSubLabel>
             <p className="mt-1 text-xs font-light text-neutral-500">
               Pick a workspace preset to inherit defaults. Per-{entityLabel} overrides
               are stored on this {entityLabel} only.
             </p>
             {detail.profiles.length === 0 ? (
-              <p className="mt-4 rounded-2xl border border-neutral-200/70 bg-neutral-50 px-4 py-3 text-sm font-light text-neutral-500">
+              <p className="mt-4 text-sm font-light text-neutral-500">
                 No presets yet.{" "}
                 <Link href="/settings" className="text-[var(--walls-sky)] hover:underline">
                   Create one in Settings
@@ -276,42 +268,40 @@ export function EntityAutomationSection({
                 — or save here to use built-in defaults for this {entityLabel}.
               </p>
             ) : (
-            <div className="mt-4 grid gap-2 sm:grid-cols-2">
-              {detail.profiles.map((profile) => (
-                <button
-                  key={profile.id}
-                  type="button"
-                  onClick={() => {
-                    setProfileId(profile.id);
-                    setSettings(profile.settings);
-                    setSaved(false);
-                  }}
-                  className={cn(
-                    "rounded-[20px] border px-4 py-3 text-left transition-colors",
-                    profileId === profile.id
-                      ? "border-walls-yellow bg-walls-yellow/15"
-                      : "border-neutral-200 bg-neutral-50 hover:bg-neutral-100",
-                  )}
-                >
-                  <p className="text-sm font-medium text-foreground">
-                    {profile.name}
-                    {profile.isDefault ? (
-                      <span className="ml-2 text-[10px] font-light uppercase tracking-wider text-neutral-400">
-                        Default
-                      </span>
-                    ) : null}
-                  </p>
-                  <p className="mt-1 text-xs font-light text-neutral-500">
-                    Optimize for {optimizationGoalLabel(profile.optimizationGoal)}
-                  </p>
-                </button>
-              ))}
-            </div>
+              <div className="mt-4 grid gap-2 sm:grid-cols-2">
+                {detail.profiles.map((profile) => (
+                  <button
+                    key={profile.id}
+                    type="button"
+                    onClick={() => {
+                      setProfileId(profile.id);
+                      setSettings(profile.settings);
+                      setSaved(false);
+                    }}
+                    className={detailSelectableClass(
+                      profileId === profile.id,
+                      "px-4 py-3 text-left",
+                    )}
+                  >
+                    <p className="text-sm font-medium text-foreground">
+                      {profile.name}
+                      {profile.isDefault ? (
+                        <span className="ml-2 text-[10px] font-light uppercase tracking-wider text-neutral-400">
+                          Default
+                        </span>
+                      ) : null}
+                    </p>
+                    <p className="mt-1 text-xs font-light text-neutral-500">
+                      Optimize for {optimizationGoalLabel(profile.optimizationGoal)}
+                    </p>
+                  </button>
+                ))}
+              </div>
             )}
           </div>
 
-          <div className="rounded-[24px] border border-neutral-200/70 bg-walls-white p-5 shadow-sm">
-            <p className="text-sm font-medium text-foreground">Budget bounds</p>
+          <div>
+            <DetailSubLabel>Budget bounds</DetailSubLabel>
             <p className="mt-1 text-xs font-light text-neutral-500">
               Hard min/max daily budget (USD) the algorithm may not exceed.
             </p>
@@ -330,7 +320,7 @@ export function EntityAutomationSection({
                     setMinBudget(e.target.value);
                     setSaved(false);
                   }}
-                  className="rounded-full border-neutral-200 bg-neutral-50 font-light"
+                  className="rounded-full border-neutral-200 bg-walls-white font-light"
                 />
               </label>
               <label className="block space-y-2">
@@ -347,7 +337,7 @@ export function EntityAutomationSection({
                     setMaxBudget(e.target.value);
                     setSaved(false);
                   }}
-                  className="rounded-full border-neutral-200 bg-neutral-50 font-light"
+                  className="rounded-full border-neutral-200 bg-walls-white font-light"
                 />
               </label>
               {optimizationGoal === "roas" || optimizationGoal === "conversions" ? (
@@ -367,18 +357,15 @@ export function EntityAutomationSection({
                         e.target.value ? Number(e.target.value) : null,
                       )
                     }
-                    className="rounded-full border-neutral-200 bg-neutral-50 font-light"
+                    className="rounded-full border-neutral-200 bg-walls-white font-light"
                   />
                 </label>
               ) : null}
             </div>
           </div>
 
-          <div className="rounded-[24px] border border-neutral-200/70 bg-walls-white p-5 shadow-sm">
-            <p className="flex items-center gap-2 text-sm font-medium text-foreground">
-              <TrendingUp className="h-4 w-4 text-neutral-500" />
-              Entity overrides
-            </p>
+          <div>
+            <DetailSubLabel>Entity overrides</DetailSubLabel>
             <p className="mt-1 text-xs font-light text-neutral-500">
               Tuning for{" "}
               {OPTIMIZATION_GOAL_OPTIONS.find(
@@ -387,7 +374,7 @@ export function EntityAutomationSection({
               . Only changes from the preset are stored on this entity.
             </p>
 
-            <div className="mt-5 space-y-6">
+            <div className="mt-6 space-y-8">
               <SliderField
                 label="Spend aggressiveness"
                 hint="How quickly AdPilot ramps budget on strong performers"
@@ -403,7 +390,7 @@ export function EntityAutomationSection({
                 }}
               />
 
-              <div className="grid gap-5 sm:grid-cols-2">
+              <div className="grid gap-6 sm:grid-cols-2">
                 <SliderField
                   label="Max daily increase"
                   value={settings.maxDailyIncreasePct}
@@ -440,11 +427,9 @@ export function EntityAutomationSection({
                       key={option.value}
                       type="button"
                       onClick={() => updateSetting("cooldownHours", option.value)}
-                      className={cn(
-                        "rounded-full border px-3 py-1.5 text-xs font-light transition-colors",
-                        settings.cooldownHours === option.value
-                          ? "border-walls-yellow bg-walls-yellow/20 text-foreground"
-                          : "border-neutral-200 bg-neutral-50 text-neutral-600 hover:bg-neutral-100",
+                      className={detailSelectableClass(
+                        settings.cooldownHours === option.value,
+                        "rounded-full px-3.5 py-1.5 text-xs font-light text-neutral-700",
                       )}
                     >
                       {option.label}
@@ -469,7 +454,7 @@ export function EntityAutomationSection({
                         e.target.value ? Number(e.target.value) : null,
                       )
                     }
-                    className="rounded-full border-neutral-200 bg-neutral-50 font-light"
+                    className="rounded-full border-neutral-200 bg-walls-white font-light"
                   />
                 </label>
               ) : null}
@@ -490,12 +475,12 @@ export function EntityAutomationSection({
                         e.target.value ? Number(e.target.value) : null,
                       )
                     }
-                    className="rounded-full border-neutral-200 bg-neutral-50 font-light"
+                    className="rounded-full border-neutral-200 bg-walls-white font-light"
                   />
                 </label>
               ) : null}
 
-              <div className="space-y-5 border-t border-neutral-100 pt-5">
+              <div className="space-y-5 border-t border-neutral-200/70 pt-6">
                 <LabeledSwitch
                   size="lg"
                   checked={settings.learningPhaseProtection}
@@ -526,7 +511,7 @@ export function EntityAutomationSection({
               type="button"
               disabled={saving}
               onClick={() => void handleSave()}
-              className="rounded-full bg-walls-yellow/90 px-6 font-medium text-black hover:bg-walls-yellow"
+              className="inline-flex items-center gap-2 rounded-none border-0 bg-walls-yellow px-5 py-2.5 text-sm font-medium text-black shadow-none hover:bg-walls-yellow"
             >
               {saving ? (
                 <>
@@ -540,22 +525,17 @@ export function EntityAutomationSection({
               )}
             </Button>
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </DetailSection>
 
       <AdPilotPreviewCard entityId={entityId} entityLabel={entityLabel} />
 
-      <Card className="rounded-[32px] border-neutral-200/60 bg-neutral-100 shadow-inner">
-        <CardHeader>
-          <CardTitle className="text-base font-medium">Budget history</CardTitle>
-          <p className="text-sm font-light text-neutral-500">
-            Recent daily budget adjustments for this entity.
-          </p>
-        </CardHeader>
-        <CardContent className="pb-6">
-          <AdjustmentsList rows={detail.recentAdjustments} />
-        </CardContent>
-      </Card>
-    </>
+      <DetailSection
+        title="Budget history"
+        description="Recent daily budget adjustments for this entity."
+      >
+        <AdjustmentsList rows={detail.recentAdjustments} />
+      </DetailSection>
+    </div>
   );
 }

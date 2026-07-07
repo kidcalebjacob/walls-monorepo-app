@@ -90,7 +90,7 @@ export function AdSetDetailPage() {
             <p className="text-xs font-light uppercase tracking-wider text-neutral-400">
               Ad set · {detail.accountName}
             </p>
-            <h1 className="mt-2 text-2xl font-medium tracking-tight text-neutral-900">
+            <h1 className="mt-2 text-4xl font-black tracking-tight text-neutral-900">
               {detail.name}
             </h1>
             <div className="mt-2 flex flex-wrap items-center gap-3 text-sm font-light text-neutral-500">
@@ -112,16 +112,14 @@ export function AdSetDetailPage() {
         <EntityMetricsGrid metrics={detail.metrics} />
       </div>
 
-      <div className="space-y-6">
-        <EntityAutomationSection
-          entityId={detail.id}
-          entityLabel="ad set"
-          detail={detail}
-          onAutomationUpdated={(automation) =>
-            setDetail((prev) => (prev ? { ...prev, automation } : prev))
-          }
-        />
-      </div>
+      <EntityAutomationSection
+        entityId={detail.id}
+        entityLabel="ad set"
+        detail={detail}
+        onAutomationUpdated={(automation) =>
+          setDetail((prev) => (prev ? { ...prev, automation } : prev))
+        }
+      />
     </div>
   );
 }
