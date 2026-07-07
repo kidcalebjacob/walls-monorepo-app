@@ -23,6 +23,89 @@ const WEBSITE_PURCHASE_ACTION = "offsite_conversion.fb_pixel_purchase" as const;
 
 type EntityType = "account" | "campaign" | "ad_group" | "ad";
 
+/** Meta's learning phase is reported on the ad set. Higher rank = "more in learning". */
+type MetaLearningStageInfo = {
+  status?: string;
+  conversions?: number | string;
+  last_sig_edit_ts?: number | string;
+};
+
+type LearningFields = {
+  learningStatus: string | null;
+  learningConversions: number | null;
+  learningLastSigEditAt: string | null;
+};
+
+const LEARNING_STATUS_RANK: Record<string, number> = {
+  LEARNING: 3,
+  LEARNING_LIMITED: 2,
+  FAIL: 1,
+  SUCCESS: 0,
+};
+
+const EMPTY_LEARNING_FIELDS: LearningFields = {
+  learningStatus: null,
+  learningConversions: null,
+  learningLastSigEditAt: null,
+};
+
+function parseLearningStageInfo(info: MetaLearningStageInfo | undefined): LearningFields {
+  if (!info) return EMPTY_LEARNING_FIELDS;
+
+  const learningStatus = info.status ? String(info.status).toUpperCase() : null;
+
+  let learningConversions: number | null = null;
+  if (info.conversions !== undefined && info.conversions !== null && info.conversions !== "") {
+    const parsed = Number(info.conversions);
+    learningConversions = Number.isFinite(parsed) ? Math.round(parsed) : null;
+  }
+
+  let learningLastSigEditAt: string | null = null;
+  if (
+    info.last_sig_edit_ts !== undefined &&
+    info.last_sig_edit_ts !== null &&
+    info.last_sig_edit_ts !== ""
+  ) {
+    const ts = Number(info.last_sig_edit_ts);
+    if (Number.isFinite(ts) && ts > 0) {
+      learningLastSigEditAt = new Date(ts * 1000).toISOString();
+    }
+  }
+
+  return { learningStatus, learningConversions, learningLastSigEditAt };
+}
+
+/** Roll a child ad set's learning state into a campaign-level aggregate. */
+function mergeCampaignLearning(
+  current: LearningFields | undefined,
+  child: LearningFields,
+): LearningFields {
+  if (!child.learningStatus) return current ?? EMPTY_LEARNING_FIELDS;
+  if (!current || !current.learningStatus) return child;
+
+  const currentRank = LEARNING_STATUS_RANK[current.learningStatus] ?? -1;
+  const childRank = LEARNING_STATUS_RANK[child.learningStatus] ?? -1;
+  const winner = childRank > currentRank ? child : current;
+
+  const learningConversions =
+    current.learningConversions !== null || child.learningConversions !== null
+      ? (current.learningConversions ?? 0) + (child.learningConversions ?? 0)
+      : null;
+
+  const lastEdits = [current.learningLastSigEditAt, child.learningLastSigEditAt].filter(
+    (value): value is string => Boolean(value),
+  );
+  const learningLastSigEditAt = lastEdits.length
+    ? lastEdits.reduce((latest, value) => (value > latest ? value : latest))
+    : null;
+
+  return {
+    learningStatus: winner.learningStatus,
+    learningConversions,
+    learningLastSigEditAt,
+  };
+}
+
 function centsToMicros(cents: number | string | undefined | null): number | null {
   if (cents === undefined || cents === null || cents === "") return null;
   return Math.round(Number(cents) * 10_000);
@@ -133,10 +216,13 @@ async function upsertEntity(input: {
   objective?: string | null;
   dailyBudgetMicros?: number | null;
   lifetimeBudgetMicros?: number | null;
+  learning?: LearningFields;
   rawPayload: Record<string, unknown>;
 }): Promise<string> {
   const admin = createAdminClient();
   const now = new Date().toISOString();
+
+  const learning = input.learning ?? EMPTY_LEARNING_FIELDS;
 
   const row = {
     user_id: input.userId,
@@ -150,6 +236,9 @@ async function upsertEntity(input: {
     objective: input.objective ?? null,
     daily_budget_micros: input.dailyBudgetMicros ?? null,
     lifetime_budget_micros: input.lifetimeBudgetMicros ?? null,
+    learning_status: learning.learningStatus,
+    learning_conversions: learning.learningConversions,
+    learning_last_sig_edit_at: learning.learningLastSigEditAt,
     raw_payload: input.rawPayload,
     last_synced_at: now,
     updated_at: now,
@@ -180,6 +269,21 @@ async function upsertEntity(input: {
 
   if (error) throw error;
   return data.id as string;
+}
+
+async function updateEntityLearning(entityId: string, learning: LearningFields) {
+  const admin = createAdminClient();
+  const { error } = await admin
+    .from("ad_entities")
+    .update({
+      learning_status: learning.learningStatus,
+      learning_conversions: learning.learningConversions,
+      learning_last_sig_edit_at: learning.learningLastSigEditAt,
+      updated_at: new Date().toISOString(),
+    })
+    .eq("id", entityId);
+
+  if (error) throw error;
 }
 
 async function upsertDailyMetrics(input: {
@@ -309,15 +413,20 @@ export async function syncMetaConnection(
       lifetime_budget?: string;
       start_time?: string;
       end_time?: string;
+      learning_stage_info?: MetaLearningStageInfo;
     }>(`${accountId}/adsets`, accessToken, {
       fields:
-        "id,name,status,campaign_id,daily_budget,lifetime_budget,start_time,end_time",
+        "id,name,status,campaign_id,daily_budget,lifetime_budget,start_time,end_time,learning_stage_info",
     });
+
+    const campaignLearning = new Map<string, LearningFields>();
 
     for (const adSet of adSets) {
       const parentId = adSet.campaign_id
         ? (entityIds.get(adSet.campaign_id) ?? accountEntityId)
         : accountEntityId;
+
+      const learning = parseLearningStageInfo(adSet.learning_stage_info);
 
       const adSetEntityId = await upsertEntity({
         userId: connection.user_id,
@@ -329,9 +438,24 @@ export async function syncMetaConnection(
         status: normalizeStatus(adSet.status),
         dailyBudgetMicros: centsToMicros(adSet.daily_budget),
         lifetimeBudgetMicros: centsToMicros(adSet.lifetime_budget),
+        learning,
         rawPayload: adSet,
       });
       entityIds.set(adSet.id, adSetEntityId);
+
+      if (adSet.campaign_id && learning.learningStatus) {
+        campaignLearning.set(
+          adSet.campaign_id,
+          mergeCampaignLearning(campaignLearning.get(adSet.campaign_id), learning),
+        );
+      }
+    }
+
+    for (const [campaignId, learning] of campaignLearning) {
+      const campaignEntityId = entityIds.get(campaignId);
+      if (campaignEntityId) {
+        await updateEntityLearning(campaignEntityId, learning);
+      }
     }
 
     const ads = await fetchMetaGraphCollection<{

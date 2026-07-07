@@ -32,7 +32,10 @@ import {
 import { formatObjectiveLabel } from "@/lib/meta-objectives";
 
 import { AnimatedMetricValue } from "@/components/dashboard/animated-metric-value";
-import { AdPilotRowBadge } from "@/components/campaigns/entity-detail-shared";
+import {
+  AdPilotRowBadge,
+  LearningBadge,
+} from "@/components/campaigns/entity-detail-shared";
 import { useResizableColumns } from "@/components/campaigns/use-resizable-columns";
 import { SegmentToggle } from "@/components/ui/segment-toggle";
 
@@ -560,6 +563,7 @@ export function CampaignsPage() {
                             title={`AdPilot ${row.automationStatus ?? "active"}`}
                           />
                         ) : null}
+                        <LearningBadge status={row.learningStatus} />
                       </div>
                     </td>
                     <td className="overflow-hidden py-4 pr-4 pl-3 text-xs font-light text-neutral-500">

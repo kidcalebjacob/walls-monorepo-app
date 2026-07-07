@@ -262,6 +262,54 @@ export function AdPilotEnableToggle({
   );
 }
 
+/**
+ * Meta delivery learning-phase badge. Only rendered while an entity is still
+ * learning (LEARNING or LEARNING_LIMITED) — a stabilized (SUCCESS) entity shows
+ * nothing. Accepts the raw `learning_status` value from `ad_entities`.
+ */
+export function LearningBadge({
+  status,
+  className,
+}: {
+  status: string | null;
+  className?: string;
+}) {
+  const normalized = (status ?? "").toUpperCase();
+
+  const config =
+    normalized === "LEARNING"
+      ? {
+          label: "Learning",
+          title: "Still in Meta's learning phase",
+          className:
+            "border-[rgba(226,248,92,0.55)] bg-white/40 text-neutral-600 shadow-[0_0_0_1px_rgba(226,248,92,0.45),0_0_12px_rgba(226,248,92,0.45)]",
+        }
+      : normalized === "LEARNING_LIMITED"
+        ? {
+            label: "Learning limited",
+            title:
+              "Learning limited — not enough optimization events to exit the learning phase",
+            className:
+              "border-[rgba(239,68,68,0.45)] bg-white/40 text-neutral-600 shadow-[0_0_0_1px_rgba(239,68,68,0.35),0_0_12px_rgba(239,68,68,0.3)]",
+          }
+        : null;
+
+  if (!config) return null;
+
+  return (
+    <span
+      title={config.title}
+      className={cn(
+        "inline-flex shrink-0 items-center rounded-full border px-2.5 py-0.5 text-[11px] font-medium",
+        config.className,
+        className,
+      )}
+    >
+      {config.label}
+    </span>
+  );
+}
+
 export function AdPilotRowBadge({ title }: { title?: string }) {
   return (
     <span
