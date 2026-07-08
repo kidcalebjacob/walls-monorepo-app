@@ -129,24 +129,65 @@ export function getMetaDateRange(days: number): { since: string; until: string }
 }
 
 /**
- * Ad preview formats to try, in order. Meta renders a playable iframe preview
- * of the actual ad — the reliable way to view video/carousel/dynamic creatives
- * when the raw MP4 `source` field is restricted for our token.
+ * Ad preview formats to try, in order, spanning Facebook + Instagram feed,
+ * stories and reels placements. Meta renders a playable iframe preview of the
+ * actual ad — the reliable way to view video/carousel/dynamic creatives when
+ * the raw MP4 `source` field is restricted for our token.
  */
 const AD_PREVIEW_FORMATS = [
   "MOBILE_FEED_STANDARD",
-  "INSTAGRAM_STANDARD",
-  "FACEBOOK_STORY_MOBILE",
   "DESKTOP_FEED_STANDARD",
+  "INSTAGRAM_STANDARD",
+  "INSTAGRAM_STORY",
+  "FACEBOOK_STORY_MOBILE",
+  "INSTAGRAM_REELS",
+  "FACEBOOK_REELS_MOBILE",
 ] as const;
+
+// Meta renders "Story Unavailable"/permission errors inside the iframe content
+// (not in the returned HTML), so we detect them by fetching the iframe src.
+const PREVIEW_UNAVAILABLE_PATTERN =
+  /unavailable for preview|story (?:in this ad )?is unavailable|do(?:es)? not (?:exist|have permission)/i;
 
 type MetaAdPreviewResponse = {
   data?: Array<{ body?: string }>;
 };
 
+function extractIframeSrc(body: string): string | null {
+  const match = body.match(/src="([^"]+)"/i);
+  if (!match) return null;
+  // Graph returns HTML-escaped attribute values.
+  return match[1]
+    .replace(/&amp;/g, "&")
+    .replace(/&quot;/g, '"')
+    .replace(/&#0?39;/g, "'");
+}
+
 /**
- * Generate an embeddable ad preview iframe for a provider ad id. Returns the
- * raw iframe HTML string (Meta's signed, short-lived preview) or null.
+ * Load the actual iframe content and confirm Meta rendered the creative rather
+ * than a "Story Unavailable"/permission placeholder for this placement.
+ */
+async function previewRendersContent(body: string): Promise<boolean> {
+  const src = extractIframeSrc(body);
+  if (!src) return true; // Can't verify — assume it's fine.
+
+  try {
+    const response = await fetch(src);
+    if (!response.ok) return false;
+    const html = await response.text();
+    return !PREVIEW_UNAVAILABLE_PATTERN.test(html);
+  } catch {
+    // Network hiccup verifying — don't discard a possibly-good preview.
+    return true;
+  }
+}
+
+/**
+ * Generate an embeddable ad preview iframe for a provider ad id. Tries each
+ * placement until one renders real creative content; if none do (genuine
+ * permission/existence issue) it still returns the first iframe so the user
+ * sees Meta's own message rather than a blank state. Returns null only when
+ * Meta returns no iframe at all.
  */
 export async function fetchMetaAdPreview(
   providerAdId: string,
@@ -154,6 +195,7 @@ export async function fetchMetaAdPreview(
   adFormat?: string,
 ): Promise<string | null> {
   const formats = adFormat ? [adFormat] : AD_PREVIEW_FORMATS;
+  let fallbackBody: string | null = null;
 
   for (const format of formats) {
     const search = new URLSearchParams({
@@ -168,7 +210,12 @@ export async function fetchMetaAdPreview(
 
       const payload = (await response.json()) as MetaAdPreviewResponse;
       const body = payload.data?.[0]?.body;
-      if (body && body.includes("<iframe")) {
+      if (!body || !body.includes("<iframe")) continue;
+
+      // Keep the first valid iframe as a last-resort fallback.
+      if (fallbackBody === null) fallbackBody = body;
+
+      if (await previewRendersContent(body)) {
         return body;
       }
     } catch {
@@ -176,7 +223,7 @@ export async function fetchMetaAdPreview(
     }
   }
 
-  return null;
+  return fallbackBody;
 }
 
 export type MetaInsightRow = {
