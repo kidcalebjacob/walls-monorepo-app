@@ -30,6 +30,7 @@ export type EntityDailyProgressPoint = {
   impressions: number;
   clicks: number;
   conversionValueMicros: number;
+  websitePurchases: number;
 };
 
 export type EntityDailyProgressSummary = {
@@ -57,6 +58,7 @@ type DayTotals = {
   impressions: number;
   clicks: number;
   conversionValueMicros: number;
+  websitePurchases: number;
 };
 
 function buildDateRange(rangeDays: number): string[] {
@@ -88,6 +90,7 @@ function aggregateRowsByDate(rows: DailyMetricRow[]): Map<string, DayTotals> {
       impressions: 0,
       clicks: 0,
       conversionValueMicros: 0,
+      websitePurchases: 0,
     };
 
     byDate.set(row.metric_date, {
@@ -96,6 +99,8 @@ function aggregateRowsByDate(rows: DailyMetricRow[]): Map<string, DayTotals> {
       clicks: existing.clicks + (row.clicks ?? 0),
       conversionValueMicros:
         existing.conversionValueMicros + (row.conversion_value_micros ?? 0),
+      websitePurchases:
+        existing.websitePurchases + Number(row.website_purchases ?? 0),
     });
   }
 
@@ -206,6 +211,7 @@ export function buildEntityDailyProgress(
       impressions: 0,
       clicks: 0,
       conversionValueMicros: 0,
+      websitePurchases: 0,
     };
 
     return {
@@ -217,6 +223,7 @@ export function buildEntityDailyProgress(
       impressions: totals.impressions,
       clicks: totals.clicks,
       conversionValueMicros: totals.conversionValueMicros,
+      websitePurchases: totals.websitePurchases,
     };
   });
 
