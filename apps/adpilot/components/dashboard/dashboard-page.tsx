@@ -23,6 +23,7 @@ import { ZERO_DASHBOARD_STATS } from "@/lib/dashboard-defaults";
 
 import { HeroStat, MetricBarItem, SectionLabel } from "./dashboard-metrics";
 import { SpendTrendChart } from "./spend-trend-chart";
+import { TopPerformingAds } from "./top-performing-ads";
 
 const HERO_ACCENTS = [
   "var(--walls-sky)",
@@ -119,6 +120,17 @@ export function DashboardPage() {
   const stats = analytics?.stats ?? [...ZERO_DASHBOARD_STATS];
   const spendByDay = analytics?.spendByDay ?? [];
   const periodLabel = analytics?.periodLabel ?? "Last 30 days";
+  const topPerformingAds = analytics?.topPerformingAds ?? {
+    objectives: [],
+    byObjective: {
+      OUTCOME_SALES: [],
+      OUTCOME_TRAFFIC: [],
+      OUTCOME_AWARENESS: [],
+      OUTCOME_ENGAGEMENT: [],
+      OUTCOME_LEADS: [],
+      OUTCOME_APP_PROMOTION: [],
+    },
+  };
 
   const accounts = React.useMemo(() => {
     if (analytics?.accounts && analytics.accounts.length > 0) {
@@ -201,11 +213,22 @@ export function DashboardPage() {
           <SpendTrendChart days={spendByDay} />
         </motion.div>
 
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.26 }}
+        >
+          <TopPerformingAds
+            periodLabel={periodLabel}
+            topPerformingAds={topPerformingAds}
+          />
+        </motion.div>
+
         <div className="grid grid-cols-1 gap-10 md:grid-cols-2 md:gap-12">
           <motion.div
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.28 }}
+            transition={{ delay: 0.3 }}
           >
             <SectionLabel>Connected Accounts</SectionLabel>
             <div className="space-y-3.5">
@@ -257,7 +280,7 @@ export function DashboardPage() {
           <motion.div
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.32 }}
+            transition={{ delay: 0.34 }}
           >
             <SectionLabel>Account Performance</SectionLabel>
             {accounts.length === 0 ? (

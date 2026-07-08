@@ -1,7 +1,17 @@
 import { createClient } from "@walls/supabase/server";
 
 import { META_PROVIDER } from "@/lib/connections";
-import { isSalesObjective, formatObjectiveLabel } from "@/lib/meta-objectives";
+import {
+  buildAdCreativePreview,
+  type AdCreativePreview,
+} from "@/lib/meta-creatives";
+import {
+  DASHBOARD_OBJECTIVE_BUCKETS,
+  resolveObjectiveBucket,
+  isSalesObjective,
+  formatObjectiveLabel,
+  type DashboardObjectiveBucket,
+} from "@/lib/meta-objectives";
 
 import type { AutomationStatus } from "@/lib/spend-automation-settings";
 
@@ -13,9 +23,12 @@ export type EntityPerformanceRow = {
   name: string;
   status: string | null;
   objective: string | null;
+  objectiveBucket: DashboardObjectiveBucket | null;
   accountName: string;
   parentId: string | null;
   parentName: string | null;
+  /** Campaign id for an ad's ad-set parent (used for parent detail links). */
+  parentCampaignId: string | null;
   userConnectionId: string;
   spendMicros: number;
   impressions: number;
@@ -28,6 +41,9 @@ export type EntityPerformanceRow = {
   ctr: number;
   roas: number | null;
   learningStatus: string | null;
+  thumbnailUrl: string | null;
+  creativeType: string | null;
+  creativePreview: AdCreativePreview | null;
   lastSyncedAt: string | null;
 };
 
@@ -37,10 +53,16 @@ export type CampaignAccountOption = {
   userConnectionId: string;
 };
 
+export type CampaignObjectiveOption = {
+  value: DashboardObjectiveBucket;
+  label: string;
+};
+
 export type CampaignsListResult = {
   rows: EntityPerformanceRow[];
   totalCount: number;
   accounts: CampaignAccountOption[];
+  objectives: CampaignObjectiveOption[];
   syncing: boolean;
 };
 
@@ -121,6 +143,28 @@ function aggregateMetrics(rows: MetricRecord[]) {
   return { ...totals, ctr, roas };
 }
 
+function resolveEntityCampaignObjective(
+  entity: EntityRecord,
+  campaignObjectiveById: Map<string, string | null>,
+  adGroupToCampaignId: Map<string, string>,
+): string | null {
+  if (entity.entity_type === "campaign") {
+    return entity.objective;
+  }
+
+  if (entity.entity_type === "ad_group" && entity.parent_id) {
+    return campaignObjectiveById.get(entity.parent_id) ?? null;
+  }
+
+  if (entity.entity_type === "ad" && entity.parent_id) {
+    const campaignId = adGroupToCampaignId.get(entity.parent_id);
+    if (!campaignId) return null;
+    return campaignObjectiveById.get(campaignId) ?? null;
+  }
+
+  return null;
+}
+
 function resolveTracksWebsitePurchases(
   entity: EntityRecord,
   campaignObjectiveById: Map<string, string | null>,
@@ -199,6 +243,7 @@ export async function listCampaignPerformance(input: {
   entityType: CampaignEntityType;
   search?: string;
   accountId?: string;
+  objective?: DashboardObjectiveBucket;
   page?: number;
   pageSize?: number;
   rangeDays?: number;
@@ -288,6 +333,7 @@ export async function listCampaignPerformance(input: {
       rows: [],
       totalCount: 0,
       accounts,
+      objectives: [],
       syncing: (syncStates ?? []).some((state) => state.sync_status === "running"),
     };
   }
@@ -327,8 +373,41 @@ export async function listCampaignPerformance(input: {
     }
   }
 
+  const objectiveBucketsPresent = new Set<DashboardObjectiveBucket>();
+  for (const entity of entityList) {
+    const campaignObjective = resolveEntityCampaignObjective(
+      entity,
+      campaignObjectiveById,
+      adGroupToCampaignId,
+    );
+    const bucket = resolveObjectiveBucket(campaignObjective);
+    if (bucket) objectiveBucketsPresent.add(bucket);
+  }
+
+  const objectives: CampaignObjectiveOption[] = DASHBOARD_OBJECTIVE_BUCKETS.filter(
+    (bucket) => objectiveBucketsPresent.has(bucket.value),
+  ).map((bucket) => ({
+    value: bucket.value,
+    label: bucket.label,
+  }));
+
   const entityIds = entityList.map((entity) => entity.id);
-  const [{ data: metrics }, { data: automations }] = await Promise.all([
+
+  const creativesQuery =
+    input.entityType === "ad" && entityIds.length > 0
+      ? supabase
+          .from("ad_creatives")
+          .select(
+            `ad_entity_id, creative_type, title, body, thumbnail_url, image_url, image_permalink_url, video_thumbnail_url, video_source_url,
+            ad_creative_assets (
+              id, asset_type, ordinal, image_url, permalink_url, video_source_url, video_thumbnail_url, title, body
+            )`,
+          )
+          .in("ad_entity_id", entityIds)
+      : Promise.resolve({ data: [] as Array<Record<string, unknown>> });
+
+  const [{ data: metrics }, { data: automations }, { data: creatives }] =
+    await Promise.all([
     supabase
       .from("ad_metrics_daily")
       .select(
@@ -340,6 +419,7 @@ export async function listCampaignPerformance(input: {
       .from("ad_entity_automation")
       .select("entity_id, enabled, automation_status")
       .in("entity_id", entityIds),
+    creativesQuery,
   ]);
 
   const automationByEntity = new Map<
@@ -360,6 +440,14 @@ export async function listCampaignPerformance(input: {
     metricsByEntity.set(metric.entity_id, bucket);
   }
 
+  const creativeByAdEntity = new Map<string, AdCreativePreview>();
+  for (const creative of creatives ?? []) {
+    const preview = buildAdCreativePreview(creative);
+    if (preview) {
+      creativeByAdEntity.set(creative.ad_entity_id as string, preview);
+    }
+  }
+
   let rows: EntityPerformanceRow[] = entityList.map((entity) => {
     const totals = aggregateMetrics(metricsByEntity.get(entity.id) ?? []);
     const tracksWebsitePurchases = resolveTracksWebsitePurchases(
@@ -368,19 +456,32 @@ export async function listCampaignPerformance(input: {
       adGroupToCampaignId,
     );
     const automation = automationByEntity.get(entity.id);
+    const creative = creativeByAdEntity.get(entity.id);
+    const campaignObjective = resolveEntityCampaignObjective(
+      entity,
+      campaignObjectiveById,
+      adGroupToCampaignId,
+    );
+    const objectiveBucket = resolveObjectiveBucket(campaignObjective);
 
     return {
       id: entity.id,
       entityType: entity.entity_type,
       name: entity.name ?? "Untitled",
       status: entity.status,
-      objective: entity.objective,
+      objective:
+        entity.entity_type === "campaign" ? entity.objective : campaignObjective,
+      objectiveBucket,
       accountName:
         accountNameByConnection.get(entity.user_connection_id) ?? "Ad account",
       parentId: entity.parent_id,
       parentName: entity.parent_id
         ? (parentNameById.get(entity.parent_id) ?? null)
         : null,
+      parentCampaignId:
+        entity.entity_type === "ad" && entity.parent_id
+          ? (adGroupToCampaignId.get(entity.parent_id) ?? null)
+          : null,
       userConnectionId: entity.user_connection_id,
       spendMicros: totals.spend_micros,
       impressions: totals.impressions,
@@ -397,9 +498,16 @@ export async function listCampaignPerformance(input: {
       ctr: totals.ctr,
       roas: totals.roas,
       learningStatus: entity.learning_status,
+      thumbnailUrl: creative?.thumbnailUrl ?? null,
+      creativeType: creative?.creativeType ?? null,
+      creativePreview: creative ?? null,
       lastSyncedAt: entity.last_synced_at,
     };
   });
+
+  if (input.objective) {
+    rows = rows.filter((row) => row.objectiveBucket === input.objective);
+  }
 
   if (search) {
     rows = rows.filter((row) => {
@@ -427,6 +535,7 @@ export async function listCampaignPerformance(input: {
     rows: pagedRows,
     totalCount,
     accounts,
+    objectives,
     syncing: (syncStates ?? []).some((state) => state.sync_status === "running"),
   };
 }

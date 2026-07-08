@@ -20,8 +20,11 @@ import { cn } from "@walls/utils";
 import type {
   CampaignAccountOption,
   CampaignEntityType,
+  CampaignObjectiveOption,
   EntityPerformanceRow,
 } from "@/lib/campaigns-server";
+import type { AdCreativePreview } from "@/lib/meta-creatives";
+import type { DashboardObjectiveBucket } from "@/lib/meta-objectives";
 import {
   formatCompactNumber,
   formatCurrencyFromMicros,
@@ -32,8 +35,10 @@ import {
 import { formatObjectiveLabel } from "@/lib/meta-objectives";
 
 import { AnimatedMetricValue } from "@/components/dashboard/animated-metric-value";
+import { AdCreativeLightbox } from "@/components/campaigns/ad-creative-lightbox";
 import {
   AdPilotRowBadge,
+  AdThumbnail,
   LearningBadge,
 } from "@/components/campaigns/entity-detail-shared";
 import { useResizableColumns } from "@/components/campaigns/use-resizable-columns";
@@ -167,6 +172,16 @@ function entityDetailHref(row: EntityPerformanceRow): string | null {
   return null;
 }
 
+function parentDetailHref(row: EntityPerformanceRow): string | null {
+  if (row.entityType === "ad" && row.parentId && row.parentCampaignId) {
+    return `/campaigns/${row.parentCampaignId}/ad-sets/${row.parentId}`;
+  }
+  if (row.entityType === "ad_group" && row.parentId) {
+    return `/campaigns/${row.parentId}`;
+  }
+  return null;
+}
+
 export function CampaignsPage() {
   const searchParams = useSearchParams();
   const initialEntityType = searchParams.get("type");
@@ -189,9 +204,22 @@ export function CampaignsPage() {
   const [accountFilter, setAccountFilter] = React.useState("");
   const [accountFilterOpen, setAccountFilterOpen] = React.useState(false);
   const accountFilterRef = React.useRef<HTMLDivElement>(null);
+  const [objectiveFilter, setObjectiveFilter] = React.useState<
+    DashboardObjectiveBucket | ""
+  >("");
+  const [objectiveFilterOpen, setObjectiveFilterOpen] = React.useState(false);
+  const objectiveFilterRef = React.useRef<HTMLDivElement>(null);
+  const [objectives, setObjectives] = React.useState<CampaignObjectiveOption[]>(
+    [],
+  );
   const [timeRange, setTimeRange] = React.useState<CampaignTimeRange>("30d");
   const [timeRangeOpen, setTimeRangeOpen] = React.useState(false);
   const timeRangeRef = React.useRef<HTMLDivElement>(null);
+  const [creativePreview, setCreativePreview] = React.useState<{
+    adName: string;
+    adId: string;
+    preview: AdCreativePreview;
+  } | null>(null);
   const { widths, startResize, tableMinWidth } = useResizableColumns(
     DEFAULT_CAMPAIGN_COLUMN_WIDTHS,
     COLUMN_WIDTHS_STORAGE_KEY,
@@ -209,6 +237,7 @@ export function CampaignsPage() {
       });
       if (search.trim()) params.set("search", search.trim());
       if (accountFilter) params.set("accountId", accountFilter);
+      if (objectiveFilter) params.set("objective", objectiveFilter);
 
       const response = await fetch(`/api/campaigns?${params.toString()}`);
       if (!response.ok) return;
@@ -217,15 +246,17 @@ export function CampaignsPage() {
         rows?: EntityPerformanceRow[];
         totalCount?: number;
         accounts?: CampaignAccountOption[];
+        objectives?: CampaignObjectiveOption[];
       };
 
       setRows(payload.rows ?? []);
       setTotalCount(payload.totalCount ?? 0);
       setAccounts(payload.accounts ?? []);
+      setObjectives(payload.objectives ?? []);
     } finally {
       setLoading(false);
     }
-  }, [accountFilter, entityType, page, search, timeRange]);
+  }, [accountFilter, entityType, objectiveFilter, page, search, timeRange]);
 
   React.useEffect(() => {
     void load();
@@ -233,7 +264,16 @@ export function CampaignsPage() {
 
   React.useEffect(() => {
     setPage(0);
-  }, [search, accountFilter, entityType, timeRange]);
+  }, [search, accountFilter, objectiveFilter, entityType, timeRange]);
+
+  React.useEffect(() => {
+    if (
+      objectiveFilter &&
+      !objectives.some((objective) => objective.value === objectiveFilter)
+    ) {
+      setObjectiveFilter("");
+    }
+  }, [objectiveFilter, objectives]);
 
   React.useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -249,19 +289,29 @@ export function CampaignsPage() {
       ) {
         setTimeRangeOpen(false);
       }
+      if (
+        objectiveFilterRef.current &&
+        !objectiveFilterRef.current.contains(event.target as Node)
+      ) {
+        setObjectiveFilterOpen(false);
+      }
     }
 
-    if (accountFilterOpen || timeRangeOpen) {
+    if (accountFilterOpen || timeRangeOpen || objectiveFilterOpen) {
       document.addEventListener("mousedown", handleClickOutside);
     }
 
     return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, [accountFilterOpen, timeRangeOpen]);
+  }, [accountFilterOpen, timeRangeOpen, objectiveFilterOpen]);
 
   const totalPages = Math.max(1, Math.ceil(totalCount / PAGE_SIZE));
   const selectedAccountLabel = accountFilter
     ? (accounts.find((account) => account.id === accountFilter)?.name ?? "Account")
     : "All accounts";
+  const selectedObjectiveLabel = objectiveFilter
+    ? (objectives.find((objective) => objective.value === objectiveFilter)
+        ?.label ?? "Outcome")
+    : "All outcomes";
   const selectedTimeRangeLabel =
     TIME_RANGE_OPTIONS.find((option) => option.value === timeRange)?.label ??
     "Last 30 days";
@@ -389,6 +439,95 @@ export function CampaignsPage() {
                             aria-hidden
                           />
                           <span className="truncate">{account.name}</span>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                ) : null}
+              </div>
+            ) : null}
+
+            {objectives.length > 0 ? (
+              <div className="relative flex-shrink-0" ref={objectiveFilterRef}>
+                <button
+                  type="button"
+                  onClick={() => setObjectiveFilterOpen((open) => !open)}
+                  className={cn(
+                    "inline-flex max-w-[min(100%,18rem)] min-w-0 items-center gap-1.5 rounded-none border-0 bg-transparent p-0 text-sm font-light uppercase tracking-wider text-neutral-700 shadow-none transition-colors hover:text-neutral-900",
+                    "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-neutral-400 focus-visible:ring-offset-2",
+                  )}
+                  aria-expanded={objectiveFilterOpen}
+                  aria-haspopup="listbox"
+                >
+                  {objectiveFilter ? (
+                    <span
+                      className="h-2 w-2 flex-shrink-0 rounded-full bg-[var(--walls-sky)]"
+                      aria-hidden
+                    />
+                  ) : null}
+                  <span className="truncate">{selectedObjectiveLabel}</span>
+                  <ChevronDown
+                    className={cn(
+                      "h-3.5 w-3.5 flex-shrink-0 text-neutral-500 transition-transform duration-200",
+                      objectiveFilterOpen && "rotate-180",
+                    )}
+                    strokeWidth={1.8}
+                  />
+                </button>
+
+                {objectiveFilterOpen ? (
+                  <div
+                    className="absolute top-full left-0 z-50 mt-1.5 min-w-[200px] overflow-hidden rounded-xl border border-neutral-200 bg-white py-1 shadow-lg"
+                    role="listbox"
+                  >
+                    <button
+                      type="button"
+                      role="option"
+                      aria-selected={objectiveFilter === ""}
+                      onClick={() => {
+                        setObjectiveFilter("");
+                        setObjectiveFilterOpen(false);
+                      }}
+                      className={cn(
+                        "flex w-full items-center gap-2 px-3 py-2 text-left text-xs transition-colors",
+                        objectiveFilter === ""
+                          ? "bg-neutral-100 text-neutral-900"
+                          : "text-neutral-700 hover:bg-neutral-50",
+                      )}
+                    >
+                      <span className="flex w-2 flex-shrink-0 justify-center" aria-hidden>
+                        <span className="h-2 w-2 rounded-full bg-neutral-300" />
+                      </span>
+                      <span>All outcomes</span>
+                    </button>
+                    <div className="mt-1 border-t border-neutral-100 pt-1">
+                      {objectives.map((objective) => (
+                        <button
+                          key={objective.value}
+                          type="button"
+                          role="option"
+                          aria-selected={objectiveFilter === objective.value}
+                          onClick={() => {
+                            setObjectiveFilter(objective.value);
+                            setObjectiveFilterOpen(false);
+                          }}
+                          className={cn(
+                            "flex w-full items-center gap-2 px-3 py-2 text-left text-xs transition-colors",
+                            objectiveFilter === objective.value
+                              ? "bg-neutral-100 text-neutral-900"
+                              : "text-neutral-700 hover:bg-neutral-50",
+                          )}
+                        >
+                          <span
+                            className={cn(
+                              "h-2 w-2 flex-shrink-0 rounded-full",
+                              objectiveFilter === objective.value
+                                ? "bg-[var(--walls-sky)]"
+                                : "bg-neutral-200",
+                            )}
+                            aria-hidden
+                          />
+                          <span className="truncate">{objective.label}</span>
                         </button>
                       ))}
                     </div>
@@ -536,6 +675,7 @@ export function CampaignsPage() {
               ) : (
                 rows.map((row, index) => {
                   const detailHref = entityDetailHref(row);
+                  const parentHref = parentDetailHref(row);
                   return (
                   <motion.tr
                     key={row.id}
@@ -546,6 +686,23 @@ export function CampaignsPage() {
                   >
                     <td className="overflow-hidden py-4 pr-4">
                       <div className="flex min-w-0 items-center gap-2">
+                        {entityType === "ad" ? (
+                          <AdThumbnail
+                            url={row.thumbnailUrl}
+                            title={row.name}
+                            creativeType={row.creativeType}
+                            onClick={
+                              row.creativePreview
+                                ? () =>
+                                    setCreativePreview({
+                                      adName: row.name,
+                                      adId: row.id,
+                                      preview: row.creativePreview!,
+                                    })
+                                : undefined
+                            }
+                          />
+                        ) : null}
                         {detailHref ? (
                           <Link
                             href={detailHref}
@@ -568,9 +725,18 @@ export function CampaignsPage() {
                     </td>
                     <td className="overflow-hidden py-4 pr-4 pl-3 text-xs font-light text-neutral-500">
                       <span className="block truncate">
-                        {entityType === "campaign"
-                          ? formatObjectiveLabel(row.objective)
-                          : (row.parentName ?? "—")}
+                        {entityType === "campaign" ? (
+                          formatObjectiveLabel(row.objective)
+                        ) : parentHref ? (
+                          <Link
+                            href={parentHref}
+                            className="transition-colors hover:text-[var(--walls-sky)]"
+                          >
+                            {row.parentName ?? "—"}
+                          </Link>
+                        ) : (
+                          (row.parentName ?? "—")
+                        )}
                       </span>
                     </td>
                     <td className="overflow-hidden py-4 pr-4 pl-3 text-xs font-light whitespace-nowrap text-neutral-500">
@@ -642,6 +808,14 @@ export function CampaignsPage() {
           </div>
         </div>
       </div>
+
+      <AdCreativeLightbox
+        open={creativePreview != null}
+        onClose={() => setCreativePreview(null)}
+        adName={creativePreview?.adName ?? ""}
+        adId={creativePreview?.adId ?? null}
+        preview={creativePreview?.preview ?? null}
+      />
     </div>
   );
 }

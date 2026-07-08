@@ -10,6 +10,17 @@ import {
   formatRoas,
 } from "@/lib/format-analytics";
 import { ZERO_DASHBOARD_STATS } from "@/lib/dashboard-defaults";
+import {
+  buildAdCreativePreview,
+  type AdCreativePreview,
+} from "@/lib/meta-creatives";
+import {
+  DASHBOARD_OBJECTIVE_BUCKETS,
+  type DashboardObjectiveBucket,
+  getObjectiveBucketLabel,
+  isSalesObjective,
+  resolveObjectiveBucket,
+} from "@/lib/meta-objectives";
 
 export type DashboardStat = {
   label: string;
@@ -41,6 +52,34 @@ export type DashboardSpendDay = {
   spendMicros: number;
 };
 
+export type DashboardTopPerformingAd = {
+  id: string;
+  name: string;
+  campaignId: string | null;
+  adSetId: string | null;
+  campaignName: string | null;
+  adSetName: string | null;
+  objectiveBucket: DashboardObjectiveBucket;
+  spendMicros: number;
+  impressions: number;
+  clicks: number;
+  ctr: number;
+  roas: number | null;
+  websitePurchases: number | null;
+  thumbnailUrl: string | null;
+  creativeType: string | null;
+  creativePreview: AdCreativePreview | null;
+};
+
+export type DashboardTopAdsByObjective = {
+  objectives: Array<{
+    value: DashboardObjectiveBucket;
+    label: string;
+    adCount: number;
+  }>;
+  byObjective: Record<DashboardObjectiveBucket, DashboardTopPerformingAd[]>;
+};
+
 export type DashboardAnalytics = {
   periodLabel: string;
   syncing: boolean;
@@ -48,6 +87,7 @@ export type DashboardAnalytics = {
   stats: DashboardStat[];
   spendByDay: DashboardSpendDay[];
   accounts: DashboardAccountRow[];
+  topPerformingAds: DashboardTopAdsByObjective;
 };
 
 type MetricRow = {
@@ -125,6 +165,239 @@ function formatAccountStatus(status: string | null): string {
     .join(" ");
 }
 
+const TOP_ADS_LIMIT = 5;
+
+const EMPTY_TOP_PERFORMING_ADS: DashboardTopAdsByObjective = {
+  objectives: [],
+  byObjective: {
+    OUTCOME_SALES: [],
+    OUTCOME_TRAFFIC: [],
+    OUTCOME_AWARENESS: [],
+    OUTCOME_ENGAGEMENT: [],
+    OUTCOME_LEADS: [],
+    OUTCOME_APP_PROMOTION: [],
+  },
+};
+
+type AdEntityRow = {
+  id: string;
+  name: string | null;
+  parent_id: string | null;
+};
+
+type HierarchyEntityRow = {
+  id: string;
+  name: string | null;
+  entity_type: "campaign" | "ad_group";
+  parent_id: string | null;
+  objective: string | null;
+};
+
+function scoreTopAd(
+  ad: DashboardTopPerformingAd,
+  objectiveBucket: DashboardObjectiveBucket,
+): number {
+  const spend = ad.spendMicros / 1_000_000;
+  const hasDelivery = ad.impressions > 0 || spend > 0;
+  if (!hasDelivery) return 0;
+
+  switch (objectiveBucket) {
+    case "OUTCOME_SALES":
+      return (
+        (ad.roas ?? 0) * spend * 250 +
+        (ad.websitePurchases ?? 0) * 100 +
+        spend * 10 +
+        ad.ctr * 5
+      );
+    case "OUTCOME_TRAFFIC":
+      return ad.clicks * 12 + ad.ctr * 25 + spend * 5;
+    case "OUTCOME_AWARENESS":
+      return ad.impressions * 0.02 + spend * 2;
+    case "OUTCOME_ENGAGEMENT":
+      return ad.clicks * 10 + ad.ctr * 30 + spend * 3;
+    case "OUTCOME_LEADS":
+      return ad.clicks * 8 + ad.ctr * 20 + spend * 4;
+    case "OUTCOME_APP_PROMOTION":
+      return ad.clicks * 15 + spend * 6 + ad.ctr * 10;
+    default:
+      return spend * 10 + (ad.roas ?? 0) * 50 + ad.clicks;
+  }
+}
+
+async function buildTopPerformingAds(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  userId: string,
+  currentStartIso: string,
+): Promise<DashboardTopAdsByObjective> {
+  const { data: ads } = await supabase
+    .from("ad_entities")
+    .select("id, name, parent_id")
+    .eq("user_id", userId)
+    .eq("provider", META_PROVIDER)
+    .eq("entity_type", "ad");
+
+  if (!ads?.length) return EMPTY_TOP_PERFORMING_ADS;
+
+  const adList = ads as AdEntityRow[];
+  const adSetIds = Array.from(
+    new Set(adList.map((ad) => ad.parent_id).filter(Boolean)),
+  ) as string[];
+
+  if (adSetIds.length === 0) return EMPTY_TOP_PERFORMING_ADS;
+
+  const { data: adSetEntities } = await supabase
+    .from("ad_entities")
+    .select("id, name, entity_type, parent_id, objective")
+    .eq("user_id", userId)
+    .eq("provider", META_PROVIDER)
+    .eq("entity_type", "ad_group")
+    .in("id", adSetIds);
+
+  const adSetById = new Map<string, HierarchyEntityRow>();
+  const campaignIds = new Set<string>();
+
+  for (const entity of (adSetEntities ?? []) as HierarchyEntityRow[]) {
+    adSetById.set(entity.id, entity);
+    if (entity.parent_id) campaignIds.add(entity.parent_id);
+  }
+
+  const campaignById = new Map<string, HierarchyEntityRow>();
+
+  if (campaignIds.size > 0) {
+    const { data: campaigns } = await supabase
+      .from("ad_entities")
+      .select("id, name, entity_type, parent_id, objective")
+      .eq("user_id", userId)
+      .eq("provider", META_PROVIDER)
+      .eq("entity_type", "campaign")
+      .in("id", Array.from(campaignIds));
+
+    for (const campaign of (campaigns ?? []) as HierarchyEntityRow[]) {
+      campaignById.set(campaign.id, campaign);
+    }
+  }
+
+  const adIds = adList.map((ad) => ad.id);
+  const { data: metrics } = await supabase
+    .from("ad_metrics_daily")
+    .select(
+      "entity_id, impressions, clicks, spend_micros, conversion_value_micros, website_purchases",
+    )
+    .in("entity_id", adIds)
+    .gte("metric_date", currentStartIso);
+
+  const metricsByAd = new Map<string, MetricRow[]>();
+  for (const row of (metrics ?? []) as Array<MetricRow & { entity_id: string }>) {
+    const bucket = metricsByAd.get(row.entity_id) ?? [];
+    bucket.push(row);
+    metricsByAd.set(row.entity_id, bucket);
+  }
+
+  const adsByObjective = new Map<DashboardObjectiveBucket, DashboardTopPerformingAd[]>();
+
+  for (const ad of adList) {
+    const adSet = ad.parent_id ? adSetById.get(ad.parent_id) : undefined;
+    const campaign = adSet?.parent_id ? campaignById.get(adSet.parent_id) : undefined;
+    const objectiveBucket = resolveObjectiveBucket(campaign?.objective ?? null);
+    if (!objectiveBucket) continue;
+
+    const totals = sumMetrics(metricsByAd.get(ad.id) ?? []);
+    const tracksWebsitePurchases = isSalesObjective(campaign?.objective ?? null);
+
+    const row: DashboardTopPerformingAd = {
+      id: ad.id,
+      name: ad.name ?? "Untitled ad",
+      campaignId: campaign?.id ?? null,
+      adSetId: adSet?.id ?? null,
+      campaignName: campaign?.name ?? null,
+      adSetName: adSet?.name ?? null,
+      objectiveBucket,
+      spendMicros: totals.spend_micros,
+      impressions: totals.impressions,
+      clicks: totals.clicks,
+      ctr: totals.ctr,
+      roas: totals.roas,
+      websitePurchases: tracksWebsitePurchases ? totals.website_purchases : null,
+      thumbnailUrl: null,
+      creativeType: null,
+      creativePreview: null,
+    };
+
+    if (row.impressions <= 0 && row.spendMicros <= 0) continue;
+
+    const bucket = adsByObjective.get(objectiveBucket) ?? [];
+    bucket.push(row);
+    adsByObjective.set(objectiveBucket, bucket);
+  }
+
+  const byObjective = { ...EMPTY_TOP_PERFORMING_ADS.byObjective };
+
+  for (const bucket of DASHBOARD_OBJECTIVE_BUCKETS) {
+    const ranked = (adsByObjective.get(bucket.value) ?? [])
+      .sort(
+        (left, right) =>
+          scoreTopAd(right, bucket.value) - scoreTopAd(left, bucket.value),
+      )
+      .slice(0, TOP_ADS_LIMIT);
+
+    byObjective[bucket.value] = ranked;
+  }
+
+  const enrichedByObjective = await attachCreativePreviews(supabase, byObjective);
+
+  const objectives = DASHBOARD_OBJECTIVE_BUCKETS.map((bucket) => ({
+    value: bucket.value,
+    label: getObjectiveBucketLabel(bucket.value),
+    adCount: adsByObjective.get(bucket.value)?.length ?? 0,
+  })).filter((bucket) => bucket.adCount > 0);
+
+  return { objectives, byObjective: enrichedByObjective };
+}
+
+async function attachCreativePreviews(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  byObjective: Record<DashboardObjectiveBucket, DashboardTopPerformingAd[]>,
+): Promise<Record<DashboardObjectiveBucket, DashboardTopPerformingAd[]>> {
+  const topAdIds = Array.from(
+    new Set(Object.values(byObjective).flat().map((ad) => ad.id)),
+  );
+
+  if (topAdIds.length === 0) return byObjective;
+
+  const { data: creatives } = await supabase
+    .from("ad_creatives")
+    .select(
+      `ad_entity_id, creative_type, title, body, thumbnail_url, image_url, image_permalink_url, video_thumbnail_url, video_source_url,
+      ad_creative_assets (
+        id, asset_type, ordinal, image_url, permalink_url, video_source_url, video_thumbnail_url, title, body
+      )`,
+    )
+    .in("ad_entity_id", topAdIds);
+
+  const previewByAdId = new Map<string, AdCreativePreview>();
+  for (const creative of creatives ?? []) {
+    const preview = buildAdCreativePreview(creative);
+    if (preview) {
+      previewByAdId.set(creative.ad_entity_id as string, preview);
+    }
+  }
+
+  const enriched = { ...byObjective };
+  for (const bucket of DASHBOARD_OBJECTIVE_BUCKETS) {
+    enriched[bucket.value] = (byObjective[bucket.value] ?? []).map((ad) => {
+      const preview = previewByAdId.get(ad.id) ?? null;
+      return {
+        ...ad,
+        thumbnailUrl: preview?.thumbnailUrl ?? null,
+        creativeType: preview?.creativeType ?? null,
+        creativePreview: preview,
+      };
+    });
+  }
+
+  return enriched;
+}
+
 export async function getDashboardAnalytics(
   userId: string,
 ): Promise<DashboardAnalytics> {
@@ -165,19 +438,23 @@ export async function getDashboardAnalytics(
       stats: [...ZERO_DASHBOARD_STATS],
       spendByDay: [],
       accounts: [],
+      topPerformingAds: EMPTY_TOP_PERFORMING_ADS,
     };
   }
 
   const entityIds = entities.map((entity) => entity.id);
 
-  const { data: metrics } = await supabase
-    .from("ad_metrics_daily")
-    .select(
-      "entity_id, metric_date, impressions, clicks, spend_micros, conversion_value_micros, website_purchases, ctr, roas",
-    )
-    .in("entity_id", entityIds)
-    .gte("metric_date", previousStartIso)
-    .order("metric_date", { ascending: true });
+  const [{ data: metrics }, topPerformingAds] = await Promise.all([
+    supabase
+      .from("ad_metrics_daily")
+      .select(
+        "entity_id, metric_date, impressions, clicks, spend_micros, conversion_value_micros, website_purchases, ctr, roas",
+      )
+      .in("entity_id", entityIds)
+      .gte("metric_date", previousStartIso)
+      .order("metric_date", { ascending: true }),
+    buildTopPerformingAds(supabase, userId, currentStartIso),
+  ]);
 
   const metricRows = (metrics ?? []) as Array<MetricRow & { entity_id: string }>;
   const currentMetrics = metricRows.filter(
@@ -277,5 +554,6 @@ export async function getDashboardAnalytics(
     ],
     spendByDay: buildSpendByDay(currentMetrics),
     accounts,
+    topPerformingAds,
   };
 }

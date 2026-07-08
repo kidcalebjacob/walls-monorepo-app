@@ -7,6 +7,7 @@ import {
   Bot,
   CircleDollarSign,
   Eye,
+  ImageIcon,
   Minus,
   MousePointerClick,
   Plus,
@@ -307,6 +308,71 @@ export function LearningBadge({
     >
       {config.label}
     </span>
+  );
+}
+
+export function AdThumbnail({
+  url,
+  title,
+  creativeType,
+  onClick,
+  interactive = Boolean(onClick),
+}: {
+  url: string | null;
+  title: string;
+  creativeType?: string | null;
+  onClick?: () => void;
+  interactive?: boolean;
+}) {
+  const [failed, setFailed] = React.useState(false);
+  const showImage = Boolean(url) && !failed;
+  const isInteractive = interactive && Boolean(onClick);
+
+  const content = (
+    <>
+      {showImage ? (
+        <img
+          src={url!}
+          alt=""
+          className="h-full w-full object-cover"
+          loading="lazy"
+          onError={() => setFailed(true)}
+        />
+      ) : (
+        <div
+          className="flex h-full w-full items-center justify-center text-neutral-300"
+          aria-hidden
+        >
+          <ImageIcon className="h-4 w-4" strokeWidth={1.5} />
+        </div>
+      )}
+    </>
+  );
+
+  const className = cn(
+    "relative h-9 w-9 flex-shrink-0 overflow-hidden rounded-md border border-neutral-200/70 bg-neutral-100",
+    isInteractive &&
+      "cursor-pointer transition-opacity hover:opacity-80 focus-visible:outline-none",
+  );
+
+  if (isInteractive) {
+    return (
+      <button
+        type="button"
+        onClick={onClick}
+        className={className}
+        title={`Preview ${title}`}
+        aria-label={`Preview creative for ${title}`}
+      >
+        {content}
+      </button>
+    );
+  }
+
+  return (
+    <div className={className} title={title}>
+      {content}
+    </div>
   );
 }
 

@@ -8,6 +8,13 @@ import {
   type MetaInsightRow,
 } from "@/lib/meta-graph";
 
+import {
+  AD_CREATIVE_FIELDS,
+  parseCreative,
+  persistAdCreative,
+  type MetaAdCreative,
+} from "@/lib/meta-creatives";
+
 import { listMetaConnectionsWithTokens } from "./connections-server";
 import type { MetaConnectionRecord } from "@/lib/connections";
 
@@ -464,8 +471,9 @@ export async function syncMetaConnection(
       status?: string;
       adset_id?: string;
       campaign_id?: string;
+      creative?: MetaAdCreative;
     }>(`${accountId}/ads`, accessToken, {
-      fields: "id,name,status,adset_id,campaign_id",
+      fields: AD_CREATIVE_FIELDS,
     });
 
     for (const ad of ads) {
@@ -484,6 +492,28 @@ export async function syncMetaConnection(
         rawPayload: ad,
       });
       entityIds.set(ad.id, adEntityId);
+
+      // Capture creative metadata + media assets. Non-fatal: a creative issue
+      // must never abort the wider sync.
+      const parsedCreative = parseCreative(ad.creative);
+      if (parsedCreative) {
+        try {
+          await persistAdCreative({
+            userId: connection.user_id,
+            connectionId: connection.id,
+            accountId,
+            accessToken,
+            adEntityId,
+            providerAdId: ad.id,
+            parsed: parsedCreative,
+          });
+        } catch (creativeError) {
+          console.error(
+            `Failed to persist creative for ad ${ad.id}:`,
+            creativeError,
+          );
+        }
+      }
     }
 
     const { since, until } = getMetaDateRange(30);

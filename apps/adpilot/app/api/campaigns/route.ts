@@ -5,8 +5,16 @@ import {
   type CampaignEntityType,
 } from "@/lib/campaigns-server";
 import { getCurrentUserId } from "@/lib/connections-server";
+import {
+  DASHBOARD_OBJECTIVE_BUCKETS,
+  type DashboardObjectiveBucket,
+} from "@/lib/meta-objectives";
 
 const ENTITY_TYPES = new Set<CampaignEntityType>(["campaign", "ad_group", "ad"]);
+
+const OBJECTIVE_BUCKETS = new Set<DashboardObjectiveBucket>(
+  DASHBOARD_OBJECTIVE_BUCKETS.map((bucket) => bucket.value),
+);
 
 const RANGE_DAYS: Record<string, number> = {
   "24h": 1,
@@ -28,6 +36,11 @@ export async function GET(request: Request) {
     : "campaign";
   const search = searchParams.get("search") ?? undefined;
   const accountId = searchParams.get("accountId") ?? undefined;
+  const objectiveParam = searchParams.get("objective") ?? undefined;
+  const objective =
+    objectiveParam && OBJECTIVE_BUCKETS.has(objectiveParam as DashboardObjectiveBucket)
+      ? (objectiveParam as DashboardObjectiveBucket)
+      : undefined;
   const page = Number(searchParams.get("page") ?? "0");
   const rangeParam = searchParams.get("range") ?? "30d";
   const rangeDays = RANGE_DAYS[rangeParam] ?? 30;
@@ -38,6 +51,7 @@ export async function GET(request: Request) {
       entityType,
       search,
       accountId,
+      objective,
       page: Number.isFinite(page) ? page : 0,
       rangeDays,
     });
