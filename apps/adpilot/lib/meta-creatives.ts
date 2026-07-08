@@ -425,3 +425,148 @@ export function pickCreativeThumbnailUrl(creative: {
     null
   );
 }
+
+export type CreativeAssetRow = {
+  id: string;
+  asset_type: string;
+  ordinal: number;
+  image_url?: string | null;
+  permalink_url?: string | null;
+  video_source_url?: string | null;
+  video_thumbnail_url?: string | null;
+  title?: string | null;
+  body?: string | null;
+};
+
+export type CreativeRowForPreview = {
+  creative_type?: string | null;
+  title?: string | null;
+  body?: string | null;
+  thumbnail_url?: string | null;
+  image_url?: string | null;
+  image_permalink_url?: string | null;
+  video_thumbnail_url?: string | null;
+  video_source_url?: string | null;
+  ad_creative_assets?: CreativeAssetRow[] | null;
+};
+
+export type AdCreativeMediaItem = {
+  id: string;
+  assetType: "image" | "video";
+  ordinal: number;
+  imageUrl: string | null;
+  videoSourceUrl: string | null;
+  posterUrl: string | null;
+  title: string | null;
+  body: string | null;
+};
+
+export type AdCreativePreview = {
+  creativeType: string | null;
+  title: string | null;
+  body: string | null;
+  thumbnailUrl: string | null;
+  media: AdCreativeMediaItem[];
+};
+
+function pickImageDisplayUrl(
+  permalinkUrl?: string | null,
+  imageUrl?: string | null,
+  fallback?: string | null,
+): string | null {
+  return permalinkUrl ?? imageUrl ?? fallback ?? null;
+}
+
+/** Build a lightbox-ready preview from a synced creative row + child assets. */
+export function buildAdCreativePreview(
+  row: CreativeRowForPreview,
+): AdCreativePreview | null {
+  const media: AdCreativeMediaItem[] = [];
+  const childAssets = [...(row.ad_creative_assets ?? [])].sort(
+    (left, right) => left.ordinal - right.ordinal,
+  );
+
+  for (const asset of childAssets) {
+    if (asset.asset_type === "video") {
+      // Keep it a video item even when the raw MP4 source is restricted — the
+      // lightbox falls back to Meta's ad preview player using the poster.
+      media.push({
+        id: asset.id,
+        assetType: "video",
+        ordinal: asset.ordinal,
+        imageUrl: null,
+        videoSourceUrl: asset.video_source_url ?? null,
+        posterUrl: asset.video_thumbnail_url ?? row.video_thumbnail_url ?? null,
+        title: asset.title ?? null,
+        body: asset.body ?? null,
+      });
+      continue;
+    }
+
+    const imageUrl = pickImageDisplayUrl(
+      asset.permalink_url,
+      asset.image_url,
+      asset.video_thumbnail_url,
+    );
+    if (imageUrl) {
+      media.push({
+        id: asset.id,
+        assetType: "image",
+        ordinal: asset.ordinal,
+        imageUrl,
+        videoSourceUrl: null,
+        posterUrl: null,
+        title: asset.title ?? null,
+        body: asset.body ?? null,
+      });
+    }
+  }
+
+  // Fallback when child assets weren't synced but parent creative has media refs.
+  if (media.length === 0) {
+    const isVideoCreative =
+      row.creative_type === "video" ||
+      Boolean(row.video_source_url) ||
+      Boolean(row.video_thumbnail_url);
+
+    if (isVideoCreative) {
+      media.push({
+        id: "primary-video",
+        assetType: "video",
+        ordinal: 0,
+        imageUrl: null,
+        videoSourceUrl: row.video_source_url ?? null,
+        posterUrl: row.video_thumbnail_url ?? row.thumbnail_url ?? null,
+        title: row.title ?? null,
+        body: row.body ?? null,
+      });
+    }
+
+    // Avoid duplicating the video poster as a standalone image slide.
+    const primaryImage = isVideoCreative
+      ? pickImageDisplayUrl(row.image_permalink_url, row.image_url)
+      : pickImageDisplayUrl(row.image_permalink_url, row.image_url, row.thumbnail_url);
+    if (primaryImage) {
+      media.push({
+        id: "primary-image",
+        assetType: "image",
+        ordinal: media.length,
+        imageUrl: primaryImage,
+        videoSourceUrl: null,
+        posterUrl: null,
+        title: row.title ?? null,
+        body: row.body ?? null,
+      });
+    }
+  }
+
+  if (media.length === 0) return null;
+
+  return {
+    creativeType: row.creative_type ?? null,
+    title: row.title ?? null,
+    body: row.body ?? null,
+    thumbnailUrl: pickCreativeThumbnailUrl(row),
+    media,
+  };
+}

@@ -22,6 +22,7 @@ import type {
   CampaignEntityType,
   EntityPerformanceRow,
 } from "@/lib/campaigns-server";
+import type { AdCreativePreview } from "@/lib/meta-creatives";
 import {
   formatCompactNumber,
   formatCurrencyFromMicros,
@@ -32,6 +33,7 @@ import {
 import { formatObjectiveLabel } from "@/lib/meta-objectives";
 
 import { AnimatedMetricValue } from "@/components/dashboard/animated-metric-value";
+import { AdCreativeLightbox } from "@/components/campaigns/ad-creative-lightbox";
 import {
   AdPilotRowBadge,
   AdThumbnail,
@@ -193,6 +195,11 @@ export function CampaignsPage() {
   const [timeRange, setTimeRange] = React.useState<CampaignTimeRange>("30d");
   const [timeRangeOpen, setTimeRangeOpen] = React.useState(false);
   const timeRangeRef = React.useRef<HTMLDivElement>(null);
+  const [creativePreview, setCreativePreview] = React.useState<{
+    adName: string;
+    adId: string;
+    preview: AdCreativePreview;
+  } | null>(null);
   const { widths, startResize, tableMinWidth } = useResizableColumns(
     DEFAULT_CAMPAIGN_COLUMN_WIDTHS,
     COLUMN_WIDTHS_STORAGE_KEY,
@@ -552,6 +559,16 @@ export function CampaignsPage() {
                             url={row.thumbnailUrl}
                             title={row.name}
                             creativeType={row.creativeType}
+                            onClick={
+                              row.creativePreview
+                                ? () =>
+                                    setCreativePreview({
+                                      adName: row.name,
+                                      adId: row.id,
+                                      preview: row.creativePreview!,
+                                    })
+                                : undefined
+                            }
                           />
                         ) : null}
                         {detailHref ? (
@@ -650,6 +667,14 @@ export function CampaignsPage() {
           </div>
         </div>
       </div>
+
+      <AdCreativeLightbox
+        open={creativePreview != null}
+        onClose={() => setCreativePreview(null)}
+        adName={creativePreview?.adName ?? ""}
+        adId={creativePreview?.adId ?? null}
+        preview={creativePreview?.preview ?? null}
+      />
     </div>
   );
 }

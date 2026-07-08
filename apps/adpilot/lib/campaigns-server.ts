@@ -1,7 +1,10 @@
 import { createClient } from "@walls/supabase/server";
 
 import { META_PROVIDER } from "@/lib/connections";
-import { pickCreativeThumbnailUrl } from "@/lib/meta-creatives";
+import {
+  buildAdCreativePreview,
+  type AdCreativePreview,
+} from "@/lib/meta-creatives";
 import { isSalesObjective, formatObjectiveLabel } from "@/lib/meta-objectives";
 
 import type { AutomationStatus } from "@/lib/spend-automation-settings";
@@ -31,6 +34,7 @@ export type EntityPerformanceRow = {
   learningStatus: string | null;
   thumbnailUrl: string | null;
   creativeType: string | null;
+  creativePreview: AdCreativePreview | null;
   lastSyncedAt: string | null;
 };
 
@@ -337,7 +341,10 @@ export async function listCampaignPerformance(input: {
       ? supabase
           .from("ad_creatives")
           .select(
-            "ad_entity_id, creative_type, thumbnail_url, image_url, image_permalink_url, video_thumbnail_url",
+            `ad_entity_id, creative_type, title, body, thumbnail_url, image_url, image_permalink_url, video_thumbnail_url, video_source_url,
+            ad_creative_assets (
+              id, asset_type, ordinal, image_url, permalink_url, video_source_url, video_thumbnail_url, title, body
+            )`,
           )
           .in("ad_entity_id", entityIds)
       : Promise.resolve({ data: [] as Array<Record<string, unknown>> });
@@ -376,16 +383,12 @@ export async function listCampaignPerformance(input: {
     metricsByEntity.set(metric.entity_id, bucket);
   }
 
-  const creativeByAdEntity = new Map<
-    string,
-    { thumbnailUrl: string | null; creativeType: string | null }
-  >();
+  const creativeByAdEntity = new Map<string, AdCreativePreview>();
   for (const creative of creatives ?? []) {
-    const adEntityId = creative.ad_entity_id as string;
-    creativeByAdEntity.set(adEntityId, {
-      thumbnailUrl: pickCreativeThumbnailUrl(creative),
-      creativeType: (creative.creative_type as string | null) ?? null,
-    });
+    const preview = buildAdCreativePreview(creative);
+    if (preview) {
+      creativeByAdEntity.set(creative.ad_entity_id as string, preview);
+    }
   }
 
   let rows: EntityPerformanceRow[] = entityList.map((entity) => {
@@ -428,6 +431,7 @@ export async function listCampaignPerformance(input: {
       learningStatus: entity.learning_status,
       thumbnailUrl: creative?.thumbnailUrl ?? null,
       creativeType: creative?.creativeType ?? null,
+      creativePreview: creative ?? null,
       lastSyncedAt: entity.last_synced_at,
     };
   });

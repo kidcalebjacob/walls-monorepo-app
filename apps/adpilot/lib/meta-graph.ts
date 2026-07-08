@@ -128,6 +128,57 @@ export function getMetaDateRange(days: number): { since: string; until: string }
   return { since: format(since), until: format(until) };
 }
 
+/**
+ * Ad preview formats to try, in order. Meta renders a playable iframe preview
+ * of the actual ad — the reliable way to view video/carousel/dynamic creatives
+ * when the raw MP4 `source` field is restricted for our token.
+ */
+const AD_PREVIEW_FORMATS = [
+  "MOBILE_FEED_STANDARD",
+  "INSTAGRAM_STANDARD",
+  "FACEBOOK_STORY_MOBILE",
+  "DESKTOP_FEED_STANDARD",
+] as const;
+
+type MetaAdPreviewResponse = {
+  data?: Array<{ body?: string }>;
+};
+
+/**
+ * Generate an embeddable ad preview iframe for a provider ad id. Returns the
+ * raw iframe HTML string (Meta's signed, short-lived preview) or null.
+ */
+export async function fetchMetaAdPreview(
+  providerAdId: string,
+  accessToken: string,
+  adFormat?: string,
+): Promise<string | null> {
+  const formats = adFormat ? [adFormat] : AD_PREVIEW_FORMATS;
+
+  for (const format of formats) {
+    const search = new URLSearchParams({
+      access_token: accessToken,
+      ad_format: format,
+    });
+    const url = `https://graph.facebook.com/${META_GRAPH_VERSION}/${providerAdId}/previews?${search.toString()}`;
+
+    try {
+      const response = await fetch(url);
+      if (!response.ok) continue;
+
+      const payload = (await response.json()) as MetaAdPreviewResponse;
+      const body = payload.data?.[0]?.body;
+      if (body && body.includes("<iframe")) {
+        return body;
+      }
+    } catch {
+      // Try the next format.
+    }
+  }
+
+  return null;
+}
+
 export type MetaInsightRow = {
   date_start?: string;
   date_stop?: string;

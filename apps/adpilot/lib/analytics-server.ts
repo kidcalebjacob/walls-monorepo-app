@@ -11,6 +11,10 @@ import {
 } from "@/lib/format-analytics";
 import { ZERO_DASHBOARD_STATS } from "@/lib/dashboard-defaults";
 import {
+  buildAdCreativePreview,
+  type AdCreativePreview,
+} from "@/lib/meta-creatives";
+import {
   DASHBOARD_OBJECTIVE_BUCKETS,
   type DashboardObjectiveBucket,
   getObjectiveBucketLabel,
@@ -62,6 +66,9 @@ export type DashboardTopPerformingAd = {
   ctr: number;
   roas: number | null;
   websitePurchases: number | null;
+  thumbnailUrl: string | null;
+  creativeType: string | null;
+  creativePreview: AdCreativePreview | null;
 };
 
 export type DashboardTopAdsByObjective = {
@@ -311,6 +318,9 @@ async function buildTopPerformingAds(
       ctr: totals.ctr,
       roas: totals.roas,
       websitePurchases: tracksWebsitePurchases ? totals.website_purchases : null,
+      thumbnailUrl: null,
+      creativeType: null,
+      creativePreview: null,
     };
 
     if (row.impressions <= 0 && row.spendMicros <= 0) continue;
@@ -333,13 +343,59 @@ async function buildTopPerformingAds(
     byObjective[bucket.value] = ranked;
   }
 
+  const enrichedByObjective = await attachCreativePreviews(supabase, byObjective);
+
   const objectives = DASHBOARD_OBJECTIVE_BUCKETS.map((bucket) => ({
     value: bucket.value,
     label: getObjectiveBucketLabel(bucket.value),
     adCount: adsByObjective.get(bucket.value)?.length ?? 0,
   })).filter((bucket) => bucket.adCount > 0);
 
-  return { objectives, byObjective };
+  return { objectives, byObjective: enrichedByObjective };
+}
+
+async function attachCreativePreviews(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  byObjective: Record<DashboardObjectiveBucket, DashboardTopPerformingAd[]>,
+): Promise<Record<DashboardObjectiveBucket, DashboardTopPerformingAd[]>> {
+  const topAdIds = Array.from(
+    new Set(Object.values(byObjective).flat().map((ad) => ad.id)),
+  );
+
+  if (topAdIds.length === 0) return byObjective;
+
+  const { data: creatives } = await supabase
+    .from("ad_creatives")
+    .select(
+      `ad_entity_id, creative_type, title, body, thumbnail_url, image_url, image_permalink_url, video_thumbnail_url, video_source_url,
+      ad_creative_assets (
+        id, asset_type, ordinal, image_url, permalink_url, video_source_url, video_thumbnail_url, title, body
+      )`,
+    )
+    .in("ad_entity_id", topAdIds);
+
+  const previewByAdId = new Map<string, AdCreativePreview>();
+  for (const creative of creatives ?? []) {
+    const preview = buildAdCreativePreview(creative);
+    if (preview) {
+      previewByAdId.set(creative.ad_entity_id as string, preview);
+    }
+  }
+
+  const enriched = { ...byObjective };
+  for (const bucket of DASHBOARD_OBJECTIVE_BUCKETS) {
+    enriched[bucket.value] = (byObjective[bucket.value] ?? []).map((ad) => {
+      const preview = previewByAdId.get(ad.id) ?? null;
+      return {
+        ...ad,
+        thumbnailUrl: preview?.thumbnailUrl ?? null,
+        creativeType: preview?.creativeType ?? null,
+        creativePreview: preview,
+      };
+    });
+  }
+
+  return enriched;
 }
 
 export async function getDashboardAnalytics(

@@ -15,8 +15,11 @@ import {
   formatResultCount,
   formatRoas,
 } from "@/lib/format-analytics";
+import type { AdCreativePreview } from "@/lib/meta-creatives";
 import type { DashboardObjectiveBucket } from "@/lib/meta-objectives";
 
+import { AdCreativeLightbox } from "@/components/campaigns/ad-creative-lightbox";
+import { AdThumbnail } from "@/components/campaigns/entity-detail-shared";
 import { SegmentToggle } from "@/components/ui/segment-toggle";
 
 import { AnimatedMetricValue } from "./animated-metric-value";
@@ -82,6 +85,11 @@ export function TopPerformingAds({
 }: TopPerformingAdsProps) {
   const [selectedObjective, setSelectedObjective] =
     React.useState<DashboardObjectiveBucket | null>(null);
+  const [creativePreview, setCreativePreview] = React.useState<{
+    adName: string;
+    adId: string;
+    preview: AdCreativePreview;
+  } | null>(null);
 
   const availableObjectives = topPerformingAds.objectives;
 
@@ -156,6 +164,22 @@ export function TopPerformingAds({
                 {index + 1}
               </span>
 
+              <AdThumbnail
+                url={ad.thumbnailUrl}
+                title={ad.name}
+                creativeType={ad.creativeType}
+                onClick={
+                  ad.creativePreview
+                    ? () =>
+                        setCreativePreview({
+                          adName: ad.name,
+                          adId: ad.id,
+                          preview: ad.creativePreview!,
+                        })
+                    : undefined
+                }
+              />
+
               <div className="min-w-0 flex-1">
                 {href ? (
                   <Link
@@ -201,6 +225,14 @@ export function TopPerformingAds({
           );
         })}
       </div>
+
+      <AdCreativeLightbox
+        open={creativePreview != null}
+        onClose={() => setCreativePreview(null)}
+        adName={creativePreview?.adName ?? ""}
+        adId={creativePreview?.adId ?? null}
+        preview={creativePreview?.preview ?? null}
+      />
     </div>
   );
 }

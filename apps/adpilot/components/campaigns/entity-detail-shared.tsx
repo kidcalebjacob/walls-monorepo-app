@@ -315,22 +315,23 @@ export function AdThumbnail({
   url,
   title,
   creativeType,
+  onClick,
+  interactive = Boolean(onClick),
 }: {
   url: string | null;
   title: string;
   creativeType?: string | null;
+  onClick?: () => void;
+  interactive?: boolean;
 }) {
   const [failed, setFailed] = React.useState(false);
   const showImage = Boolean(url) && !failed;
+  const isInteractive = interactive && Boolean(onClick);
 
-  return (
-    <div
-      className="relative h-9 w-9 flex-shrink-0 overflow-hidden rounded-md border border-neutral-200/70 bg-neutral-100"
-      title={title}
-    >
+  const content = (
+    <>
       {showImage ? (
         <>
-          {/* Meta CDN URLs expire — plain img avoids next/image domain allowlist churn */}
           <img
             src={url!}
             alt=""
@@ -343,6 +344,11 @@ export function AdThumbnail({
               Vid
             </span>
           ) : null}
+          {creativeType === "carousel" || creativeType === "dynamic" ? (
+            <span className="absolute bottom-0.5 right-0.5 rounded bg-black/60 px-1 text-[8px] font-medium uppercase tracking-wide text-white">
+              {creativeType === "carousel" ? "1+" : "Dyn"}
+            </span>
+          ) : null}
         </>
       ) : (
         <div
@@ -352,6 +358,32 @@ export function AdThumbnail({
           <ImageIcon className="h-4 w-4" strokeWidth={1.5} />
         </div>
       )}
+    </>
+  );
+
+  const className = cn(
+    "relative h-9 w-9 flex-shrink-0 overflow-hidden rounded-md border border-neutral-200/70 bg-neutral-100",
+    isInteractive &&
+      "cursor-pointer transition-shadow hover:ring-2 hover:ring-[var(--walls-sky)]/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--walls-sky)]",
+  );
+
+  if (isInteractive) {
+    return (
+      <button
+        type="button"
+        onClick={onClick}
+        className={className}
+        title={`Preview ${title}`}
+        aria-label={`Preview creative for ${title}`}
+      >
+        {content}
+      </button>
+    );
+  }
+
+  return (
+    <div className={className} title={title}>
+      {content}
     </div>
   );
 }
