@@ -83,6 +83,64 @@ export function getObjectiveBucketLabel(
   );
 }
 
+export type ObjectiveProgressMetricKey =
+  | "roas"
+  | "ctr"
+  | "clicks"
+  | "impressions"
+  | "spend";
+
+export type ObjectiveProgressMetric = {
+  key: ObjectiveProgressMetricKey;
+  label: string;
+};
+
+/** Primary + secondary metrics to chart for each outcome bucket. */
+export function getObjectiveProgressConfig(
+  bucket: DashboardObjectiveBucket | null,
+): {
+  primary: ObjectiveProgressMetric;
+  secondary: ObjectiveProgressMetric | null;
+} {
+  switch (bucket) {
+    case "OUTCOME_SALES":
+      return {
+        primary: { key: "roas", label: "ROAS" },
+        secondary: { key: "spend", label: "Spend" },
+      };
+    case "OUTCOME_TRAFFIC":
+      return {
+        primary: { key: "clicks", label: "Clicks" },
+        secondary: { key: "ctr", label: "CTR" },
+      };
+    case "OUTCOME_AWARENESS":
+      return {
+        primary: { key: "impressions", label: "Impressions" },
+        secondary: { key: "spend", label: "Spend" },
+      };
+    case "OUTCOME_ENGAGEMENT":
+      return {
+        primary: { key: "ctr", label: "CTR" },
+        secondary: { key: "clicks", label: "Clicks" },
+      };
+    case "OUTCOME_LEADS":
+      return {
+        primary: { key: "clicks", label: "Clicks" },
+        secondary: { key: "ctr", label: "CTR" },
+      };
+    case "OUTCOME_APP_PROMOTION":
+      return {
+        primary: { key: "clicks", label: "Clicks" },
+        secondary: { key: "spend", label: "Spend" },
+      };
+    default:
+      return {
+        primary: { key: "spend", label: "Spend" },
+        secondary: null,
+      };
+  }
+}
+
 const OBJECTIVE_LABELS: Record<string, string> = {
   OUTCOME_SALES: "Sales",
   OUTCOME_TRAFFIC: "Traffic",

@@ -6,6 +6,7 @@ import { motion } from "framer-motion";
 import { ArrowLeft, Loader2 } from "lucide-react";
 
 import { EntityAutomationSection } from "@/components/campaigns/automation-panel";
+import { EntityDailyProgressSection } from "@/components/campaigns/entity-daily-progress-section";
 import {
   AdPilotEnableToggle,
   DetailBreadcrumbs,
@@ -128,6 +129,8 @@ export function AdSetDetailPage() {
           setDetail((prev) => (prev ? { ...prev, automation } : prev))
         }
       />
+
+      <EntityDailyProgressSection progress={detail.dailyProgress} />
     </div>
   );
 }

@@ -15,7 +15,14 @@ import {
   formatPercent,
   formatRoas,
 } from "@/lib/format-analytics";
-import { isSalesObjective } from "@/lib/meta-objectives";
+import {
+  isSalesObjective,
+  resolveObjectiveBucket,
+} from "@/lib/meta-objectives";
+import {
+  buildEntityDailyProgress,
+  type EntityDailyProgress,
+} from "@/lib/entity-daily-progress";
 import type { AutomationStatus } from "@/lib/spend-automation-settings";
 
 export type EntityDetailMetrics = {
@@ -69,6 +76,8 @@ export type CampaignDetailResult = EntityDetailResult & {
 export type AdSetDetailResult = EntityDetailResult & {
   entityType: "ad_group";
   campaignId: string;
+  campaignObjective: string | null;
+  dailyProgress: EntityDailyProgress;
 };
 
 type MetricRow = {
@@ -373,10 +382,35 @@ export async function getAdSetDetail(input: {
     entity: entity as Parameters<typeof buildEntityDetail>[0]["entity"],
   });
 
+  const [{ data: campaign }, { data: dailyMetrics }] = await Promise.all([
+    supabase
+      .from("ad_entities")
+      .select("objective")
+      .eq("id", input.campaignId)
+      .maybeSingle(),
+    supabase
+      .from("ad_metrics_daily")
+      .select(
+        "metric_date, spend_micros, impressions, clicks, conversion_value_micros, website_purchases",
+      )
+      .eq("entity_id", input.adSetId)
+      .gte("metric_date", metricsStartDateIso())
+      .order("metric_date", { ascending: true }),
+  ]);
+
+  const campaignObjective = (campaign?.objective as string | null) ?? null;
+  const objectiveBucket = resolveObjectiveBucket(campaignObjective);
+  const dailyProgress = buildEntityDailyProgress(
+    (dailyMetrics ?? []) as Parameters<typeof buildEntityDailyProgress>[0],
+    objectiveBucket,
+  );
+
   return {
     ...base,
     entityType: "ad_group",
     campaignId: input.campaignId,
+    campaignObjective,
+    dailyProgress,
   };
 }
 
