@@ -10,12 +10,13 @@ import {
   View,
 } from "react-native";
 import { Redirect } from "expo-router";
-import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { ChatDrawerLayout } from "@/components/ChatDrawerLayout";
 import { ChatInput } from "@/components/ChatInput";
 import { ChatMessage } from "@/components/ChatMessage";
 import { ConversationDrawer } from "@/components/ConversationDrawer";
+import { GlassSurface } from "@/components/GlassSurface";
 import { LoadingIndicator } from "@/components/LoadingIndicator";
 import { TwoLineMenuIcon } from "@/components/TwoLineMenuIcon";
 import { WallieVoiceOverlay } from "@/components/WallieVoiceOverlay";
@@ -26,6 +27,8 @@ import { useWallieThreads } from "@/hooks/useWallieThreads";
 import { useWallieTyping } from "@/hooks/useWallieTyping";
 import { useWallieVoice } from "@/hooks/useWallieVoice";
 import { getSupabase } from "@/lib/supabase";
+
+const FLOATING_COMPOSER_HEIGHT = 84;
 
 export default function ChatScreen() {
   const insets = useSafeAreaInsets();
@@ -201,6 +204,8 @@ export default function ChatScreen() {
   const composerBottomInset = isKeyboardVisible
     ? keyboardHeight + 8
     : insets.bottom;
+  const scrollBottomInset = FLOATING_COMPOSER_HEIGHT + composerBottomInset;
+  const floatingHeaderTop = insets.top + spacing.sm;
 
   const chatInputProps = useMemo(
     () => ({
@@ -261,60 +266,78 @@ export default function ChatScreen() {
           />
         }
       >
-        <SafeAreaView style={styles.safeArea} edges={["top"]}>
-          <View style={styles.header}>
-            <Pressable style={styles.menuButton} onPress={openThreads}>
-              <TwoLineMenuIcon />
-            </Pressable>
-          </View>
-
+        <View style={styles.safeArea}>
           <View style={styles.flex}>
             {isEmpty ? (
-              <View style={styles.emptyContainer}>
-                <View style={styles.emptyContent}>
-                  <Text style={styles.emptyTitle}>{greeting}</Text>
-                  {isLoading ? (
-                    <View style={styles.emptyLoading}>
-                      <LoadingIndicator status={loadingStatus} />
-                    </View>
-                  ) : null}
-                </View>
-                <View style={{ paddingBottom: composerBottomInset }}>
-                  <ChatInput {...chatInputProps} />
-                </View>
+              <View
+                style={[
+                  styles.emptyContent,
+                  {
+                    paddingTop: floatingHeaderTop + 44,
+                    paddingBottom: scrollBottomInset,
+                  },
+                ]}
+              >
+                <Text style={styles.emptyTitle}>{greeting}</Text>
+                {isLoading ? (
+                  <View style={styles.emptyLoading}>
+                    <LoadingIndicator status={loadingStatus} />
+                  </View>
+                ) : null}
               </View>
             ) : (
-              <>
-                <FlatList
-                  ref={listRef}
-                  style={styles.flex}
-                  data={messages}
-                  keyExtractor={(item) => item.id}
-                  contentContainerStyle={styles.messages}
-                  renderItem={({ item }) => (
-                    <ChatMessage message={item} />
-                  )}
-                  keyboardShouldPersistTaps="handled"
-                  keyboardDismissMode="interactive"
-                  ListFooterComponent={
-                    isLoading ? (
-                      <LoadingIndicator status={loadingStatus} />
-                    ) : (
-                      <View style={styles.listFooter} />
-                    )
-                  }
-                  onContentSizeChange={() =>
-                    listRef.current?.scrollToEnd({ animated: true })
-                  }
-                />
-
-                <View style={{ paddingBottom: composerBottomInset }}>
-                  <ChatInput {...chatInputProps} />
-                </View>
-              </>
+              <FlatList
+                ref={listRef}
+                style={styles.flex}
+                data={messages}
+                keyExtractor={(item) => item.id}
+                contentContainerStyle={[
+                  styles.messages,
+                  { paddingBottom: scrollBottomInset },
+                ]}
+                contentInsetAdjustmentBehavior="never"
+                automaticallyAdjustContentInsets={false}
+                scrollIndicatorInsets={{ top: insets.top }}
+                renderItem={({ item }) => (
+                  <ChatMessage message={item} />
+                )}
+                keyboardShouldPersistTaps="handled"
+                keyboardDismissMode="interactive"
+                ListFooterComponent={
+                  isLoading ? (
+                    <LoadingIndicator status={loadingStatus} />
+                  ) : null
+                }
+                onContentSizeChange={() =>
+                  listRef.current?.scrollToEnd({ animated: true })
+                }
+              />
             )}
+
+            <View
+              style={[styles.floatingHeader, { top: floatingHeaderTop }]}
+              pointerEvents="box-none"
+            >
+              <Pressable onPress={openThreads}>
+                <GlassSurface
+                  borderRadius={22}
+                  intensity={60}
+                  contentStyle={styles.menuGlassContent}
+                  style={styles.menuGlass}
+                >
+                  <TwoLineMenuIcon />
+                </GlassSurface>
+              </Pressable>
+            </View>
+
+            <View
+              style={[styles.floatingComposer, { bottom: composerBottomInset }]}
+              pointerEvents="box-none"
+            >
+              <ChatInput {...chatInputProps} />
+            </View>
           </View>
-        </SafeAreaView>
+        </View>
       </ChatDrawerLayout>
 
       <WallieVoiceOverlay
@@ -340,33 +363,32 @@ const styles = StyleSheet.create({
   flex: {
     flex: 1,
   },
-  header: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.sm,
-    backgroundColor: "transparent",
+  floatingHeader: {
+    position: "absolute",
+    left: spacing.md,
+    zIndex: 10,
   },
-  menuButton: {
+  menuGlass: {
     width: 44,
     height: 44,
-    borderRadius: 22,
+  },
+  menuGlassContent: {
+    width: 44,
+    height: 44,
     alignItems: "center",
     justifyContent: "center",
-    backgroundColor: "rgba(255, 255, 255, 0.55)",
-    borderWidth: 1,
-    borderColor: "rgba(229, 229, 229, 0.65)",
   },
-  emptyContainer: {
-    flex: 1,
-    justifyContent: "space-between",
+  floatingComposer: {
+    position: "absolute",
+    left: 0,
+    right: 0,
+    zIndex: 10,
   },
   emptyContent: {
     flex: 1,
     alignItems: "center",
     justifyContent: "center",
     paddingHorizontal: spacing.xl,
-    paddingBottom: spacing.lg,
   },
   emptyTitle: {
     fontSize: 32,
@@ -380,11 +402,6 @@ const styles = StyleSheet.create({
     width: "100%",
   },
   messages: {
-    paddingTop: spacing.xl,
-    paddingBottom: spacing.md,
     flexGrow: 1,
-  },
-  listFooter: {
-    height: spacing.sm,
   },
 });
