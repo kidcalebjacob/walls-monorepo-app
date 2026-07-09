@@ -49,7 +49,7 @@ export default {
       "expo-router",
       "expo-secure-store",
       "expo-dev-client",
-      "./plugins/withFmtXcode26Fix.js",
+      "./plugins/withIosBuildFixes.js",
     ],
     experiments: {
       typedRoutes: true,
