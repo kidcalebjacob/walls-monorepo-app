@@ -76,9 +76,9 @@ function AdjustmentsList({ rows }: { rows: BudgetAdjustmentRow[] }) {
       {rows.map((row) => (
         <div
           key={row.id}
-          className="flex flex-wrap items-center justify-between gap-3 py-3 text-sm"
+          className="flex items-start justify-between gap-4 py-3 text-sm"
         >
-          <div>
+          <div className="min-w-0 flex-1">
             <p className="font-medium text-neutral-800">
               {row.previousDailyBudgetMicros != null
                 ? formatCurrencyFromMicros(row.previousDailyBudgetMicros)
@@ -88,14 +88,14 @@ function AdjustmentsList({ rows }: { rows: BudgetAdjustmentRow[] }) {
                 ? formatCurrencyFromMicros(row.newDailyBudgetMicros)
                 : "—"}
             </p>
-            <p className="mt-0.5 text-xs font-light text-neutral-500">
+            <p className="mt-0.5 text-xs font-light leading-relaxed text-neutral-500">
               {row.decisionReason ?? "Budget adjustment"}
               {row.optimizationGoal
                 ? ` · ${optimizationGoalLabel(row.optimizationGoal)}`
                 : ""}
             </p>
           </div>
-          <div className="text-right text-xs font-light text-neutral-400">
+          <div className="shrink-0 text-right text-xs font-light whitespace-nowrap text-neutral-400">
             <p>{formatAdjustmentDate(row.createdAt)}</p>
             {row.changePct != null ? (
               <p className="tabular-nums">
