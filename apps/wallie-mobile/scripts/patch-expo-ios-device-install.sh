@@ -1,7 +1,12 @@
 #!/usr/bin/env bash
 # Workarounds for Expo + monorepo path with spaces ("WALLS Entertainment").
+# Local macOS iOS dev only — skipped on Vercel/CI/Linux.
 
 set -euo pipefail
+
+if [[ -n "${CI:-}" ]] || [[ -n "${VERCEL:-}" ]] || [[ "$(uname -s)" != "Darwin" ]]; then
+  exit 0
+fi
 
 APP_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 MONOREPO_ROOT="$(cd "$APP_ROOT/../.." && pwd)"
