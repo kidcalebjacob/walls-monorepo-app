@@ -1,43 +1,47 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   Alert,
   FlatList,
+  Keyboard,
   Modal,
+  Platform,
   Pressable,
-  SafeAreaView,
   StyleSheet,
   Text,
   View,
 } from "react-native";
 import { Redirect } from "expo-router";
-import { getWallieModel, WALLIE_AI_MODELS } from "@walls/wallie-core";
-
-import { AppIcon } from "@/components/AppIcon";
+import { Ionicons } from "@expo/vector-icons";
+import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { ChatInput } from "@/components/ChatInput";
 import { ChatMessage } from "@/components/ChatMessage";
 import { LoadingIndicator } from "@/components/LoadingIndicator";
 import { ThreadList } from "@/components/ThreadList";
+import { TwoLineMenuIcon } from "@/components/TwoLineMenuIcon";
 import { colors, spacing } from "@/constants/theme";
 import { useAuth } from "@/context/AuthContext";
 import { useWallieChat } from "@/hooks/useWallieChat";
 import { useWallieThreads } from "@/hooks/useWallieThreads";
+import { useWallieTyping } from "@/hooks/useWallieTyping";
 import { useWallieVoice } from "@/hooks/useWallieVoice";
+import { getSupabase } from "@/lib/supabase";
 
 export default function ChatScreen() {
-  const { user, loading, signOut } = useAuth();
+  const insets = useSafeAreaInsets();
+  const { user, loading } = useAuth();
   const [currentThreadId, setCurrentThreadId] = useState<string | null>(null);
   const [inputValue, setInputValue] = useState("");
   const [threadsOpen, setThreadsOpen] = useState(false);
-  const [modelsOpen, setModelsOpen] = useState(false);
+  const [firstName, setFirstName] = useState<string | null>(null);
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
+  const [keyboardHeight, setKeyboardHeight] = useState(0);
   const listRef = useRef<FlatList>(null);
 
   const {
     threads,
     loading: threadsLoading,
-    createThread,
     updateThreadTitle,
-    archiveThread,
   } = useWallieThreads();
 
   const {
@@ -45,8 +49,6 @@ export default function ChatScreen() {
     setMessages,
     isLoading,
     loadingStatus,
-    selectedModel,
-    setSelectedModel,
     loadMessages,
     sendMessage,
   } = useWallieChat({
@@ -54,6 +56,22 @@ export default function ChatScreen() {
     onThreadId: (threadId) => setCurrentThreadId(threadId),
     onThreadTitle: updateThreadTitle,
   });
+
+  useWallieTyping(messages, setMessages);
+
+  useEffect(() => {
+    if (!user?.id) return;
+
+    void getSupabase()
+      .from("users")
+      .select("first_name, avatar_url")
+      .eq("id", user.id)
+      .single()
+      .then(({ data }) => {
+        if (data?.first_name) setFirstName(data.first_name);
+        if (data?.avatar_url) setAvatarUrl(data.avatar_url);
+      });
+  }, [user?.id]);
 
   const handleSend = useCallback(async () => {
     const text = inputValue;
@@ -108,89 +126,140 @@ export default function ChatScreen() {
     setThreadsOpen(false);
   }, []);
 
-  if (!loading && !user) {
-    return <Redirect href="/login" />;
-  }
+  useEffect(() => {
+    const showEvent =
+      Platform.OS === "ios" ? "keyboardWillShow" : "keyboardDidShow";
+    const hideEvent =
+      Platform.OS === "ios" ? "keyboardWillHide" : "keyboardDidHide";
 
-  const modelInfo = getWallieModel(selectedModel);
+    const showSub = Keyboard.addListener(showEvent, (event) => {
+      setKeyboardHeight(event.endCoordinates.height);
+      requestAnimationFrame(() => {
+        listRef.current?.scrollToEnd({ animated: true });
+      });
+    });
+    const hideSub = Keyboard.addListener(hideEvent, () => {
+      setKeyboardHeight(0);
+    });
 
-  return (
-    <SafeAreaView style={styles.safeArea}>
-      <View style={styles.header}>
-        <Pressable style={styles.iconButton} onPress={() => setThreadsOpen(true)}>
-          <AppIcon name="menu" size={22} />
-        </Pressable>
+    return () => {
+      showSub.remove();
+      hideSub.remove();
+    };
+  }, []);
 
-        <Pressable style={styles.modelButton} onPress={() => setModelsOpen(true)}>
-          <Text style={styles.modelProvider}>{modelInfo.provider}</Text>
-          <Text style={styles.modelName}>{modelInfo.model}</Text>
-        </Pressable>
+  const isKeyboardVisible = keyboardHeight > 0;
+  const composerBottomInset = isKeyboardVisible
+    ? keyboardHeight + 8
+    : insets.bottom;
 
-        <Pressable
-          style={styles.iconButton}
-          onPress={() => {
-            Alert.alert("Sign out", "Are you sure?", [
-              { text: "Cancel", style: "cancel" },
-              {
-                text: "Sign out",
-                style: "destructive",
-                onPress: () => void signOut(),
-              },
-            ]);
-          }}
-        >
-          <AppIcon name="logout" size={20} />
-        </Pressable>
-      </View>
-
-      <FlatList
-        ref={listRef}
-        data={messages}
-        keyExtractor={(item) => item.id}
-        contentContainerStyle={styles.messages}
-        renderItem={({ item }) => <ChatMessage message={item} />}
-        ListEmptyComponent={
-          <View style={styles.emptyState}>
-            <Text style={styles.emptyTitle}>Hey, I'm Wallie.</Text>
-            <Text style={styles.emptyBody}>
-              Ask me about talent, outreach, research, or hold the mic to talk.
-            </Text>
-          </View>
-        }
-        onContentSizeChange={() =>
-          listRef.current?.scrollToEnd({ animated: true })
-        }
-      />
-
-      {isLoading ? <LoadingIndicator status={loadingStatus} /> : null}
-
-      <ChatInput
-        value={inputValue}
-        onChangeText={setInputValue}
-        onSend={handleSend}
-        isLoading={isLoading}
-        isRecording={voice.isRecording}
-        isVoiceBusy={voice.isProcessing || voice.isSpeaking}
-        onVoicePressIn={() => void voice.startRecording().catch((error) => {
+  const chatInputProps = useMemo(
+    () => ({
+      value: inputValue,
+      onChangeText: setInputValue,
+      onSend: handleSend,
+      isLoading,
+      isRecording: voice.isRecording,
+      isVoiceBusy: voice.isProcessing || voice.isSpeaking,
+      compactFooter: isKeyboardVisible,
+      onVoicePressIn: () =>
+        void voice.startRecording().catch((error) => {
           Alert.alert(
             "Microphone error",
             error instanceof Error ? error.message : "Could not start recording.",
           );
-        })}
-        onVoicePressOut={() => void voice.stopRecording().catch((error) => {
+        }),
+      onVoicePressOut: () =>
+        void voice.stopRecording().catch((error) => {
           Alert.alert(
             "Voice error",
             error instanceof Error ? error.message : "Could not process voice.",
           );
-        })}
-      />
+        }),
+    }),
+    [
+      handleSend,
+      inputValue,
+      isKeyboardVisible,
+      isLoading,
+      voice.isProcessing,
+      voice.isRecording,
+      voice.isSpeaking,
+      voice.startRecording,
+      voice.stopRecording,
+    ],
+  );
+
+  if (!loading && !user) {
+    return <Redirect href="/login" />;
+  }
+
+  const isEmpty = messages.length === 0;
+  const greeting = firstName
+    ? `Hi ${firstName}, how can I help?`
+    : "Hi, how can I help?";
+
+  return (
+    <SafeAreaView style={styles.safeArea} edges={["top"]}>
+      <View style={styles.header}>
+        <Pressable style={styles.menuButton} onPress={() => setThreadsOpen(true)}>
+          <TwoLineMenuIcon />
+        </Pressable>
+      </View>
+
+      <View style={styles.flex}>
+        {isEmpty ? (
+          <View style={styles.emptyContainer}>
+            <View style={styles.emptyContent}>
+              <Text style={styles.emptyTitle}>{greeting}</Text>
+              {isLoading ? (
+                <View style={styles.emptyLoading}>
+                  <LoadingIndicator status={loadingStatus} />
+                </View>
+              ) : null}
+            </View>
+            <View style={{ paddingBottom: composerBottomInset }}>
+              <ChatInput {...chatInputProps} />
+            </View>
+          </View>
+        ) : (
+          <>
+            <FlatList
+              ref={listRef}
+              style={styles.flex}
+              data={messages}
+              keyExtractor={(item) => item.id}
+              contentContainerStyle={styles.messages}
+              renderItem={({ item }) => (
+                <ChatMessage message={item} avatarUrl={avatarUrl} />
+              )}
+              keyboardShouldPersistTaps="handled"
+              keyboardDismissMode="interactive"
+              ListFooterComponent={
+                isLoading ? (
+                  <LoadingIndicator status={loadingStatus} />
+                ) : (
+                  <View style={styles.listFooter} />
+                )
+              }
+              onContentSizeChange={() =>
+                listRef.current?.scrollToEnd({ animated: true })
+              }
+            />
+
+            <View style={{ paddingBottom: composerBottomInset }}>
+              <ChatInput {...chatInputProps} />
+            </View>
+          </>
+        )}
+      </View>
 
       <Modal visible={threadsOpen} animationType="slide">
         <SafeAreaView style={styles.modal}>
           <View style={styles.modalHeader}>
             <Text style={styles.modalTitle}>Conversations</Text>
             <Pressable onPress={() => setThreadsOpen(false)}>
-              <AppIcon name="close" size={20} />
+              <Ionicons name="close" size={24} color={colors.text} />
             </Pressable>
           </View>
           <ThreadList
@@ -202,29 +271,6 @@ export default function ChatScreen() {
           />
         </SafeAreaView>
       </Modal>
-
-      <Modal visible={modelsOpen} transparent animationType="fade">
-        <Pressable style={styles.modelOverlay} onPress={() => setModelsOpen(false)}>
-          <View style={styles.modelSheet}>
-            {WALLIE_AI_MODELS.map((model) => (
-              <Pressable
-                key={model.value}
-                style={[
-                  styles.modelRow,
-                  selectedModel === model.value && styles.modelRowActive,
-                ]}
-                onPress={() => {
-                  setSelectedModel(model.value);
-                  setModelsOpen(false);
-                }}
-              >
-                <Text style={styles.modelRowProvider}>{model.provider}</Text>
-                <Text style={styles.modelRowName}>{model.model}</Text>
-              </Pressable>
-            ))}
-          </View>
-        </Pressable>
-      </Modal>
     </SafeAreaView>
   );
 }
@@ -234,63 +280,59 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: colors.background,
   },
+  flex: {
+    flex: 1,
+  },
   header: {
     flexDirection: "row",
     alignItems: "center",
-    justifyContent: "space-between",
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.sm,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.border,
-    backgroundColor: colors.surface,
+    backgroundColor: colors.background,
   },
-  iconButton: {
-    width: 40,
-    height: 40,
+  menuButton: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
     alignItems: "center",
     justifyContent: "center",
+    backgroundColor: "rgba(255, 255, 255, 0.55)",
+    borderWidth: 1,
+    borderColor: "rgba(229, 229, 229, 0.65)",
   },
-  modelButton: {
-    alignItems: "center",
-    paddingHorizontal: spacing.sm,
+  emptyContainer: {
+    flex: 1,
+    justifyContent: "space-between",
   },
-  modelProvider: {
-    fontSize: 15,
-    fontWeight: "600",
-    color: colors.text,
-  },
-  modelName: {
-    fontSize: 13,
-    color: colors.textMuted,
-  },
-  messages: {
-    paddingTop: spacing.md,
-    paddingBottom: spacing.md,
-    flexGrow: 1,
-  },
-  emptyState: {
+  emptyContent: {
     flex: 1,
     alignItems: "center",
     justifyContent: "center",
     paddingHorizontal: spacing.xl,
-    paddingTop: 80,
+    paddingBottom: spacing.lg,
   },
   emptyTitle: {
-    fontSize: 28,
-    fontWeight: "700",
-    color: colors.text,
-    marginBottom: spacing.sm,
+    fontSize: 32,
+    fontWeight: "600",
+    color: "#404040",
     textAlign: "center",
+    lineHeight: 40,
   },
-  emptyBody: {
-    fontSize: 16,
-    lineHeight: 24,
-    color: colors.textMuted,
-    textAlign: "center",
+  emptyLoading: {
+    marginTop: spacing.lg,
+    width: "100%",
+  },
+  messages: {
+    paddingTop: spacing.xl,
+    paddingBottom: spacing.md,
+    flexGrow: 1,
+  },
+  listFooter: {
+    height: spacing.sm,
   },
   modal: {
     flex: 1,
-    backgroundColor: colors.surface,
+    backgroundColor: colors.background,
   },
   modalHeader: {
     flexDirection: "row",
@@ -299,44 +341,11 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.md,
     borderBottomWidth: 1,
-    borderBottomColor: colors.border,
+    borderBottomColor: colors.borderMuted,
   },
   modalTitle: {
     fontSize: 18,
     fontWeight: "600",
     color: colors.text,
-  },
-  modelOverlay: {
-    flex: 1,
-    backgroundColor: "rgba(0,0,0,0.35)",
-    justifyContent: "flex-end",
-  },
-  modelSheet: {
-    backgroundColor: colors.surface,
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
-    padding: spacing.md,
-    paddingBottom: spacing.xl,
-  },
-  modelRow: {
-    paddingVertical: 14,
-    paddingHorizontal: spacing.md,
-    borderRadius: 12,
-    marginBottom: spacing.sm,
-    backgroundColor: colors.background,
-  },
-  modelRowActive: {
-    borderWidth: 1,
-    borderColor: colors.wallsYellow,
-  },
-  modelRowProvider: {
-    fontSize: 15,
-    fontWeight: "600",
-    color: colors.text,
-  },
-  modelRowName: {
-    fontSize: 13,
-    color: colors.textMuted,
-    marginTop: 2,
   },
 });

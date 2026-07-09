@@ -30,6 +30,35 @@ function handleLine(
   return data;
 }
 
+function parseWallieStreamLines(
+  lines: string[],
+  options: ParseWallieStreamOptions,
+  initial: WallieStreamLine = {},
+): WallieStreamLine {
+  let lastData = initial;
+
+  for (const line of lines) {
+    if (!line.trim()) continue;
+    try {
+      lastData = handleLine(line, lastData, options);
+    } catch (error) {
+      if (error instanceof SyntaxError) continue;
+      throw error;
+    }
+  }
+
+  if (lastData.error) throw new Error(lastData.error);
+  return lastData;
+}
+
+/** Parse newline-delimited JSON already loaded as text (React Native fetch fallback). */
+export function parseWallieStreamText(
+  text: string,
+  options: ParseWallieStreamOptions = {},
+): WallieStreamLine {
+  return parseWallieStreamLines(text.split("\n"), options);
+}
+
 /** Parse newline-delimited JSON from a wallie-api streaming response body. */
 export async function parseWallieStreamResponse(
   body: ReadableStream<Uint8Array> | null,
@@ -52,15 +81,7 @@ export async function parseWallieStreamResponse(
     const lines = buffer.split("\n");
     buffer = lines.pop() ?? "";
 
-    for (const line of lines) {
-      if (!line.trim()) continue;
-      try {
-        lastData = handleLine(line, lastData, options);
-      } catch (error) {
-        if (error instanceof SyntaxError) continue;
-        throw error;
-      }
-    }
+    lastData = parseWallieStreamLines(lines, options, lastData);
   }
 
   if (buffer.trim()) {

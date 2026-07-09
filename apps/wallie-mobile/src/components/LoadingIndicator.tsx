@@ -1,6 +1,7 @@
-import { ActivityIndicator, StyleSheet, Text, View } from "react-native";
+import { StyleSheet, View } from "react-native";
 import type { WallieLoadingStatus } from "@walls/wallie-core";
 
+import { ShiningText } from "@/components/ShiningText";
 import { colors, spacing } from "@/constants/theme";
 
 interface LoadingIndicatorProps {
@@ -10,7 +11,6 @@ interface LoadingIndicatorProps {
 function getStatusLabel(status?: WallieLoadingStatus): string {
   if (status === "searching") return "Wallie is searching the web...";
   if (status === "people_search") return "Wallie is finding contacts...";
-  if (status === "thinking") return "Wallie is thinking...";
   return "Wallie is thinking...";
 }
 
@@ -18,8 +18,7 @@ export function LoadingIndicator({ status }: LoadingIndicatorProps) {
   return (
     <View style={styles.container}>
       <View style={styles.dot} />
-      <ActivityIndicator color={colors.wallsBlue} />
-      <Text style={styles.text}>{getStatusLabel(status)}</Text>
+      <ShiningText text={getStatusLabel(status)} />
     </View>
   );
 }
@@ -37,9 +36,5 @@ const styles = StyleSheet.create({
     height: 8,
     borderRadius: 4,
     backgroundColor: colors.wallsYellow,
-  },
-  text: {
-    fontSize: 14,
-    color: colors.textMuted,
   },
 });

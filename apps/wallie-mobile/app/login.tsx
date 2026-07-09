@@ -1,9 +1,9 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import {
   ActivityIndicator,
+  Dimensions,
   Image,
   KeyboardAvoidingView,
-  Linking,
   Platform,
   Pressable,
   SafeAreaView,
@@ -14,12 +14,17 @@ import {
   View,
 } from "react-native";
 import { Redirect } from "expo-router";
+import { ResizeMode, Video } from "expo-av";
+import { Ionicons } from "@expo/vector-icons";
 
-import { assets, colors, spacing, urls } from "@/constants/theme";
+import { assets, colors, spacing } from "@/constants/theme";
 import { useAuth } from "@/context/AuthContext";
+
+const { width: SCREEN_WIDTH } = Dimensions.get("window");
 
 export default function LoginScreen() {
   const { user, loading, signIn } = useAuth();
+  const scrollRef = useRef<ScrollView>(null);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [submitting, setSubmitting] = useState(false);
@@ -28,6 +33,14 @@ export default function LoginScreen() {
   if (!loading && user) {
     return <Redirect href="/chat" />;
   }
+
+  const goToLogin = () => {
+    scrollRef.current?.scrollTo({ x: SCREEN_WIDTH, animated: true });
+  };
+
+  const goToWelcome = () => {
+    scrollRef.current?.scrollTo({ x: 0, animated: true });
+  };
 
   const handleSignIn = async () => {
     if (!email.trim() || !password) {
@@ -53,124 +66,229 @@ export default function LoginScreen() {
   const canSubmit = email.trim().length > 0 && password.trim().length > 0;
 
   return (
-    <SafeAreaView style={styles.safeArea}>
-      <KeyboardAvoidingView
-        style={styles.flex}
-        behavior={Platform.OS === "ios" ? "padding" : undefined}
+    <View style={styles.root}>
+      <ScrollView
+        ref={scrollRef}
+        horizontal
+        pagingEnabled
+        bounces={false}
+        showsHorizontalScrollIndicator={false}
+        keyboardShouldPersistTaps="handled"
+        scrollEventThrottle={16}
       >
-        <ScrollView
-          contentContainerStyle={styles.scrollContent}
-          keyboardShouldPersistTaps="handled"
-          bounces={false}
-        >
-          <View style={styles.header}>
-            <Image
-              source={{ uri: assets.wallsLogoIndented }}
-              style={styles.logo}
-              resizeMode="contain"
-              accessibilityLabel="WALLS logo"
-            />
-            <Text style={styles.title}>Login.</Text>
+        <WelcomeSlide onGetStarted={goToLogin} onSignIn={goToLogin} />
+
+        <SafeAreaView style={[styles.slide, styles.loginSlide]}>
+          <View style={styles.loginTopBar}>
+            <Pressable
+              onPress={goToWelcome}
+              style={styles.backButton}
+              accessibilityLabel="Back"
+              hitSlop={12}
+            >
+              <Ionicons name="chevron-back" size={28} color={colors.text} />
+            </Pressable>
           </View>
 
-          <View style={styles.form}>
-            {error ? (
-              <View style={styles.errorBox}>
-                <Text style={styles.errorText}>{error}</Text>
+          <KeyboardAvoidingView
+            style={styles.flex}
+            behavior={Platform.OS === "ios" ? "padding" : undefined}
+          >
+            <ScrollView
+              contentContainerStyle={styles.loginScrollContent}
+              keyboardShouldPersistTaps="handled"
+              bounces={false}
+            >
+              <View style={styles.header}>
+                <Image
+                  source={{ uri: assets.wallsLogoIndented }}
+                  style={styles.logo}
+                  resizeMode="contain"
+                  accessibilityLabel="WALLS logo"
+                />
+                <Text style={styles.title}>Login.</Text>
               </View>
-            ) : null}
 
-            <TextInput
-              style={styles.input}
-              value={email}
-              onChangeText={setEmail}
-              placeholder="Email"
-              placeholderTextColor={colors.textMuted}
-              autoCapitalize="none"
-              keyboardType="email-address"
-              autoComplete="email"
-              editable={!submitting}
-              returnKeyType="next"
-            />
-            <TextInput
-              style={styles.input}
-              value={password}
-              onChangeText={setPassword}
-              placeholder="Password"
-              placeholderTextColor={colors.textMuted}
-              secureTextEntry
-              autoComplete="password"
-              editable={!submitting}
-              returnKeyType="go"
-              onSubmitEditing={() => {
-                if (canSubmit && !submitting) {
-                  void handleSignIn();
-                }
-              }}
-            />
+              <View style={styles.form}>
+                {error ? (
+                  <View style={styles.errorBox}>
+                    <Text style={styles.errorText}>{error}</Text>
+                  </View>
+                ) : null}
 
-            <Pressable
-              onPress={() => Linking.openURL(urls.portalResetPassword)}
-              style={styles.forgotPassword}
-            >
-              <Text style={styles.forgotPasswordText}>Forgot password?</Text>
-            </Pressable>
+                <TextInput
+                  style={styles.input}
+                  value={email}
+                  onChangeText={setEmail}
+                  placeholder="Email"
+                  placeholderTextColor={colors.textMuted}
+                  autoCapitalize="none"
+                  keyboardType="email-address"
+                  autoComplete="email"
+                  editable={!submitting}
+                  returnKeyType="next"
+                />
+                <TextInput
+                  style={styles.input}
+                  value={password}
+                  onChangeText={setPassword}
+                  placeholder="Password"
+                  placeholderTextColor={colors.textMuted}
+                  secureTextEntry
+                  autoComplete="password"
+                  editable={!submitting}
+                  returnKeyType="go"
+                  onSubmitEditing={() => {
+                    if (canSubmit && !submitting) {
+                      void handleSignIn();
+                    }
+                  }}
+                />
 
-            <Pressable
-              style={[
-                styles.button,
-                (!canSubmit || submitting) && styles.buttonDisabled,
-              ]}
-              onPress={handleSignIn}
-              disabled={!canSubmit || submitting}
-            >
-              {submitting ? (
-                <View style={styles.buttonContent}>
-                  <ActivityIndicator color={colors.text} size="small" />
-                  <Text style={styles.buttonText}>Signing in...</Text>
-                </View>
-              ) : (
-                <Text style={styles.buttonText}>Sign in</Text>
-              )}
-            </Pressable>
+                <Pressable
+                  style={[
+                    styles.button,
+                    (!canSubmit || submitting) && styles.buttonDisabled,
+                  ]}
+                  onPress={handleSignIn}
+                  disabled={!canSubmit || submitting}
+                >
+                  {submitting ? (
+                    <View style={styles.buttonContent}>
+                      <ActivityIndicator color={colors.text} size="small" />
+                      <Text style={styles.buttonText}>Signing in...</Text>
+                    </View>
+                  ) : (
+                    <Text style={styles.buttonText}>Sign in</Text>
+                  )}
+                </Pressable>
+              </View>
+            </ScrollView>
+          </KeyboardAvoidingView>
+        </SafeAreaView>
+      </ScrollView>
+    </View>
+  );
+}
 
-            <Text style={styles.legal}>
-              By continuing, you agree to our{" "}
-              <Text
-                style={styles.legalLink}
-                onPress={() => Linking.openURL(urls.terms)}
-              >
-                Terms of Service
-              </Text>{" "}
-              and{" "}
-              <Text
-                style={styles.legalLink}
-                onPress={() => Linking.openURL(urls.privacy)}
-              >
-                Privacy Policy
-              </Text>
-              .
+function WelcomeSlide({
+  onGetStarted,
+  onSignIn,
+}: {
+  onGetStarted: () => void;
+  onSignIn: () => void;
+}) {
+  return (
+    <View style={styles.slide}>
+      <View style={styles.videoBackdrop} />
+      <Video
+        source={{ uri: assets.heroVideoMobile }}
+        style={StyleSheet.absoluteFill}
+        resizeMode={ResizeMode.COVER}
+        isLooping
+        shouldPlay
+        isMuted
+      />
+      <View style={styles.videoOverlay} />
+      <SafeAreaView style={styles.welcomeSafeArea}>
+        <View style={styles.welcomeContent}>
+          <View style={styles.welcomeSpacer} />
+          <Pressable style={styles.getStartedButton} onPress={onGetStarted}>
+            <Text style={styles.getStartedText}>Get started</Text>
+          </Pressable>
+          <Pressable onPress={onSignIn} style={styles.signInLink}>
+            <Text style={styles.signInText}>
+              Already have an account?{" "}
+              <Text style={styles.signInTextBold}>Sign in</Text>
             </Text>
-          </View>
-        </ScrollView>
-      </KeyboardAvoidingView>
-    </SafeAreaView>
+          </Pressable>
+        </View>
+      </SafeAreaView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  safeArea: {
+  root: {
     flex: 1,
-    backgroundColor: colors.background,
+    backgroundColor: colors.wallsYellow,
   },
   flex: {
     flex: 1,
   },
-  scrollContent: {
+  slide: {
+    width: SCREEN_WIDTH,
+    flex: 1,
+  },
+  loginSlide: {
+    backgroundColor: colors.background,
+  },
+  loginTopBar: {
+    paddingHorizontal: spacing.md,
+    paddingTop: spacing.xs,
+    paddingBottom: spacing.sm,
+  },
+  videoBackdrop: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: colors.wallsYellow,
+  },
+  videoOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: "rgba(0, 0, 0, 0.12)",
+  },
+  welcomeSafeArea: {
+    flex: 1,
+  },
+  welcomeContent: {
+    flex: 1,
+    paddingHorizontal: spacing.lg,
+    paddingBottom: spacing.xl,
+  },
+  welcomeSpacer: {
+    flex: 1,
+  },
+  getStartedButton: {
+    alignSelf: "center",
+    width: 268,
+    height: 68,
+    borderRadius: 9999,
+    backgroundColor: colors.wallsYellow,
+    borderWidth: 1,
+    borderColor: "rgba(255, 255, 255, 0.35)",
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom: spacing.md,
+  },
+  getStartedText: {
+    color: colors.text,
+    fontSize: 22,
+    fontWeight: "700",
+  },
+  signInLink: {
+    alignItems: "center",
+    paddingVertical: spacing.sm,
+  },
+  signInText: {
+    color: "#FFFFFF",
+    fontSize: 15,
+    fontWeight: "400",
+  },
+  signInTextBold: {
+    fontWeight: "700",
+    textDecorationLine: "underline",
+  },
+  loginScrollContent: {
     flexGrow: 1,
     justifyContent: "center",
     paddingHorizontal: spacing.lg,
-    paddingVertical: spacing.xl,
+    paddingBottom: spacing.xl,
+  },
+  backButton: {
+    alignSelf: "flex-start",
+    width: 44,
+    height: 44,
+    alignItems: "center",
+    justifyContent: "center",
   },
   header: {
     flexDirection: "row",
@@ -194,7 +312,7 @@ const styles = StyleSheet.create({
     width: "100%",
     maxWidth: 448,
     alignSelf: "center",
-    gap: spacing.md,
+    gap: spacing.lg,
   },
   errorBox: {
     padding: spacing.md,
@@ -209,22 +327,14 @@ const styles = StyleSheet.create({
     textAlign: "center",
   },
   input: {
-    height: 48,
-    borderWidth: 1,
-    borderColor: colors.borderMuted,
-    borderRadius: 8,
-    paddingHorizontal: spacing.md,
-    fontSize: 16,
-    backgroundColor: colors.inputBackground,
+    height: 58,
+    borderWidth: 1.5,
+    borderColor: colors.border,
+    borderRadius: 18,
+    paddingHorizontal: spacing.lg,
+    fontSize: 17,
+    backgroundColor: colors.surface,
     color: colors.text,
-  },
-  forgotPassword: {
-    alignSelf: "flex-start",
-  },
-  forgotPasswordText: {
-    fontSize: 12,
-    color: colors.textMuted,
-    textDecorationLine: "underline",
   },
   button: {
     height: 64,
@@ -248,16 +358,5 @@ const styles = StyleSheet.create({
     color: colors.text,
     fontSize: 20,
     fontWeight: "700",
-  },
-  legal: {
-    fontSize: 12,
-    lineHeight: 18,
-    color: colors.textMuted,
-    textAlign: "center",
-    marginTop: spacing.sm,
-  },
-  legalLink: {
-    color: colors.wallsLight,
-    textDecorationLine: "underline",
   },
 });

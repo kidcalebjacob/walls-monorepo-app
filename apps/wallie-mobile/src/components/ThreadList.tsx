@@ -63,15 +63,15 @@ export function ThreadList({
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.surface,
+    backgroundColor: colors.background,
   },
   newChatButton: {
     margin: spacing.md,
     paddingVertical: 12,
-    borderRadius: 12,
-    backgroundColor: colors.background,
+    borderRadius: 16,
+    backgroundColor: colors.surface,
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: colors.borderMuted,
     alignItems: "center",
   },
   newChatText: {
@@ -89,9 +89,11 @@ const styles = StyleSheet.create({
   threadRow: {
     paddingVertical: 14,
     paddingHorizontal: spacing.md,
-    borderRadius: 12,
+    borderRadius: 14,
     marginBottom: spacing.sm,
-    backgroundColor: colors.background,
+    backgroundColor: colors.surface,
+    borderWidth: 1,
+    borderColor: colors.borderMuted,
   },
   threadRowActive: {
     borderWidth: 1,

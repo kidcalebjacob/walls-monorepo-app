@@ -1,11 +1,25 @@
 {
   "files": [],
   "references": [
-    { "path": "./apps/public-site" },
-    { "path": "./apps/adpilot" },
-    { "path": "./packages/auth" },
-    { "path": "./packages/supabase" },
-    { "path": "./packages/ui" },
-    { "path": "./packages/utils" }
-  ]
+    {
+      "path": "./apps/public-site"
+    },
+    {
+      "path": "./apps/adpilot"
+    },
+    {
+      "path": "./packages/auth"
+    },
+    {
+      "path": "./packages/supabase"
+    },
+    {
+      "path": "./packages/ui"
+    },
+    {
+      "path": "./packages/utils"
+    }
+  ],
+  "compilerOptions": {},
+  "extends": "expo/tsconfig.base"
 }

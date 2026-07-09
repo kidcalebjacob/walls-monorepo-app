@@ -32,9 +32,16 @@ export async function POST(req: Request) {
       );
     }
 
-    const file = new File([audio], "recording.webm", {
-      type: audio.type || "audio/webm",
-    });
+    const mime = audio.type || "audio/m4a";
+    const extension = mime.includes("m4a") || mime.includes("mp4")
+      ? "m4a"
+      : mime.includes("wav")
+        ? "wav"
+        : mime.includes("webm")
+          ? "webm"
+          : "m4a";
+
+    const file = new File([audio], `recording.${extension}`, { type: mime });
 
     const transcription = await openai.audio.transcriptions.create({
       file,

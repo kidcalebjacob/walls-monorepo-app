@@ -1,15 +1,14 @@
 import {
   ActivityIndicator,
+  Image,
   Pressable,
   StyleSheet,
-  Text,
   TextInput,
   View,
 } from "react-native";
+import { Ionicons } from "@expo/vector-icons";
 
-import { AppIcon } from "@/components/AppIcon";
-
-import { colors, spacing } from "@/constants/theme";
+import { assets, colors, spacing } from "@/constants/theme";
 
 interface ChatInputProps {
   value: string;
@@ -18,6 +17,8 @@ interface ChatInputProps {
   isLoading?: boolean;
   isRecording?: boolean;
   isVoiceBusy?: boolean;
+  placeholder?: string;
+  compactFooter?: boolean;
   onVoicePressIn?: () => void;
   onVoicePressOut?: () => void;
 }
@@ -29,117 +30,137 @@ export function ChatInput({
   isLoading = false,
   isRecording = false,
   isVoiceBusy = false,
+  placeholder = "Ask WALLIE",
+  compactFooter = false,
   onVoicePressIn,
   onVoicePressOut,
 }: ChatInputProps) {
-  const canSend = value.trim().length > 0 && !isLoading;
+  const hasContent = value.trim().length > 0;
+  const canSend = hasContent && !isLoading;
+  const showMic =
+    !hasContent && !!onVoicePressIn && !!onVoicePressOut && !isVoiceBusy;
 
   return (
-    <View style={styles.container}>
-      <View style={styles.inputRow}>
-        <TextInput
-          style={styles.input}
-          value={value}
-          onChangeText={onChangeText}
-          placeholder="Message Wallie..."
-          placeholderTextColor={colors.textMuted}
-          multiline
-          editable={!isLoading && !isVoiceBusy}
-        />
-        {onVoicePressIn && onVoicePressOut ? (
+    <View
+      style={[
+        styles.container,
+        compactFooter ? styles.containerCompact : null,
+      ]}
+    >
+      <View style={styles.composer}>
+        <View style={styles.inputWrap}>
+          <TextInput
+            style={styles.input}
+            value={value}
+            onChangeText={onChangeText}
+            placeholder={placeholder}
+            placeholderTextColor={colors.textSubtle}
+            multiline
+            editable={!isLoading && !isVoiceBusy}
+          />
+        </View>
+
+        {showMic ? (
           <Pressable
             onPressIn={onVoicePressIn}
             onPressOut={onVoicePressOut}
-            disabled={isLoading || isVoiceBusy}
+            disabled={isLoading}
             style={[
-              styles.voiceButton,
-              isRecording && styles.voiceButtonActive,
+              styles.trailingButton,
+              isRecording ? styles.trailingSend : styles.trailingIdle,
             ]}
           >
-            {isVoiceBusy ? (
-              <ActivityIndicator color={colors.wallsBlue} />
+            <Ionicons
+              name="mic"
+              size={20}
+              color={isRecording ? "#E5E5E5" : colors.textMuted}
+            />
+          </Pressable>
+        ) : (
+          <Pressable
+            onPress={onSend}
+            disabled={!canSend}
+            style={[
+              styles.trailingButton,
+              hasContent ? styles.trailingSend : styles.trailingIdle,
+              !canSend && styles.trailingDisabled,
+            ]}
+          >
+            {isLoading || isVoiceBusy ? (
+              <ActivityIndicator
+                color={hasContent ? "#E5E5E5" : colors.textMuted}
+                size="small"
+              />
+            ) : hasContent ? (
+              <Ionicons name="arrow-up" size={20} color="#E5E5E5" />
             ) : (
-              <AppIcon
-                name={isRecording ? "micActive" : "mic"}
-                size={18}
-                color={isRecording ? "#fff" : colors.wallsBlue}
+              <Image
+                source={{ uri: assets.wallsLogoFallback }}
+                style={styles.logo}
               />
             )}
           </Pressable>
-        ) : null}
-        <Pressable
-          onPress={onSend}
-          disabled={!canSend}
-          style={[styles.sendButton, !canSend && styles.sendButtonDisabled]}
-        >
-          {isLoading ? (
-            <ActivityIndicator color="#fff" />
-          ) : (
-            <AppIcon name="send" size={18} color="#fff" />
-          )}
-        </Pressable>
+        )}
       </View>
-      <Text style={styles.hint}>Hold the mic to talk, or type and send.</Text>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
-    borderTopWidth: 1,
-    borderTopColor: colors.border,
-    backgroundColor: colors.surface,
     paddingHorizontal: spacing.md,
     paddingTop: spacing.sm,
     paddingBottom: spacing.md,
+    backgroundColor: colors.background,
   },
-  inputRow: {
+  containerCompact: {
+    paddingBottom: 0,
+  },
+  composer: {
     flexDirection: "row",
     alignItems: "flex-end",
     gap: spacing.sm,
+    backgroundColor: colors.composerBackground,
+    borderWidth: 1,
+    borderColor: colors.borderMuted,
+    borderRadius: 25,
+    padding: spacing.sm,
+  },
+  inputWrap: {
+    flex: 1,
+    justifyContent: "center",
+    minHeight: 40,
   },
   input: {
-    flex: 1,
-    minHeight: 44,
-    maxHeight: 120,
-    borderWidth: 1,
-    borderColor: colors.border,
-    borderRadius: 22,
-    paddingHorizontal: spacing.md,
-    paddingVertical: 10,
-    fontSize: 16,
-    backgroundColor: colors.background,
+    fontSize: 14,
+    lineHeight: 20,
     color: colors.text,
+    maxHeight: 120,
+    paddingHorizontal: spacing.xs,
+    paddingVertical: 8,
   },
-  voiceButton: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
+  trailingButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
     alignItems: "center",
     justifyContent: "center",
     borderWidth: 1,
-    borderColor: colors.border,
-    backgroundColor: colors.background,
+    borderColor: colors.borderMuted,
   },
-  voiceButtonActive: {
-    backgroundColor: colors.wallsBlue,
-    borderColor: colors.wallsBlue,
+  trailingIdle: {
+    backgroundColor: colors.inputBackground,
   },
-  sendButton: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: colors.wallsBlue,
+  trailingSend: {
+    backgroundColor: "#404040",
+    borderColor: colors.borderMuted,
   },
-  sendButtonDisabled: {
-    opacity: 0.45,
+  trailingDisabled: {
+    opacity: 0.55,
   },
-  hint: {
-    marginTop: spacing.xs,
-    textAlign: "center",
-    fontSize: 12,
-    color: colors.textMuted,
+  logo: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
   },
 });

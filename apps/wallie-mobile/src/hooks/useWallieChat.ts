@@ -10,6 +10,8 @@ import { useAuth } from "@/context/AuthContext";
 import { sendWallieChat } from "@/lib/wallie-api";
 import { getSupabase } from "@/lib/supabase";
 
+const DEFAULT_MODEL = "gpt-4o";
+
 interface UseWallieChatOptions {
   threadId: string | null;
   onThreadId?: (threadId: string) => void;
@@ -26,7 +28,6 @@ export function useWallieChat({
   const [isLoading, setIsLoading] = useState(false);
   const [loadingStatus, setLoadingStatus] =
     useState<WallieLoadingStatus>(null);
-  const [selectedModel, setSelectedModel] = useState("gpt-4o");
 
   const loadMessages = useCallback(
     async (targetThreadId: string) => {
@@ -97,7 +98,7 @@ export function useWallieChat({
             message: trimmed,
             mentions: [],
             conversationHistory,
-            model: selectedModel,
+            model: DEFAULT_MODEL,
             userId: user.id,
             threadId: threadId ?? undefined,
           },
@@ -119,7 +120,7 @@ export function useWallieChat({
           timestamp: new Date(),
           renderedContent:
             emailDraft && emailIntro ? "" : emailDraft ? undefined : "",
-          isTyping: emailDraft ? !!emailIntro : false,
+          isTyping: emailDraft ? !!emailIntro : true,
           apolloPeople: data.apolloPeople?.length ? data.apolloPeople : undefined,
           emailDraft,
         };
@@ -144,7 +145,6 @@ export function useWallieChat({
       messages,
       onThreadId,
       onThreadTitle,
-      selectedModel,
       threadId,
       user?.id,
     ],
@@ -155,8 +155,6 @@ export function useWallieChat({
     setMessages,
     isLoading,
     loadingStatus,
-    selectedModel,
-    setSelectedModel,
     loadMessages,
     sendMessage,
   };

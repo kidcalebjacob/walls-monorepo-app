@@ -73,6 +73,9 @@ export function useWallieVoice(
           await sound.playAsync();
         }
       }
+    } catch (error) {
+      console.error("[wallie-mobile] voice:", error);
+      throw error;
     } finally {
       setIsProcessing(false);
     }

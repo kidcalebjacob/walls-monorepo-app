@@ -7,7 +7,8 @@ loadDotenv({ path: path.join(monorepoRoot, ".env") });
 
 const wallieApiUrl = process.env.NEXT_PUBLIC_WALLIE_API_URL ?? "";
 const wallieWebUrl =
-  process.env.NEXT_PUBLIC_WALLIE_URL ?? "http://localhost:3003";
+  process.env.NEXT_PUBLIC_WALLIE_URL ?? "https://wallie.walls.agency";
+const wallieMobileWebUrl = process.env.NEXT_PUBLIC_WALLIE_MOBILE_WEB_URL ?? "";
 
 export default {
   expo: {
@@ -46,6 +47,7 @@ export default {
       },
       package: "com.wallsentertainment.wallie",
       permissions: ["RECORD_AUDIO"],
+      softwareKeyboardLayoutMode: "resize",
     },
     plugins: [
       "expo-router",
@@ -64,6 +66,7 @@ export default {
       supabaseAnonKey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
       wallieApiUrl: wallieApiUrl.replace(/\/+$/, ""),
       wallieWebUrl: wallieWebUrl.replace(/\/+$/, ""),
+      wallieMobileWebUrl: wallieMobileWebUrl.replace(/\/+$/, ""),
     },
   },
 };

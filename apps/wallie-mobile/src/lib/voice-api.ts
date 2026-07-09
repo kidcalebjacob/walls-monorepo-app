@@ -1,7 +1,36 @@
 import * as FileSystem from "expo-file-system";
 
-import { getAccessToken } from "./supabase";
 import { getWallieWebUrl } from "./env";
+import { getAccessToken } from "./supabase";
+
+function logVoice(event: string, details?: Record<string, unknown>) {
+  if (__DEV__) {
+    console.log(`[wallie-mobile] voice ${event}`, details ?? "");
+  }
+}
+
+async function voiceFetch(
+  path: string,
+  init: RequestInit,
+): Promise<Response> {
+  const baseUrl = getWallieWebUrl();
+  const url = `${baseUrl}${path}`;
+
+  logVoice("→", { url, method: init.method ?? "GET" });
+
+  try {
+    const response = await fetch(url, init);
+    logVoice("←", { url, status: response.status, ok: response.ok });
+    return response;
+  } catch (error) {
+    const message =
+      error instanceof Error ? error.message : "Network request failed";
+    console.error("[wallie-mobile] voice network error:", { url, message });
+    throw new Error(
+      `Voice network error (${baseUrl}). On a physical device, localhost will not work — use production Wallie or set NEXT_PUBLIC_WALLIE_MOBILE_WEB_URL. ${message}`,
+    );
+  }
+}
 
 export async function transcribeAudio(uri: string): Promise<string> {
   const token = await getAccessToken();
@@ -14,7 +43,7 @@ export async function transcribeAudio(uri: string): Promise<string> {
     type: "audio/m4a",
   } as unknown as Blob);
 
-  const response = await fetch(`${getWallieWebUrl()}/api/walli/transcribe`, {
+  const response = await voiceFetch("/api/walli/transcribe", {
     method: "POST",
     headers: { Authorization: `Bearer ${token}` },
     body: formData,
@@ -22,10 +51,16 @@ export async function transcribeAudio(uri: string): Promise<string> {
 
   if (!response.ok) {
     const err = await response.json().catch(() => ({}));
+    const details =
+      typeof (err as { details?: string }).details === "string"
+        ? (err as { details: string }).details
+        : undefined;
     throw new Error(
       typeof (err as { error?: string }).error === "string"
-        ? (err as { error: string }).error
-        : "Transcription failed",
+        ? details
+          ? `${(err as { error: string }).error}: ${details}`
+          : (err as { error: string }).error
+        : `Transcription failed (${response.status})`,
     );
   }
 
@@ -37,7 +72,7 @@ export async function fetchSpeechFileUri(text: string): Promise<string> {
   const token = await getAccessToken();
   if (!token) throw new Error("Not authenticated");
 
-  const response = await fetch(`${getWallieWebUrl()}/api/walli/tts`, {
+  const response = await voiceFetch("/api/walli/tts", {
     method: "POST",
     headers: {
       Authorization: `Bearer ${token}`,
@@ -48,10 +83,16 @@ export async function fetchSpeechFileUri(text: string): Promise<string> {
 
   if (!response.ok) {
     const err = await response.json().catch(() => ({}));
+    const details =
+      typeof (err as { details?: string }).details === "string"
+        ? (err as { details: string }).details
+        : undefined;
     throw new Error(
       typeof (err as { error?: string }).error === "string"
-        ? (err as { error: string }).error
-        : "Speech generation failed",
+        ? details
+          ? `${(err as { error: string }).error}: ${details}`
+          : (err as { error: string }).error
+        : `Speech generation failed (${response.status})`,
     );
   }
 
