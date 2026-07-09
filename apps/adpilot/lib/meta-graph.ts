@@ -279,3 +279,51 @@ export async function fetchMetaInsights(
     },
   );
 }
+
+function microsToMetaBudgetCents(micros: number): string {
+  return String(Math.round(micros / 10_000));
+}
+
+async function postMetaGraph(
+  providerEntityId: string,
+  accessToken: string,
+  params: Record<string, string>,
+): Promise<Record<string, unknown>> {
+  const body = new URLSearchParams({
+    access_token: accessToken,
+    ...params,
+  });
+
+  const response = await fetch(
+    `https://graph.facebook.com/${META_GRAPH_VERSION}/${providerEntityId}`,
+    { method: "POST", body },
+  );
+
+  const payload = (await response.json()) as Record<string, unknown> & {
+    error?: { message?: string };
+  };
+
+  if (!response.ok) {
+    throw new Error(payload.error?.message ?? `Meta API update failed (${response.status})`);
+  }
+
+  return payload;
+}
+
+export async function updateMetaEntityDailyBudget(
+  providerEntityId: string,
+  accessToken: string,
+  dailyBudgetMicros: number,
+): Promise<Record<string, unknown>> {
+  return postMetaGraph(providerEntityId, accessToken, {
+    daily_budget: microsToMetaBudgetCents(dailyBudgetMicros),
+  });
+}
+
+export async function updateMetaEntityStatus(
+  providerEntityId: string,
+  accessToken: string,
+  status: "ACTIVE" | "PAUSED",
+): Promise<Record<string, unknown>> {
+  return postMetaGraph(providerEntityId, accessToken, { status });
+}

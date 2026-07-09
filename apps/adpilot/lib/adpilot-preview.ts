@@ -1,3 +1,4 @@
+import type { ApplyAdPilotResult } from "@/lib/adpilot-apply-server";
 import type { OptimizationGoal } from "@/lib/spend-automation-settings";
 
 export type AdPilotAction =
@@ -119,6 +120,68 @@ export async function fetchAdPilotPreview(
   }
 
   return { ok: true, status: response.status, preview: payload as AdPilotPreview };
+}
+
+export type AdPilotApplyResponse =
+  | { ok: true; status: number; result: ApplyAdPilotResult }
+  | { ok: false; status: number; error: string };
+
+export async function fetchAdPilotApply(input: {
+  entityId: string;
+  preview: AdPilotPreview;
+}): Promise<AdPilotApplyResponse> {
+  let response: Response;
+  try {
+    response = await fetch("/api/adpilot/apply", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        entityId: input.entityId,
+        preview: input.preview,
+      }),
+    });
+  } catch {
+    return {
+      ok: false,
+      status: 0,
+      error: "Could not reach the apply service. Check your connection.",
+    };
+  }
+
+  let payload: unknown = null;
+  try {
+    payload = await response.json();
+  } catch {
+    payload = null;
+  }
+
+  if (!response.ok) {
+    const message =
+      (payload as AdPilotPreviewError | null)?.error ??
+      applyErrorForStatus(response.status);
+    return { ok: false, status: response.status, error: message };
+  }
+
+  return {
+    ok: true,
+    status: response.status,
+    result: payload as ApplyAdPilotResult,
+  };
+}
+
+function applyErrorForStatus(status: number): string {
+  switch (status) {
+    case 400:
+      return "This preview cannot be applied.";
+    case 401:
+      return "You must be signed in to apply changes.";
+    case 404:
+      return "Entity not found.";
+    case 409:
+      return "Enable AdPilot for this entity before applying changes.";
+    default:
+      return "Failed to apply AdPilot decision.";
+  }
 }
 
 function previewErrorForStatus(status: number): string {

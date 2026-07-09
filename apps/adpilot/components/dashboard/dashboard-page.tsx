@@ -20,6 +20,7 @@ import { cn } from "@walls/utils";
 import type { DashboardAnalytics } from "@/lib/analytics-server";
 import { META_PROVIDER, META_SERVICE, type SafeUserConnection } from "@/lib/connections";
 import { ZERO_DASHBOARD_STATS } from "@/lib/dashboard-defaults";
+import type { TimeRangeValue } from "@/lib/time-range";
 
 import { HeroStat, MetricBarItem, SectionLabel } from "./dashboard-metrics";
 import { SpendTrendChart } from "./spend-trend-chart";
@@ -62,12 +63,13 @@ export function DashboardPage() {
   const [connections, setConnections] = React.useState<SafeUserConnection[]>([]);
   const [analytics, setAnalytics] = React.useState<DashboardAnalytics | null>(null);
   const [loading, setLoading] = React.useState(true);
+  const [timeRange, setTimeRange] = React.useState<TimeRangeValue>("30d");
   const autoSyncStarted = React.useRef(false);
 
   const loadDashboard = React.useCallback(async () => {
     const [connectionsResponse, analyticsResponse] = await Promise.all([
       fetch("/api/connections"),
-      fetch("/api/analytics"),
+      fetch(`/api/analytics?range=${timeRange}`),
     ]);
 
     if (connectionsResponse.ok) {
@@ -81,7 +83,7 @@ export function DashboardPage() {
       const payload = (await analyticsResponse.json()) as DashboardAnalytics;
       setAnalytics(payload);
     }
-  }, []);
+  }, [timeRange]);
 
   React.useEffect(() => {
     void (async () => {
@@ -123,6 +125,14 @@ export function DashboardPage() {
   const topPerformingAds = analytics?.topPerformingAds ?? {
     objectives: [],
     byObjective: {
+      OUTCOME_SALES: [],
+      OUTCOME_TRAFFIC: [],
+      OUTCOME_AWARENESS: [],
+      OUTCOME_ENGAGEMENT: [],
+      OUTCOME_LEADS: [],
+      OUTCOME_APP_PROMOTION: [],
+    },
+    bottomByObjective: {
       OUTCOME_SALES: [],
       OUTCOME_TRAFFIC: [],
       OUTCOME_AWARENESS: [],
@@ -219,7 +229,8 @@ export function DashboardPage() {
           transition={{ delay: 0.26 }}
         >
           <TopPerformingAds
-            periodLabel={periodLabel}
+            timeRange={timeRange}
+            onTimeRangeChange={setTimeRange}
             topPerformingAds={topPerformingAds}
           />
         </motion.div>

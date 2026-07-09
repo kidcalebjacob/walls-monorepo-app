@@ -76,20 +76,42 @@ export function parseAutomationSettings(
   }
 
   const input = raw as Partial<SpendAutomationSettings>;
-  return mergeAutomationSettings(DEFAULT_SPEND_AUTOMATION_SETTINGS, input);
+  const parsed = mergeAutomationSettings(DEFAULT_SPEND_AUTOMATION_SETTINGS, input);
+  return {
+    ...parsed,
+    cooldownHours: normalizeCooldownHours(parsed.cooldownHours),
+  };
 }
 
 export function optimizationGoalLabel(goal: OptimizationGoal): string {
   return OPTIMIZATION_GOAL_OPTIONS.find((option) => option.value === goal)?.label ?? goal;
 }
 
+export const MIN_COOLDOWN_HOURS = 24;
+
 export const COOLDOWN_OPTIONS = [
-  { value: 6, label: "6 hours" },
-  { value: 12, label: "12 hours" },
   { value: 24, label: "24 hours" },
   { value: 48, label: "48 hours" },
   { value: 72, label: "72 hours" },
 ] as const;
+
+export function normalizeCooldownHours(hours: number | null | undefined): number {
+  const allowed = COOLDOWN_OPTIONS.map((option) => option.value);
+  const fallback = DEFAULT_SPEND_AUTOMATION_SETTINGS.cooldownHours;
+
+  if (hours == null || !Number.isFinite(hours)) {
+    return fallback;
+  }
+
+  const clamped = Math.max(MIN_COOLDOWN_HOURS, hours);
+  if ((allowed as readonly number[]).includes(clamped)) {
+    return clamped;
+  }
+
+  return allowed.reduce((best, option) =>
+    Math.abs(option - clamped) < Math.abs(best - clamped) ? option : best,
+  );
+}
 
 export function getAggressivenessLabel(value: number) {
   if (value < 34) return "Conservative";

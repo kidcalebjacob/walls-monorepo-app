@@ -2,6 +2,7 @@ import { createClient } from "@walls/supabase/server";
 
 import {
   DEFAULT_SPEND_AUTOMATION_SETTINGS,
+  normalizeCooldownHours,
   parseAutomationSettings,
   type AutomationStatus,
   type OptimizationGoal,
@@ -204,7 +205,9 @@ function mapEntityAutomation(
   );
   const baseSettings = profile?.settings ?? DEFAULT_SPEND_AUTOMATION_SETTINGS;
   const cooldownHours =
-    row?.cooldown_hours != null ? Number(row.cooldown_hours) : null;
+    row?.cooldown_hours != null
+      ? normalizeCooldownHours(Number(row.cooldown_hours))
+      : null;
 
   return {
     enabled: Boolean(row?.enabled),
@@ -214,7 +217,9 @@ function mapEntityAutomation(
     effectiveSettings: {
       ...baseSettings,
       ...settingsOverride,
-      cooldownHours: cooldownHours ?? baseSettings.cooldownHours,
+      cooldownHours: normalizeCooldownHours(
+        cooldownHours ?? baseSettings.cooldownHours,
+      ),
     },
     minDailyBudgetMicros:
       (row?.min_daily_budget_micros as number | null) ?? null,
@@ -310,9 +315,11 @@ export async function upsertEntityAutomation(input: {
   );
   const cooldownHours =
     input.patch.cooldownHours !== undefined
-      ? input.patch.cooldownHours
+      ? input.patch.cooldownHours != null
+        ? normalizeCooldownHours(input.patch.cooldownHours)
+        : null
       : existing?.cooldown_hours != null
-        ? Number(existing.cooldown_hours)
+        ? normalizeCooldownHours(Number(existing.cooldown_hours))
         : null;
   const minDailyBudgetMicros =
     input.patch.minDailyBudgetMicros !== undefined
