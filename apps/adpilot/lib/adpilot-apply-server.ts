@@ -20,15 +20,11 @@ export type ApplyAdPilotResult = {
 
 const APPLYABLE_ACTIONS = new Set(["increase", "decrease", "deactivate"]);
 
-function isAutomationStatus(value: string): value is AutomationStatus {
-  return [
-    "inactive",
-    "active",
-    "paused",
-    "cooldown",
-    "learning",
-    "error",
-  ].includes(value);
+function resolveAutomationStatusAfterApply(
+  action: AdPilotPreview["decision"]["action"],
+): AutomationStatus {
+  if (action === "deactivate") return "paused";
+  return "cooldown";
 }
 
 export function validatePreviewForApply(
@@ -150,9 +146,9 @@ export async function applyAdPilotPreview(input: {
     nextDailyBudgetMicros = finalMicros;
   }
 
-  const automationStatus = isAutomationStatus(input.preview.decision.wouldSetStatus)
-    ? input.preview.decision.wouldSetStatus
-    : "active";
+  const automationStatus = resolveAutomationStatusAfterApply(
+    input.preview.decision.action,
+  );
 
   const { data: adjustmentRow, error: adjustmentError } = await supabase
     .from("ad_budget_adjustments")
