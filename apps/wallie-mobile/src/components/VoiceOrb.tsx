@@ -1,12 +1,13 @@
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { StyleSheet, View } from "react-native";
 import { BlurView } from "expo-blur";
 import Animated, {
   Easing,
+  interpolateColor,
   useAnimatedStyle,
+  useFrameCallback,
   useSharedValue,
   withRepeat,
-  withSequence,
   withTiming,
 } from "react-native-reanimated";
 
@@ -26,100 +27,170 @@ interface OrbPalette {
   halo: string;
 }
 
-function paletteForState(state: WallieVoiceState): OrbPalette {
-  if (state === "listening") {
-    return {
-      blobA: "rgba(99, 102, 241, 0.85)",
-      blobB: "rgba(34, 211, 238, 0.75)",
-      blobC: "rgba(167, 139, 250, 0.7)",
-      blobD: "rgba(244, 244, 245, 0.55)",
-      core: "#18181b",
-      halo: "rgba(99, 102, 241, 0.22)",
-    };
-  }
-  if (state === "speaking") {
-    return {
-      blobA: "rgba(56, 189, 248, 0.9)",
-      blobB: "rgba(37, 99, 235, 0.85)",
-      blobC: "rgba(125, 211, 252, 0.75)",
-      blobD: "rgba(224, 242, 254, 0.6)",
-      core: "#0c1929",
-      halo: "rgba(56, 189, 248, 0.28)",
-    };
-  }
-  if (state === "processing") {
-    return {
-      blobA: "rgba(251, 146, 60, 0.9)",
-      blobB: "rgba(244, 63, 94, 0.8)",
-      blobC: "rgba(250, 204, 21, 0.75)",
-      blobD: "rgba(255, 237, 213, 0.55)",
-      core: "#1c1410",
-      halo: "rgba(251, 146, 60, 0.26)",
-    };
-  }
-  return {
+const PALETTES: Record<WallieVoiceState, OrbPalette> = {
+  idle: {
     blobA: "rgba(161, 161, 170, 0.7)",
     blobB: "rgba(113, 113, 122, 0.65)",
     blobC: "rgba(212, 212, 216, 0.5)",
     blobD: "rgba(244, 244, 245, 0.4)",
     core: "#18181b",
     halo: "rgba(161, 161, 170, 0.18)",
+  },
+  listening: {
+    blobA: "rgba(99, 102, 241, 0.85)",
+    blobB: "rgba(34, 211, 238, 0.75)",
+    blobC: "rgba(167, 139, 250, 0.7)",
+    blobD: "rgba(244, 244, 245, 0.55)",
+    core: "#18181b",
+    halo: "rgba(99, 102, 241, 0.22)",
+  },
+  processing: {
+    blobA: "rgba(251, 146, 60, 0.9)",
+    blobB: "rgba(244, 63, 94, 0.8)",
+    blobC: "rgba(250, 204, 21, 0.75)",
+    blobD: "rgba(255, 237, 213, 0.55)",
+    core: "#1c1410",
+    halo: "rgba(251, 146, 60, 0.26)",
+  },
+  speaking: {
+    blobA: "rgba(56, 189, 248, 0.9)",
+    blobB: "rgba(37, 99, 235, 0.85)",
+    blobC: "rgba(125, 211, 252, 0.75)",
+    blobD: "rgba(224, 242, 254, 0.6)",
+    core: "#0c1929",
+    halo: "rgba(56, 189, 248, 0.28)",
+  },
+};
+
+const STATE_STOPS = [0, 1, 2, 3] as const;
+const COLOR_TRANSITION_MS = 1100;
+
+function stateToStop(state: WallieVoiceState): number {
+  switch (state) {
+    case "listening":
+      return 1;
+    case "processing":
+      return 2;
+    case "speaking":
+      return 3;
+    default:
+      return 0;
+  }
+}
+
+function useOrbPalette(state: WallieVoiceState) {
+  const paletteProgress = useSharedValue(stateToStop(state));
+  const { idle, listening, processing, speaking } = PALETTES;
+
+  useEffect(() => {
+    paletteProgress.value = withTiming(stateToStop(state), {
+      duration: COLOR_TRANSITION_MS,
+      easing: Easing.inOut(Easing.cubic),
+    });
+  }, [paletteProgress, state]);
+
+  const haloColorStyle = useAnimatedStyle(() => ({
+    backgroundColor: interpolateColor(
+      paletteProgress.value,
+      [...STATE_STOPS],
+      [idle.halo, listening.halo, processing.halo, speaking.halo],
+    ),
+  }));
+
+  const coreColorStyle = useAnimatedStyle(() => ({
+    backgroundColor: interpolateColor(
+      paletteProgress.value,
+      [...STATE_STOPS],
+      [idle.core, listening.core, processing.core, speaking.core],
+    ),
+  }));
+
+  const blobAColorStyle = useAnimatedStyle(() => ({
+    backgroundColor: interpolateColor(
+      paletteProgress.value,
+      [...STATE_STOPS],
+      [idle.blobA, listening.blobA, processing.blobA, speaking.blobA],
+    ),
+  }));
+
+  const blobBColorStyle = useAnimatedStyle(() => ({
+    backgroundColor: interpolateColor(
+      paletteProgress.value,
+      [...STATE_STOPS],
+      [idle.blobB, listening.blobB, processing.blobB, speaking.blobB],
+    ),
+  }));
+
+  const blobCColorStyle = useAnimatedStyle(() => ({
+    backgroundColor: interpolateColor(
+      paletteProgress.value,
+      [...STATE_STOPS],
+      [idle.blobC, listening.blobC, processing.blobC, speaking.blobC],
+    ),
+  }));
+
+  const blobDColorStyle = useAnimatedStyle(() => ({
+    backgroundColor: interpolateColor(
+      paletteProgress.value,
+      [...STATE_STOPS],
+      [idle.blobD, listening.blobD, processing.blobD, speaking.blobD],
+    ),
+  }));
+
+  return {
+    haloColorStyle,
+    coreColorStyle,
+    blobAColorStyle,
+    blobBColorStyle,
+    blobCColorStyle,
+    blobDColorStyle,
   };
 }
 
-function useOrbMotion(state: WallieVoiceState, audioLevel: number) {
+const ROTATION_SPEED_A = 0.022;
+const ROTATION_SPEED_B = -0.03;
+const ROTATION_SPEED_C = 0.017;
+const BREATHE_DURATION_MS = 2400;
+const LEVEL_SMOOTH_MS = 360;
+
+function useOrbMotion(audioLevel: number) {
   const spinA = useSharedValue(0);
   const spinB = useSharedValue(0);
   const spinC = useSharedValue(0);
   const breathe = useSharedValue(0);
   const level = useSharedValue(0);
+  const breatheStarted = useRef(false);
 
   useEffect(() => {
-    level.value = withTiming(audioLevel, { duration: 90 });
+    level.value = withTiming(audioLevel, {
+      duration: LEVEL_SMOOTH_MS,
+      easing: Easing.out(Easing.cubic),
+    });
   }, [audioLevel, level]);
 
   useEffect(() => {
-    const spinDuration =
-      state === "processing" ? 3200 : state === "speaking" ? 4800 : 11000;
-    const breatheDuration =
-      state === "listening" ? 1600 : state === "speaking" ? 1200 : 2000;
+    if (breatheStarted.current) return;
+    breatheStarted.current = true;
 
-    spinA.value = withRepeat(
-      withTiming(360, { duration: spinDuration, easing: Easing.linear }),
-      -1,
-      false,
-    );
-    spinB.value = withRepeat(
-      withTiming(-360, {
-        duration: spinDuration * 0.68,
-        easing: Easing.linear,
-      }),
-      -1,
-      false,
-    );
-    spinC.value = withRepeat(
-      withTiming(360, {
-        duration: spinDuration * 1.35,
-        easing: Easing.linear,
-      }),
-      -1,
-      false,
-    );
     breathe.value = withRepeat(
-      withSequence(
-        withTiming(1, {
-          duration: breatheDuration,
-          easing: Easing.inOut(Easing.sin),
-        }),
-        withTiming(0, {
-          duration: breatheDuration,
-          easing: Easing.inOut(Easing.sin),
-        }),
-      ),
+      withTiming(1, {
+        duration: BREATHE_DURATION_MS,
+        easing: Easing.inOut(Easing.sin),
+      }),
       -1,
-      false,
+      true,
     );
-  }, [breathe, spinA, spinB, spinC, state]);
+  }, [breathe]);
+
+  useFrameCallback((frameInfo) => {
+    "worklet";
+    const dt = frameInfo.timeSincePreviousFrame;
+    if (!dt) return;
+
+    spinA.value += dt * ROTATION_SPEED_A;
+    spinB.value += dt * ROTATION_SPEED_B;
+    spinC.value += dt * ROTATION_SPEED_C;
+  });
 
   const orbitAStyle = useAnimatedStyle(() => ({
     transform: [{ rotate: `${spinA.value}deg` }],
@@ -134,22 +205,16 @@ function useOrbMotion(state: WallieVoiceState, audioLevel: number) {
   }));
 
   const haloStyle = useAnimatedStyle(() => {
-    const pulse = 1 + breathe.value * 0.1 + level.value * 0.14;
+    const pulse = 1 + breathe.value * 0.1 + level.value * 0.1;
     return {
       transform: [{ scale: pulse }],
-      opacity: 0.45 + breathe.value * 0.35 + level.value * 0.25,
+      opacity: 0.45 + breathe.value * 0.35 + level.value * 0.15,
     };
   });
 
-  const coreStyle = useAnimatedStyle(() => {
-    const pulse =
-      state === "listening"
-        ? 1 + level.value * 0.1 + breathe.value * 0.04
-        : 1 + breathe.value * 0.05;
-    return {
-      transform: [{ scale: pulse }],
-    };
-  });
+  const coreStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: 1 + breathe.value * 0.05 + level.value * 0.06 }],
+  }));
 
   const meltStyle = useAnimatedStyle(() => ({
     opacity: 0.82 + breathe.value * 0.1,
@@ -160,7 +225,14 @@ function useOrbMotion(state: WallieVoiceState, audioLevel: number) {
 }
 
 export function VoiceOrb({ state, audioLevel = 0 }: VoiceOrbProps) {
-  const palette = paletteForState(state);
+  const {
+    haloColorStyle,
+    coreColorStyle,
+    blobAColorStyle,
+    blobBColorStyle,
+    blobCColorStyle,
+    blobDColorStyle,
+  } = useOrbPalette(state);
   const {
     orbitAStyle,
     orbitBStyle,
@@ -168,66 +240,68 @@ export function VoiceOrb({ state, audioLevel = 0 }: VoiceOrbProps) {
     haloStyle,
     coreStyle,
     meltStyle,
-  } = useOrbMotion(state, audioLevel);
+  } = useOrbMotion(audioLevel);
 
   return (
     <View style={styles.wrap}>
       <Animated.View
-        style={[
-          styles.halo,
-          { backgroundColor: palette.halo },
-          haloStyle,
-        ]}
+        style={[styles.halo, haloColorStyle, haloStyle]}
       />
 
       <View style={styles.field}>
         <Animated.View style={[styles.orbit, orbitCStyle]}>
-          <View
+          <Animated.View
             style={[
               styles.blob,
               styles.blobSm,
-              { backgroundColor: palette.blobD, top: 4, left: 78 },
+              blobDColorStyle,
+              { top: 4, left: 78 },
             ]}
           />
-          <View
+          <Animated.View
             style={[
               styles.blob,
               styles.blobSm,
-              { backgroundColor: palette.blobA, bottom: 6, left: 12 },
+              blobAColorStyle,
+              { bottom: 6, left: 12 },
             ]}
           />
         </Animated.View>
 
         <Animated.View style={[styles.orbit, orbitAStyle]}>
-          <View
+          <Animated.View
             style={[
               styles.blob,
               styles.blobLg,
-              { backgroundColor: palette.blobA, top: 8, left: 42 },
+              blobAColorStyle,
+              { top: 8, left: 42 },
             ]}
           />
-          <View
+          <Animated.View
             style={[
               styles.blob,
               styles.blobMd,
-              { backgroundColor: palette.blobB, bottom: 18, right: 28 },
+              blobBColorStyle,
+              { bottom: 18, right: 28 },
             ]}
           />
         </Animated.View>
 
         <Animated.View style={[styles.orbit, orbitBStyle]}>
-          <View
+          <Animated.View
             style={[
               styles.blob,
               styles.blobMd,
-              { backgroundColor: palette.blobC, top: 52, right: 8 },
+              blobCColorStyle,
+              { top: 52, right: 8 },
             ]}
           />
-          <View
+          <Animated.View
             style={[
               styles.blob,
               styles.blobSm,
-              { backgroundColor: palette.blobD, bottom: 42, left: 18 },
+              blobDColorStyle,
+              { bottom: 42, left: 18 },
             ]}
           />
         </Animated.View>
@@ -240,13 +314,7 @@ export function VoiceOrb({ state, audioLevel = 0 }: VoiceOrbProps) {
           <BlurView intensity={28} tint="light" style={StyleSheet.absoluteFill} />
         </Animated.View>
 
-        <Animated.View
-          style={[
-            styles.core,
-            { backgroundColor: palette.core },
-            coreStyle,
-          ]}
-        />
+        <Animated.View style={[styles.core, coreColorStyle, coreStyle]} />
       </View>
     </View>
   );
