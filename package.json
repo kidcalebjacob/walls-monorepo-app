@@ -9,6 +9,8 @@
     "dev:portal": "turbo dev --filter=portal",
     "dev:wallie": "turbo dev --filter=wallie",
     "dev:wallie-mobile": "turbo dev --filter=wallie-mobile",
+    "ios:wallie-mobile": "pnpm --filter wallie-mobile ios:device",
+    "android:wallie-mobile": "pnpm --filter wallie-mobile android:device",
     "build": "turbo build",
     "lint": "turbo lint",
     "start": "turbo start",

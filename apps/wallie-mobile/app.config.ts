@@ -45,7 +45,12 @@ export default {
       output: "static",
       favicon: "./assets/favicon.png",
     },
-    plugins: ["expo-router", "expo-secure-store"],
+    plugins: [
+      "expo-router",
+      "expo-secure-store",
+      "expo-dev-client",
+      "./plugins/withFmtXcode26Fix.js",
+    ],
     experiments: {
       typedRoutes: true,
     },
