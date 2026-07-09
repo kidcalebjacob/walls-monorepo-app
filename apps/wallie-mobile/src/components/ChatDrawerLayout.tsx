@@ -11,10 +11,11 @@ import Animated, {
   withTiming,
 } from "react-native-reanimated";
 
+import {
+  DRAWER_WIDTH_RATIO,
+  MAIN_PUSH_RATIO,
+} from "@/constants/drawer-layout";
 import { colors } from "@/constants/theme";
-
-const DRAWER_WIDTH_RATIO = 0.8;
-const MAIN_PUSH_RATIO = 0.76;
 const MAIN_RADIUS_OPEN = 28;
 const ANIMATION_MS = 300;
 

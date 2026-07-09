@@ -1,17 +1,23 @@
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import {
   ActivityIndicator,
   Pressable,
   SectionList,
   StyleSheet,
   Text,
+  useWindowDimensions,
   View,
+  type View as RNView,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import type { WallieThread } from "@walls/wallie-core";
 
-import { ThreadActionMenu } from "@/components/ThreadActionMenu";
+import {
+  ThreadActionMenu,
+  type ThreadMenuAnchor,
+} from "@/components/ThreadActionMenu";
 import { ThreadRenameModal } from "@/components/ThreadRenameModal";
+import { getSidebarContentInset } from "@/constants/drawer-layout";
 import { colors, spacing } from "@/constants/theme";
 import { categorizeThreads } from "@/lib/thread-categories";
 
@@ -38,14 +44,41 @@ export function ThreadList({
   onArchiveThread,
   onDeleteThread,
 }: ThreadListProps) {
+  const { width: screenWidth } = useWindowDimensions();
+  const sidebarRightInset = getSidebarContentInset(screenWidth);
+
   const [menuThread, setMenuThread] = useState<WallieThread | null>(null);
+  const [menuAnchor, setMenuAnchor] = useState<ThreadMenuAnchor | null>(null);
   const [renameThread, setRenameThread] = useState<WallieThread | null>(null);
+  const rowRefs = useRef(new Map<string, RNView>());
 
   const sections = useMemo(() => categorizeThreads(threads), [threads]);
 
+  const closeMenu = () => {
+    setMenuThread(null);
+    setMenuAnchor(null);
+  };
+
+  const openMenu = (thread: WallieThread) => {
+    const row = rowRefs.current.get(thread.id);
+    if (!row) {
+      setMenuThread(thread);
+      setMenuAnchor(null);
+      return;
+    }
+
+    row.measureInWindow((x, y, width, height) => {
+      setMenuAnchor({ x, y, width, height });
+      setMenuThread(thread);
+    });
+  };
+
   return (
     <View style={styles.container}>
-      <Pressable style={styles.newChatButton} onPress={onNewChat}>
+      <Pressable
+        style={[styles.newChatButton, { marginRight: sidebarRightInset }]}
+        onPress={onNewChat}
+      >
         <Ionicons name="add" size={18} color="#6B7280" />
         <Text style={styles.newChatText}>New chat</Text>
       </Pressable>
@@ -56,19 +89,31 @@ export function ThreadList({
         <SectionList
           sections={sections}
           keyExtractor={(item) => item.id}
-          contentContainerStyle={styles.list}
+          contentContainerStyle={[
+            styles.list,
+            { paddingRight: sidebarRightInset },
+          ]}
           stickySectionHeadersEnabled={false}
           renderSectionHeader={({ section }) => (
             <Text style={styles.sectionHeader}>{section.title}</Text>
           )}
           renderItem={({ item }) => {
             const active = item.id === currentThreadId;
+            const menuOpen = menuThread?.id === item.id;
             return (
               <Pressable
+                ref={(ref) => {
+                  if (ref) rowRefs.current.set(item.id, ref);
+                  else rowRefs.current.delete(item.id);
+                }}
                 onPress={() => onSelect(item.id)}
-                onLongPress={() => setMenuThread(item)}
+                onLongPress={() => openMenu(item)}
                 delayLongPress={320}
-                style={[styles.threadRow, active && styles.threadRowActive]}
+                style={[
+                  styles.threadRow,
+                  active && styles.threadRowActive,
+                  menuOpen && styles.threadRowMenuOpen,
+                ]}
               >
                 <Text style={styles.threadTitle} numberOfLines={1}>
                   {item.title?.trim() || "New Chat"}
@@ -84,8 +129,9 @@ export function ThreadList({
 
       <ThreadActionMenu
         thread={menuThread}
+        anchor={menuAnchor}
         visible={!!menuThread}
-        onClose={() => setMenuThread(null)}
+        onClose={closeMenu}
         onPin={onPinThread}
         onRename={setRenameThread}
         onArchive={onArchiveThread}
@@ -160,6 +206,9 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 1,
+  },
+  threadRowMenuOpen: {
+    opacity: 0,
   },
   threadTitle: {
     fontSize: 16,

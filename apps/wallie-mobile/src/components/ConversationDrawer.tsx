@@ -1,8 +1,9 @@
-import { StyleSheet, Text, View } from "react-native";
+import { StyleSheet, Text, useWindowDimensions, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import type { WallieThread } from "@walls/wallie-core";
 
 import { ThreadList } from "@/components/ThreadList";
+import { getSidebarContentInset } from "@/constants/drawer-layout";
 import { colors, spacing } from "@/constants/theme";
 
 interface ConversationDrawerProps {
@@ -28,9 +29,12 @@ export function ConversationDrawer({
   onArchiveThread,
   onDeleteThread,
 }: ConversationDrawerProps) {
+  const { width: screenWidth } = useWindowDimensions();
+  const sidebarRightInset = getSidebarContentInset(screenWidth);
+
   return (
     <SafeAreaView style={styles.safeArea} edges={["top", "bottom"]}>
-      <View style={styles.header}>
+      <View style={[styles.header, { paddingRight: sidebarRightInset }]}>
         <Text style={styles.title}>Conversations</Text>
       </View>
       <ThreadList

@@ -1,16 +1,29 @@
+import { useMemo } from "react";
 import {
   Modal,
   Pressable,
   StyleSheet,
   Text,
+  useWindowDimensions,
   View,
 } from "react-native";
+import { Ionicons } from "@expo/vector-icons";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import type { WallieThread } from "@walls/wallie-core";
 
+import { getSidebarContentMaxX } from "@/constants/drawer-layout";
 import { colors, spacing } from "@/constants/theme";
+
+export interface ThreadMenuAnchor {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+}
 
 interface ThreadActionMenuProps {
   thread: WallieThread | null;
+  anchor: ThreadMenuAnchor | null;
   visible: boolean;
   onClose: () => void;
   onPin: (threadId: string) => void;
@@ -19,8 +32,21 @@ interface ThreadActionMenuProps {
   onDelete: (threadId: string) => void;
 }
 
+const MENU_WIDTH = 224;
+const MENU_ESTIMATED_HEIGHT = 196;
+const ANCHOR_GAP = 6;
+
+interface MenuAction {
+  key: string;
+  label: string;
+  icon: keyof typeof Ionicons.glyphMap;
+  danger?: boolean;
+  onPress: () => void;
+}
+
 export function ThreadActionMenu({
   thread,
+  anchor,
   visible,
   onClose,
   onPin,
@@ -28,9 +54,83 @@ export function ThreadActionMenu({
   onArchive,
   onDelete,
 }: ThreadActionMenuProps) {
+  const { width: screenWidth, height: screenHeight } = useWindowDimensions();
+  const insets = useSafeAreaInsets();
+
+  const sidebarMaxX = getSidebarContentMaxX(screenWidth);
+
+  const menuPosition = useMemo(() => {
+    if (!anchor) {
+      return { top: 0, left: spacing.md };
+    }
+
+    const maxTop = screenHeight - insets.bottom - MENU_ESTIMATED_HEIGHT - spacing.sm;
+    const belowTop = anchor.y + anchor.height + ANCHOR_GAP;
+    const aboveTop = anchor.y - MENU_ESTIMATED_HEIGHT - ANCHOR_GAP;
+    const top =
+      belowTop <= maxTop
+        ? belowTop
+        : Math.max(insets.top + spacing.sm, aboveTop);
+
+    const maxMenuLeft = Math.min(
+      sidebarMaxX - MENU_WIDTH,
+      screenWidth - MENU_WIDTH - spacing.sm,
+    );
+    const left = Math.min(Math.max(anchor.x, spacing.sm), maxMenuLeft);
+
+    return { top, left };
+  }, [
+    anchor,
+    insets.bottom,
+    insets.top,
+    screenHeight,
+    screenWidth,
+    sidebarMaxX,
+  ]);
+
+  const highlightLayout = useMemo(() => {
+    if (!anchor) return null;
+
+    const left = anchor.x;
+    const maxWidth = Math.max(0, sidebarMaxX - left);
+
+    return {
+      top: anchor.y,
+      left,
+      width: Math.min(anchor.width, maxWidth),
+      height: anchor.height,
+    };
+  }, [anchor, sidebarMaxX]);
+
   if (!thread) return null;
 
-  const title = thread.title?.trim() || "New Chat";
+  const actions: MenuAction[] = [
+    {
+      key: "pin",
+      label: thread.is_pinned ? "Unpin" : "Pin",
+      icon: thread.is_pinned ? "pin" : "pin-outline",
+      onPress: () => onPin(thread.id),
+    },
+    {
+      key: "rename",
+      label: "Rename",
+      icon: "pencil-outline",
+      onPress: () => onRename(thread),
+    },
+    {
+      key: "archive",
+      label: "Archive",
+      icon: "archive-outline",
+      onPress: () => onArchive(thread.id),
+    },
+    {
+      key: "delete",
+      label: "Delete",
+      icon: "trash-outline",
+      danger: true,
+      onPress: () => onDelete(thread.id),
+    },
+  ];
 
   return (
     <Modal
@@ -39,111 +139,117 @@ export function ThreadActionMenu({
       animationType="fade"
       onRequestClose={onClose}
     >
-      <Pressable style={styles.backdrop} onPress={onClose}>
-        <Pressable style={styles.menuCard} onPress={(event) => event.stopPropagation()}>
-          <Text style={styles.menuTitle} numberOfLines={2}>
-            {title}
-          </Text>
+      <View style={styles.container}>
+        <Pressable style={styles.backdrop} onPress={onClose} />
 
-          <View style={styles.menuItems}>
-            <Pressable
-              style={styles.menuItem}
-              onPress={() => {
-                onClose();
-                onPin(thread.id);
-              }}
-            >
-              <Text style={styles.menuItemText}>
-                {thread.is_pinned ? "Unpin" : "Pin"}
-              </Text>
-            </Pressable>
+        {highlightLayout ? (
+          <View
+            pointerEvents="none"
+            style={[styles.rowHighlight, highlightLayout]}
+          />
+        ) : null}
 
-            <Pressable
-              style={styles.menuItem}
-              onPress={() => {
-                onClose();
-                onRename(thread);
-              }}
-            >
-              <Text style={styles.menuItemText}>Rename</Text>
-            </Pressable>
-
-            <Pressable
-              style={styles.menuItem}
-              onPress={() => {
-                onClose();
-                onArchive(thread.id);
-              }}
-            >
-              <Text style={styles.menuItemText}>Archive</Text>
-            </Pressable>
-
-            <Pressable
-              style={[styles.menuItem, styles.menuItemDanger]}
-              onPress={() => {
-                onClose();
-                onDelete(thread.id);
-              }}
-            >
-              <Text style={styles.menuItemDangerText}>Delete</Text>
-            </Pressable>
-          </View>
-        </Pressable>
-      </Pressable>
+        <View
+          style={[
+            styles.menu,
+            {
+              top: menuPosition.top,
+              left: menuPosition.left,
+              width: MENU_WIDTH,
+            },
+          ]}
+        >
+          {actions.map((action, index) => (
+            <View key={action.key}>
+              {index === actions.length - 1 ? <View style={styles.menuDivider} /> : null}
+              <Pressable
+                style={({ pressed }) => [
+                  styles.menuItem,
+                  pressed && styles.menuItemPressed,
+                ]}
+                onPress={() => {
+                  onClose();
+                  action.onPress();
+                }}
+              >
+                <Ionicons
+                  name={action.icon}
+                  size={18}
+                  color={action.danger ? colors.danger : "#4B5563"}
+                />
+                <Text
+                  style={[
+                    styles.menuItemText,
+                    action.danger && styles.menuItemDangerText,
+                  ]}
+                >
+                  {action.label}
+                </Text>
+              </Pressable>
+            </View>
+          ))}
+        </View>
+      </View>
     </Modal>
   );
 }
 
 const styles = StyleSheet.create({
-  backdrop: {
+  container: {
     flex: 1,
-    backgroundColor: "rgba(0, 0, 0, 0.28)",
-    justifyContent: "center",
-    alignItems: "center",
-    paddingHorizontal: spacing.xl,
   },
-  menuCard: {
-    width: "100%",
-    maxWidth: 280,
+  backdrop: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: "rgba(0, 0, 0, 0.12)",
+  },
+  rowHighlight: {
+    position: "absolute",
+    borderRadius: 14,
     backgroundColor: colors.surface,
-    borderRadius: 16,
     borderWidth: 1,
     borderColor: colors.borderMuted,
-    paddingVertical: spacing.sm,
     shadowColor: "#000000",
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.12,
-    shadowRadius: 24,
-    elevation: 8,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 6,
+    elevation: 2,
   },
-  menuTitle: {
-    fontSize: 13,
-    fontWeight: "500",
-    color: colors.textMuted,
-    paddingHorizontal: spacing.md,
-    paddingBottom: spacing.sm,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.borderMuted,
-  },
-  menuItems: {
-    paddingHorizontal: spacing.sm,
-    paddingTop: spacing.sm,
-    gap: 2,
+  menu: {
+    position: "absolute",
+    backgroundColor: colors.surface,
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: colors.borderMuted,
+    paddingVertical: 6,
+    shadowColor: "#000000",
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.14,
+    shadowRadius: 20,
+    elevation: 10,
   },
   menuItem: {
-    borderRadius: 12,
-    paddingVertical: 12,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+    paddingVertical: 11,
     paddingHorizontal: spacing.md,
+    marginHorizontal: 6,
+    borderRadius: 10,
+  },
+  menuDivider: {
+    height: StyleSheet.hairlineWidth,
+    backgroundColor: colors.borderMuted,
+    marginHorizontal: spacing.md,
+    marginVertical: 4,
+  },
+  menuItemPressed: {
+    backgroundColor: "rgba(0, 0, 0, 0.04)",
   },
   menuItemText: {
-    fontSize: 15,
+    fontSize: 16,
     color: "#374151",
   },
-  menuItemDanger: {
-    marginTop: 2,
-  },
   menuItemDangerText: {
-    fontSize: 15,
     color: colors.danger,
     fontWeight: "500",
   },
