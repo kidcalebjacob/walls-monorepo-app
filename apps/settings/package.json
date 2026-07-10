@@ -22,6 +22,7 @@
     "@walls/utils": "workspace:*",
     "dotenv": "^16.5.0",
     "framer-motion": "^12.16.0",
+    "googleapis": "^148.0.0",
     "lucide-react": "^0.511.0",
     "next": "16.2.10",
     "qrcode.react": "^4.2.0",

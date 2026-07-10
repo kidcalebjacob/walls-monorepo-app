@@ -124,7 +124,10 @@ export function ConnectForm() {
       'https://www.googleapis.com/auth/contacts'
     ];
 
-    const redirectUri = 'https://www.wallsentertainment.com/api/auth/gmail/callback';
+    const settingsOrigin =
+      process.env.NEXT_PUBLIC_SETTINGS_URL?.replace(/\/$/, "") ??
+      window.location.origin;
+    const redirectUri = `${settingsOrigin}/api/google/gmail/callback`;
     const authUrl = new URL('https://accounts.google.com/o/oauth2/v2/auth');
     
     const params = {
@@ -148,7 +151,10 @@ export function ConnectForm() {
       'https://www.googleapis.com/auth/calendar'
     ];
 
-    const redirectUri = 'https://www.wallsentertainment.com/api/auth/calendar/callback';
+    const settingsOrigin =
+      process.env.NEXT_PUBLIC_SETTINGS_URL?.replace(/\/$/, "") ??
+      window.location.origin;
+    const redirectUri = `${settingsOrigin}/api/google/calendar/callback`;
     const authUrl = new URL('https://accounts.google.com/o/oauth2/v2/auth');
     
     const params = {
@@ -169,7 +175,7 @@ export function ConnectForm() {
     if (!user?.email) return;
     
     try {
-      const res = await fetch('/api/auth/gmail/disconnect', {
+      const res = await fetch("/api/google/gmail/disconnect", {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -191,7 +197,7 @@ export function ConnectForm() {
     if (!user?.email) return;
     
     try {
-      const res = await fetch('/api/auth/calendar/disconnect', {
+      const res = await fetch("/api/google/calendar/disconnect", {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

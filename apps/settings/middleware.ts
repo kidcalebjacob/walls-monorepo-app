@@ -5,6 +5,10 @@ import { handleProtectedAppRequest } from "@walls/auth/middleware";
 export async function middleware(request: NextRequest) {
   return handleProtectedAppRequest(request, {
     appSlug: process.env.NEXT_PUBLIC_SETTINGS_APP_SLUG || "settings",
+    publicPaths: [
+      "/api/google/gmail/callback",
+      "/api/google/calendar/callback",
+    ],
   });
 }
 
