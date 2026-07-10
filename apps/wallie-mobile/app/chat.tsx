@@ -4,7 +4,6 @@ import {
   FlatList,
   Keyboard,
   Platform,
-  Pressable,
   StyleSheet,
   Text,
   View,
@@ -16,11 +15,12 @@ import { ChatDrawerLayout } from "@/components/ChatDrawerLayout";
 import { ChatInput } from "@/components/ChatInput";
 import { ChatMessage } from "@/components/ChatMessage";
 import { ConversationDrawer } from "@/components/ConversationDrawer";
-import { GlassSurface } from "@/components/GlassSurface";
 import { LoadingIndicator } from "@/components/LoadingIndicator";
-import { TwoLineMenuIcon } from "@/components/TwoLineMenuIcon";
+import { MenuButton } from "@/components/MenuButton";
+import { ThemeToggleButton } from "@/components/ThemeToggleButton";
 import { WallieVoiceOverlay } from "@/components/WallieVoiceOverlay";
-import { colors, spacing } from "@/constants/theme";
+import { spacing } from "@/constants/theme";
+import { useTheme } from "@/context/ThemeContext";
 import { useAuth } from "@/context/AuthContext";
 import { useWallieChat } from "@/hooks/useWallieChat";
 import { useWallieThreads } from "@/hooks/useWallieThreads";
@@ -32,6 +32,7 @@ const FLOATING_COMPOSER_HEIGHT = 84;
 
 export default function ChatScreen() {
   const insets = useSafeAreaInsets();
+  const { colors } = useTheme();
   const { user, loading } = useAuth();
   const [currentThreadId, setCurrentThreadId] = useState<string | null>(null);
   const [inputValue, setInputValue] = useState("");
@@ -206,6 +207,7 @@ export default function ChatScreen() {
     : insets.bottom;
   const scrollBottomInset = FLOATING_COMPOSER_HEIGHT + composerBottomInset;
   const floatingHeaderTop = insets.top + spacing.sm;
+  const scrollTopInset = floatingHeaderTop + 44 + spacing.md;
 
   const chatInputProps = useMemo(
     () => ({
@@ -273,12 +275,14 @@ export default function ChatScreen() {
                 style={[
                   styles.emptyContent,
                   {
-                    paddingTop: floatingHeaderTop + 44,
+                    paddingTop: scrollTopInset,
                     paddingBottom: scrollBottomInset,
                   },
                 ]}
               >
-                <Text style={styles.emptyTitle}>{greeting}</Text>
+                <Text style={[styles.emptyTitle, { color: colors.textSecondary }]}>
+                  {greeting}
+                </Text>
                 {isLoading ? (
                   <View style={styles.emptyLoading}>
                     <LoadingIndicator status={loadingStatus} />
@@ -293,11 +297,14 @@ export default function ChatScreen() {
                 keyExtractor={(item) => item.id}
                 contentContainerStyle={[
                   styles.messages,
-                  { paddingBottom: scrollBottomInset },
+                  {
+                    paddingTop: scrollTopInset,
+                    paddingBottom: scrollBottomInset,
+                  },
                 ]}
                 contentInsetAdjustmentBehavior="never"
                 automaticallyAdjustContentInsets={false}
-                scrollIndicatorInsets={{ top: insets.top }}
+                scrollIndicatorInsets={{ top: scrollTopInset }}
                 renderItem={({ item }) => (
                   <ChatMessage message={item} />
                 )}
@@ -318,16 +325,9 @@ export default function ChatScreen() {
               style={[styles.floatingHeader, { top: floatingHeaderTop }]}
               pointerEvents="box-none"
             >
-              <Pressable onPress={openThreads}>
-                <GlassSurface
-                  borderRadius={22}
-                  intensity={60}
-                  contentStyle={styles.menuGlassContent}
-                  style={styles.menuGlass}
-                >
-                  <TwoLineMenuIcon />
-                </GlassSurface>
-              </Pressable>
+              <MenuButton onPress={openThreads} drawerOpen={threadsOpen} />
+
+              <ThemeToggleButton />
             </View>
 
             <View
@@ -366,17 +366,11 @@ const styles = StyleSheet.create({
   floatingHeader: {
     position: "absolute",
     left: spacing.md,
-    zIndex: 10,
-  },
-  menuGlass: {
-    width: 44,
-    height: 44,
-  },
-  menuGlassContent: {
-    width: 44,
-    height: 44,
+    right: spacing.md,
+    flexDirection: "row",
     alignItems: "center",
-    justifyContent: "center",
+    justifyContent: "space-between",
+    zIndex: 10,
   },
   floatingComposer: {
     position: "absolute",
@@ -393,7 +387,6 @@ const styles = StyleSheet.create({
   emptyTitle: {
     fontSize: 32,
     fontWeight: "600",
-    color: "#404040",
     textAlign: "center",
     lineHeight: 40,
   },

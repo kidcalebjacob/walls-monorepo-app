@@ -1,10 +1,12 @@
+import { useMemo } from "react";
 import { StyleSheet, Text, useWindowDimensions, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import type { WallieThread } from "@walls/wallie-core";
 
 import { ThreadList } from "@/components/ThreadList";
 import { getSidebarContentInset } from "@/constants/drawer-layout";
-import { colors, spacing } from "@/constants/theme";
+import { spacing, type AppColors } from "@/constants/theme";
+import { useTheme } from "@/context/ThemeContext";
 
 interface ConversationDrawerProps {
   threads: WallieThread[];
@@ -18,6 +20,25 @@ interface ConversationDrawerProps {
   onDeleteThread: (threadId: string) => void;
 }
 
+function createStyles(colors: AppColors) {
+  return StyleSheet.create({
+    safeArea: {
+      flex: 1,
+      backgroundColor: colors.drawerBackground,
+    },
+    header: {
+      paddingHorizontal: spacing.md,
+      paddingTop: spacing.sm,
+      paddingBottom: spacing.xs,
+    },
+    title: {
+      fontSize: 22,
+      fontWeight: "600",
+      color: colors.text,
+    },
+  });
+}
+
 export function ConversationDrawer({
   threads,
   currentThreadId,
@@ -29,6 +50,8 @@ export function ConversationDrawer({
   onArchiveThread,
   onDeleteThread,
 }: ConversationDrawerProps) {
+  const { colors } = useTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
   const { width: screenWidth } = useWindowDimensions();
   const sidebarRightInset = getSidebarContentInset(screenWidth);
 
@@ -51,20 +74,3 @@ export function ConversationDrawer({
     </SafeAreaView>
   );
 }
-
-const styles = StyleSheet.create({
-  safeArea: {
-    flex: 1,
-    backgroundColor: colors.drawerBackground,
-  },
-  header: {
-    paddingHorizontal: spacing.md,
-    paddingTop: spacing.sm,
-    paddingBottom: spacing.xs,
-  },
-  title: {
-    fontSize: 22,
-    fontWeight: "600",
-    color: colors.text,
-  },
-});

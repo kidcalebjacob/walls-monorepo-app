@@ -18,7 +18,8 @@ import {
 } from "@/components/ThreadActionMenu";
 import { ThreadRenameModal } from "@/components/ThreadRenameModal";
 import { getSidebarContentInset } from "@/constants/drawer-layout";
-import { colors, spacing } from "@/constants/theme";
+import { spacing, type AppColors } from "@/constants/theme";
+import { useTheme } from "@/context/ThemeContext";
 import { categorizeThreads } from "@/lib/thread-categories";
 
 interface ThreadListProps {
@@ -33,6 +34,83 @@ interface ThreadListProps {
   onDeleteThread: (threadId: string) => void;
 }
 
+function createStyles(colors: AppColors) {
+  return StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: colors.drawerBackground,
+    },
+    newChatButton: {
+      marginHorizontal: spacing.md,
+      marginTop: spacing.sm,
+      marginBottom: spacing.sm,
+      height: 40,
+      paddingHorizontal: spacing.md,
+      borderRadius: 14,
+      borderWidth: 1,
+      borderColor: "transparent",
+      flexDirection: "row",
+      alignItems: "center",
+      gap: spacing.sm,
+    },
+    newChatText: {
+      fontSize: 16,
+      fontWeight: "500",
+      color: colors.iconMuted,
+    },
+    loader: {
+      marginTop: spacing.lg,
+    },
+    list: {
+      paddingHorizontal: spacing.sm,
+      paddingBottom: spacing.lg,
+    },
+    sectionHeader: {
+      fontSize: 13,
+      fontWeight: "500",
+      color: colors.iconMuted,
+      letterSpacing: 0.8,
+      textTransform: "uppercase",
+      paddingHorizontal: spacing.md,
+      paddingTop: spacing.md,
+      paddingBottom: spacing.sm,
+    },
+    threadRow: {
+      minHeight: 36,
+      paddingVertical: 8,
+      paddingHorizontal: 12,
+      borderRadius: 14,
+      marginBottom: 2,
+      borderWidth: 1,
+      borderColor: "transparent",
+      justifyContent: "center",
+    },
+    threadRowActive: {
+      backgroundColor: colors.surface,
+      borderColor: colors.borderMuted,
+      shadowColor: colors.shadowColor,
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.1,
+      shadowRadius: 4,
+      elevation: 1,
+    },
+    threadRowMenuOpen: {
+      opacity: 0,
+    },
+    threadTitle: {
+      fontSize: 16,
+      lineHeight: 22,
+      color: colors.textSecondary,
+    },
+    empty: {
+      textAlign: "center",
+      color: colors.textMuted,
+      marginTop: spacing.lg,
+      paddingHorizontal: spacing.md,
+    },
+  });
+}
+
 export function ThreadList({
   threads,
   currentThreadId,
@@ -44,6 +122,8 @@ export function ThreadList({
   onArchiveThread,
   onDeleteThread,
 }: ThreadListProps) {
+  const { colors } = useTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
   const { width: screenWidth } = useWindowDimensions();
   const sidebarRightInset = getSidebarContentInset(screenWidth);
 
@@ -79,7 +159,7 @@ export function ThreadList({
         style={[styles.newChatButton, { marginRight: sidebarRightInset }]}
         onPress={onNewChat}
       >
-        <Ionicons name="add" size={18} color="#6B7280" />
+        <Ionicons name="add" size={18} color={colors.iconMuted} />
         <Text style={styles.newChatText}>New chat</Text>
       </Pressable>
 
@@ -147,78 +227,3 @@ export function ThreadList({
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: colors.drawerBackground,
-  },
-  newChatButton: {
-    marginHorizontal: spacing.md,
-    marginTop: spacing.sm,
-    marginBottom: spacing.sm,
-    height: 40,
-    paddingHorizontal: spacing.md,
-    borderRadius: 14,
-    borderWidth: 1,
-    borderColor: "transparent",
-    flexDirection: "row",
-    alignItems: "center",
-    gap: spacing.sm,
-  },
-  newChatText: {
-    fontSize: 16,
-    fontWeight: "500",
-    color: "#6B7280",
-  },
-  loader: {
-    marginTop: spacing.lg,
-  },
-  list: {
-    paddingHorizontal: spacing.sm,
-    paddingBottom: spacing.lg,
-  },
-  sectionHeader: {
-    fontSize: 13,
-    fontWeight: "500",
-    color: "#6B7280",
-    letterSpacing: 0.8,
-    textTransform: "uppercase",
-    paddingHorizontal: spacing.md,
-    paddingTop: spacing.md,
-    paddingBottom: spacing.sm,
-  },
-  threadRow: {
-    minHeight: 36,
-    paddingVertical: 8,
-    paddingHorizontal: 12,
-    borderRadius: 14,
-    marginBottom: 2,
-    borderWidth: 1,
-    borderColor: "transparent",
-    justifyContent: "center",
-  },
-  threadRowActive: {
-    backgroundColor: colors.surface,
-    borderColor: colors.borderMuted,
-    shadowColor: "#000000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 1,
-  },
-  threadRowMenuOpen: {
-    opacity: 0,
-  },
-  threadTitle: {
-    fontSize: 16,
-    lineHeight: 22,
-    color: "#374151",
-  },
-  empty: {
-    textAlign: "center",
-    color: colors.textMuted,
-    marginTop: spacing.lg,
-    paddingHorizontal: spacing.md,
-  },
-});

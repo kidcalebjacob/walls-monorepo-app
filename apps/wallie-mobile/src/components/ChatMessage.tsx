@@ -1,3 +1,4 @@
+import { useMemo } from "react";
 import { StyleSheet, Text, View } from "react-native";
 import {
   extractEmailDraftIntro,
@@ -7,7 +8,8 @@ import {
 import { EmailDraftCard } from "@/components/EmailDraftCard";
 import { MarkdownText } from "@/components/MarkdownText";
 import { PeopleList } from "@/components/PeopleList";
-import { colors, spacing } from "@/constants/theme";
+import { spacing, type AppColors } from "@/constants/theme";
+import { useTheme } from "@/context/ThemeContext";
 
 const PEOPLE_CONTACT_TABLE_PLACEHOLDER = "{peopleContactTable}";
 
@@ -15,7 +17,41 @@ interface ChatMessageProps {
   message: WallieMessage;
 }
 
+function createStyles(colors: AppColors) {
+  return StyleSheet.create({
+    userRow: {
+      flexDirection: "row",
+      justifyContent: "flex-end",
+      alignItems: "flex-start",
+      gap: spacing.sm,
+      paddingHorizontal: spacing.md,
+      marginBottom: spacing.xl,
+      maxWidth: "100%",
+    },
+    userBubble: {
+      maxWidth: "85%",
+      backgroundColor: colors.userBubble,
+      borderRadius: 25,
+      paddingHorizontal: spacing.md,
+      paddingVertical: 12,
+    },
+    userText: {
+      fontSize: 16,
+      lineHeight: 26,
+      color: colors.text,
+    },
+    aiRow: {
+      paddingHorizontal: spacing.md,
+      marginBottom: spacing.xl,
+      gap: spacing.md,
+      width: "100%",
+    },
+  });
+}
+
 export function ChatMessage({ message }: ChatMessageProps) {
+  const { colors } = useTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
   const isUser = message.sender === "user";
 
   if (isUser) {
@@ -55,33 +91,3 @@ export function ChatMessage({ message }: ChatMessageProps) {
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  userRow: {
-    flexDirection: "row",
-    justifyContent: "flex-end",
-    alignItems: "flex-start",
-    gap: spacing.sm,
-    paddingHorizontal: spacing.md,
-    marginBottom: spacing.xl,
-    maxWidth: "100%",
-  },
-  userBubble: {
-    maxWidth: "85%",
-    backgroundColor: colors.userBubble,
-    borderRadius: 25,
-    paddingHorizontal: spacing.md,
-    paddingVertical: 12,
-  },
-  userText: {
-    fontSize: 16,
-    lineHeight: 26,
-    color: colors.text,
-  },
-  aiRow: {
-    paddingHorizontal: spacing.md,
-    marginBottom: spacing.xl,
-    gap: spacing.md,
-    width: "100%",
-  },
-});

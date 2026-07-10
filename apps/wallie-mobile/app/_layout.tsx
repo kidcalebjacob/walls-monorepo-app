@@ -6,12 +6,14 @@ import { StatusBar } from "expo-status-bar";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 
 import { AuthProvider } from "@/context/AuthContext";
+import { ThemeProvider, useTheme } from "@/context/ThemeContext";
 
-export default function RootLayout() {
+function RootNavigation() {
+  const { isDark } = useTheme();
+
   return (
-    <GestureHandlerRootView style={{ flex: 1 }}>
-      <AuthProvider>
-        <StatusBar style="dark" />
+    <>
+      <StatusBar style={isDark ? "light" : "dark"} />
         {/* React 19 types from other apps in the monorepo conflict with Expo Router on React 18. */}
         {/* @ts-expect-error monorepo React type mismatch */}
         <Stack screenOptions={{ headerShown: false }}>
@@ -19,6 +21,17 @@ export default function RootLayout() {
           <Stack.Screen name="login" />
           <Stack.Screen name="chat" />
         </Stack>
+    </>
+  );
+}
+
+export default function RootLayout() {
+  return (
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <AuthProvider>
+        <ThemeProvider>
+          <RootNavigation />
+        </ThemeProvider>
       </AuthProvider>
     </GestureHandlerRootView>
   );

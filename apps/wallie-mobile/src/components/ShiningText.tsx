@@ -1,7 +1,7 @@
 import { useEffect, useRef } from "react";
 import { Animated, StyleSheet, type TextStyle } from "react-native";
 
-import { colors } from "@/constants/theme";
+import { useTheme } from "@/context/ThemeContext";
 
 interface ShiningTextProps {
   text: string;
@@ -9,6 +9,7 @@ interface ShiningTextProps {
 }
 
 export function ShiningText({ text, style }: ShiningTextProps) {
+  const { colors } = useTheme();
   const opacity = useRef(new Animated.Value(0.45)).current;
 
   useEffect(() => {
@@ -32,13 +33,21 @@ export function ShiningText({ text, style }: ShiningTextProps) {
   }, [opacity]);
 
   return (
-    <Animated.Text style={[styles.text, style, { opacity }]}>{text}</Animated.Text>
+    <Animated.Text
+      style={[
+        styles.text,
+        { color: colors.textMuted },
+        style,
+        { opacity },
+      ]}
+    >
+      {text}
+    </Animated.Text>
   );
 }
 
 const styles = StyleSheet.create({
   text: {
     fontSize: 16,
-    color: colors.textMuted,
   },
 });

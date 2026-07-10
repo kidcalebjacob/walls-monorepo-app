@@ -18,7 +18,7 @@ export default {
     orientation: "portrait",
     icon: "./assets/icon.png",
     scheme: "wallie",
-    userInterfaceStyle: "light",
+    userInterfaceStyle: "automatic",
     newArchEnabled: false,
     platforms: ["ios", "android"],
     splash: {

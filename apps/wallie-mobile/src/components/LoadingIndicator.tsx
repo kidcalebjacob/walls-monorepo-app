@@ -1,8 +1,10 @@
+import { useMemo } from "react";
 import { StyleSheet, View } from "react-native";
 import type { WallieLoadingStatus } from "@walls/wallie-core";
 
 import { ShiningText } from "@/components/ShiningText";
-import { colors, spacing } from "@/constants/theme";
+import { spacing } from "@/constants/theme";
+import { useTheme } from "@/context/ThemeContext";
 
 interface LoadingIndicatorProps {
   status?: WallieLoadingStatus;
@@ -15,6 +17,27 @@ function getStatusLabel(status?: WallieLoadingStatus): string {
 }
 
 export function LoadingIndicator({ status }: LoadingIndicatorProps) {
+  const { colors } = useTheme();
+  const styles = useMemo(
+    () =>
+      StyleSheet.create({
+        container: {
+          flexDirection: "row",
+          alignItems: "center",
+          gap: spacing.sm,
+          paddingHorizontal: spacing.md,
+          paddingBottom: spacing.md,
+        },
+        dot: {
+          width: 8,
+          height: 8,
+          borderRadius: 4,
+          backgroundColor: colors.wallsYellow,
+        },
+      }),
+    [colors.wallsYellow],
+  );
+
   return (
     <View style={styles.container}>
       <View style={styles.dot} />
@@ -22,19 +45,3 @@ export function LoadingIndicator({ status }: LoadingIndicatorProps) {
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: spacing.sm,
-    paddingHorizontal: spacing.md,
-    paddingBottom: spacing.md,
-  },
-  dot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: colors.wallsYellow,
-  },
-});

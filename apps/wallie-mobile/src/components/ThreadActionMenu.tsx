@@ -12,7 +12,8 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import type { WallieThread } from "@walls/wallie-core";
 
 import { getSidebarContentMaxX } from "@/constants/drawer-layout";
-import { colors, spacing } from "@/constants/theme";
+import { spacing, type AppColors } from "@/constants/theme";
+import { useTheme } from "@/context/ThemeContext";
 
 export interface ThreadMenuAnchor {
   x: number;
@@ -44,6 +45,76 @@ interface MenuAction {
   onPress: () => void;
 }
 
+function createStyles(colors: AppColors) {
+  return StyleSheet.create({
+    container: {
+      flex: 1,
+    },
+    backdrop: {
+      ...StyleSheet.absoluteFillObject,
+      backgroundColor: colors.menuBackdrop,
+    },
+    rowHighlight: {
+      position: "absolute",
+      borderRadius: 14,
+      backgroundColor: colors.surface,
+      borderWidth: 1,
+      borderColor: colors.borderMuted,
+      shadowColor: colors.shadowColor,
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.08,
+      shadowRadius: 6,
+      elevation: 2,
+      justifyContent: "center",
+      paddingHorizontal: 12,
+    },
+    rowHighlightTitle: {
+      fontSize: 16,
+      lineHeight: 22,
+      color: colors.textSecondary,
+    },
+    menu: {
+      position: "absolute",
+      backgroundColor: colors.surface,
+      borderRadius: 14,
+      borderWidth: 1,
+      borderColor: colors.borderMuted,
+      paddingVertical: 6,
+      shadowColor: colors.shadowColor,
+      shadowOffset: { width: 0, height: 10 },
+      shadowOpacity: 0.14,
+      shadowRadius: 20,
+      elevation: 10,
+    },
+    menuItem: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 12,
+      paddingVertical: 11,
+      paddingHorizontal: spacing.md,
+      marginHorizontal: 6,
+      borderRadius: 10,
+    },
+    menuDivider: {
+      height: StyleSheet.hairlineWidth,
+      backgroundColor: colors.borderMuted,
+      marginHorizontal: spacing.md,
+      marginVertical: 4,
+    },
+    menuItemPressed: {
+      backgroundColor: colors.pressedOverlay,
+    },
+    menuItemText: {
+      fontSize: 16,
+      color: colors.textSecondary,
+    },
+    menuItemDangerText: {
+      color: colors.danger,
+      fontWeight: "500",
+    },
+  });
+}
+
 export function ThreadActionMenu({
   thread,
   anchor,
@@ -54,6 +125,8 @@ export function ThreadActionMenu({
   onArchive,
   onDelete,
 }: ThreadActionMenuProps) {
+  const { colors } = useTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
   const { width: screenWidth, height: screenHeight } = useWindowDimensions();
   const insets = useSafeAreaInsets();
 
@@ -146,7 +219,11 @@ export function ThreadActionMenu({
           <View
             pointerEvents="none"
             style={[styles.rowHighlight, highlightLayout]}
-          />
+          >
+            <Text style={styles.rowHighlightTitle} numberOfLines={1}>
+              {thread.title?.trim() || "New Chat"}
+            </Text>
+          </View>
         ) : null}
 
         <View
@@ -175,7 +252,7 @@ export function ThreadActionMenu({
                 <Ionicons
                   name={action.icon}
                   size={18}
-                  color={action.danger ? colors.danger : "#4B5563"}
+                  color={action.danger ? colors.danger : colors.iconMuted}
                 />
                 <Text
                   style={[
@@ -193,64 +270,3 @@ export function ThreadActionMenu({
     </Modal>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-  backdrop: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: "rgba(0, 0, 0, 0.12)",
-  },
-  rowHighlight: {
-    position: "absolute",
-    borderRadius: 14,
-    backgroundColor: colors.surface,
-    borderWidth: 1,
-    borderColor: colors.borderMuted,
-    shadowColor: "#000000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.08,
-    shadowRadius: 6,
-    elevation: 2,
-  },
-  menu: {
-    position: "absolute",
-    backgroundColor: colors.surface,
-    borderRadius: 14,
-    borderWidth: 1,
-    borderColor: colors.borderMuted,
-    paddingVertical: 6,
-    shadowColor: "#000000",
-    shadowOffset: { width: 0, height: 10 },
-    shadowOpacity: 0.14,
-    shadowRadius: 20,
-    elevation: 10,
-  },
-  menuItem: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 12,
-    paddingVertical: 11,
-    paddingHorizontal: spacing.md,
-    marginHorizontal: 6,
-    borderRadius: 10,
-  },
-  menuDivider: {
-    height: StyleSheet.hairlineWidth,
-    backgroundColor: colors.borderMuted,
-    marginHorizontal: spacing.md,
-    marginVertical: 4,
-  },
-  menuItemPressed: {
-    backgroundColor: "rgba(0, 0, 0, 0.04)",
-  },
-  menuItemText: {
-    fontSize: 16,
-    color: "#374151",
-  },
-  menuItemDangerText: {
-    color: colors.danger,
-    fontWeight: "500",
-  },
-});

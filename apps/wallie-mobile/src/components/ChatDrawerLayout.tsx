@@ -15,7 +15,8 @@ import {
   DRAWER_WIDTH_RATIO,
   MAIN_PUSH_RATIO,
 } from "@/constants/drawer-layout";
-import { colors } from "@/constants/theme";
+import { useTheme } from "@/context/ThemeContext";
+
 const MAIN_RADIUS_OPEN = 28;
 const ANIMATION_MS = 300;
 
@@ -32,6 +33,7 @@ export function ChatDrawerLayout({
   drawer,
   children,
 }: ChatDrawerLayoutProps) {
+  const { colors, blurTint } = useTheme();
   const { width } = useWindowDimensions();
   const drawerWidth = width * DRAWER_WIDTH_RATIO;
   const pushDistance = width * MAIN_PUSH_RATIO;
@@ -66,14 +68,14 @@ export function ChatDrawerLayout({
       borderTopLeftRadius: radius,
       borderBottomLeftRadius: radius,
       borderWidth,
-      borderColor: "rgba(255, 255, 255, 0.85)",
+      borderColor: colors.glassBorder,
       backgroundColor: interpolateColor(
         progress.value,
         [0, 1],
-        [colors.background, "rgba(255, 255, 255, 0.55)"],
+        [colors.background, colors.glassPanelOpen],
       ),
     };
-  });
+  }, [colors.background, colors.glassBorder, colors.glassPanelOpen]);
 
   const glassLayerStyle = useAnimatedStyle(() => ({
     opacity: interpolate(progress.value, [0, 1], [0, 1], Extrapolation.CLAMP),
@@ -84,8 +86,17 @@ export function ChatDrawerLayout({
   }));
 
   return (
-    <View style={styles.root}>
-      <View style={[styles.drawer, { width: drawerWidth }]}>
+    <View style={[styles.root, { backgroundColor: colors.drawerBackground }]}>
+      <View
+        style={[
+          styles.drawer,
+          {
+            width: drawerWidth,
+            backgroundColor: colors.drawerBackground,
+            shadowColor: colors.shadowColor,
+          },
+        ]}
+      >
         {drawer}
         <Animated.View
           pointerEvents="none"
@@ -94,8 +105,8 @@ export function ChatDrawerLayout({
           <LinearGradient
             colors={[
               "transparent",
-              "rgba(0, 0, 0, 0.06)",
-              "rgba(0, 0, 0, 0.18)",
+              colors.sidebarShadowMid,
+              colors.sidebarShadowEnd,
             ]}
             locations={[0, 0.5, 1]}
             start={{ x: 0, y: 0 }}
@@ -110,9 +121,20 @@ export function ChatDrawerLayout({
           pointerEvents="none"
           style={[styles.glassLayer, glassLayerStyle]}
         >
-          <BlurView intensity={72} tint="light" style={StyleSheet.absoluteFill} />
-          <View style={styles.glassTint} />
-          <View style={styles.glassHighlight} />
+          <BlurView
+            intensity={72}
+            tint={blurTint}
+            style={StyleSheet.absoluteFill}
+          />
+          <View
+            style={[styles.glassTint, { backgroundColor: colors.glassTint }]}
+          />
+          <View
+            style={[
+              styles.glassHighlight,
+              { backgroundColor: colors.glassHighlight },
+            ]}
+          />
         </Animated.View>
 
         {open ? (
@@ -134,7 +156,6 @@ const styles = StyleSheet.create({
   root: {
     flex: 1,
     overflow: "hidden",
-    backgroundColor: colors.drawerBackground,
   },
   drawer: {
     position: "absolute",
@@ -142,9 +163,7 @@ const styles = StyleSheet.create({
     top: 0,
     bottom: 0,
     zIndex: 1,
-    backgroundColor: colors.drawerBackground,
     overflow: "hidden",
-    shadowColor: "#000000",
     shadowOffset: { width: 6, height: 0 },
     shadowOpacity: 0.16,
     shadowRadius: 18,
@@ -172,7 +191,6 @@ const styles = StyleSheet.create({
   },
   glassTint: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: "rgba(255, 255, 255, 0.42)",
   },
   glassHighlight: {
     position: "absolute",
@@ -180,7 +198,6 @@ const styles = StyleSheet.create({
     top: 0,
     bottom: 0,
     width: 1,
-    backgroundColor: "rgba(255, 255, 255, 0.95)",
   },
   dismissOverlay: {
     ...StyleSheet.absoluteFillObject,

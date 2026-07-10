@@ -1,6 +1,8 @@
 import { BlurView } from "expo-blur";
 import { StyleSheet, View, type StyleProp, type ViewStyle } from "react-native";
 
+import { useTheme } from "@/context/ThemeContext";
+
 interface GlassSurfaceProps {
   children: React.ReactNode;
   style?: StyleProp<ViewStyle>;
@@ -18,21 +20,37 @@ export function GlassSurface({
   intensity = 55,
   elevated = false,
 }: GlassSurfaceProps) {
+  const { colors, blurTint } = useTheme();
+
   return (
     <View
       style={[
         elevated ? styles.shadowElevated : styles.shadow,
-        { borderRadius },
+        {
+          borderRadius,
+          shadowColor: colors.shadowColor,
+          backgroundColor: colors.surface,
+        },
         style,
       ]}
     >
       <View style={[styles.clip, { borderRadius }]}>
         <BlurView
           intensity={intensity}
-          tint="light"
+          tint={blurTint}
           style={[styles.blur, { borderRadius }]}
         >
-          <View style={[styles.tint, { borderRadius }, contentStyle]}>
+          <View
+            style={[
+              styles.tint,
+              {
+                borderRadius,
+                backgroundColor: colors.glassTint,
+                borderColor: colors.glassBorder,
+              },
+              contentStyle,
+            ]}
+          >
             {children}
           </View>
         </BlurView>
@@ -43,14 +61,12 @@ export function GlassSurface({
 
 const styles = StyleSheet.create({
   shadow: {
-    shadowColor: "#000000",
     shadowOffset: { width: 0, height: 6 },
     shadowOpacity: 0.22,
     shadowRadius: 16,
     elevation: 10,
   },
   shadowElevated: {
-    shadowColor: "#000000",
     shadowOffset: { width: 0, height: 10 },
     shadowOpacity: 0.2,
     shadowRadius: 28,
@@ -63,9 +79,7 @@ const styles = StyleSheet.create({
     overflow: "hidden",
   },
   tint: {
-    backgroundColor: "rgba(255, 255, 255, 0.42)",
     borderWidth: 1,
-    borderColor: "rgba(255, 255, 255, 0.88)",
     overflow: "hidden",
   },
 });
