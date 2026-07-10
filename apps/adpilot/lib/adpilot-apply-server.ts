@@ -3,6 +3,11 @@ import { createClient } from "@walls/supabase/server";
 
 import type { AdPilotPreview } from "@/lib/adpilot-preview";
 import {
+  type AdDataScope,
+  adScopeFields,
+  withAdScope,
+} from "@/lib/ad-scope";
+import {
   getEntityAutomation,
   type BudgetAdjustmentRow,
 } from "@/lib/automation-server";
@@ -65,7 +70,7 @@ export function validatePreviewForApply(
 }
 
 export async function applyAdPilotPreview(input: {
-  userId: string;
+  scope: AdDataScope;
   entityId: string;
   preview: AdPilotPreview;
 }): Promise<ApplyAdPilotResult> {
@@ -77,14 +82,15 @@ export async function applyAdPilotPreview(input: {
   const supabase = await createClient();
   const admin = createAdminClient();
 
-  const { data: entity, error: entityError } = await supabase
-    .from("ad_entities")
-    .select(
-      "id, entity_type, provider_entity_id, user_connection_id, daily_budget_micros",
-    )
-    .eq("id", input.entityId)
-    .eq("user_id", input.userId)
-    .maybeSingle();
+  const { data: entity, error: entityError } = await withAdScope(
+    supabase
+      .from("ad_entities")
+      .select(
+        "id, entity_type, provider_entity_id, user_connection_id, daily_budget_micros",
+      )
+      .eq("id", input.entityId),
+    input.scope,
+  ).maybeSingle();
 
   if (entityError) throw entityError;
   if (!entity) throw new Error("Entity not found");
@@ -93,7 +99,7 @@ export async function applyAdPilotPreview(input: {
   }
 
   const automation = await getEntityAutomation({
-    userId: input.userId,
+    scope: input.scope,
     entityId: input.entityId,
   });
 
@@ -105,7 +111,7 @@ export async function applyAdPilotPreview(input: {
     .from("user_connections")
     .select("access_token")
     .eq("id", entity.user_connection_id)
-    .eq("user_id", input.userId)
+    .eq("user_id", input.scope.userId)
     .is("revoked_at", null)
     .maybeSingle();
 
@@ -153,7 +159,7 @@ export async function applyAdPilotPreview(input: {
   const { data: adjustmentRow, error: adjustmentError } = await supabase
     .from("ad_budget_adjustments")
     .insert({
-      user_id: input.userId,
+      ...adScopeFields(input.scope),
       user_connection_id: entity.user_connection_id,
       entity_id: input.entityId,
       profile_id: automation.profileId,
@@ -185,25 +191,26 @@ export async function applyAdPilotPreview(input: {
     entityPatch.daily_budget_micros = finalMicros;
   }
 
-  const { error: entityUpdateError } = await admin
-    .from("ad_entities")
-    .update(entityPatch)
-    .eq("id", input.entityId)
-    .eq("user_id", input.userId);
+  const { error: entityUpdateError } = await withAdScope(
+    admin.from("ad_entities").update(entityPatch).eq("id", input.entityId),
+    input.scope,
+  );
 
   if (entityUpdateError) throw entityUpdateError;
 
-  const { error: automationUpdateError } = await supabase
-    .from("ad_entity_automation")
-    .update({
-      automation_status: automationStatus,
-      last_adjusted_at: now,
-      last_reviewed_at: now,
-      last_error: null,
-      updated_at: now,
-    })
-    .eq("entity_id", input.entityId)
-    .eq("user_id", input.userId);
+  const { error: automationUpdateError } = await withAdScope(
+    supabase
+      .from("ad_entity_automation")
+      .update({
+        automation_status: automationStatus,
+        last_adjusted_at: now,
+        last_reviewed_at: now,
+        last_error: null,
+        updated_at: now,
+      })
+      .eq("entity_id", input.entityId),
+    input.scope,
+  );
 
   if (automationUpdateError) throw automationUpdateError;
 

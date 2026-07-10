@@ -1,6 +1,11 @@
 import { createClient } from "@walls/supabase/server";
 
 import {
+  type AdDataScope,
+  adScopeFields,
+  withAdScope,
+} from "@/lib/ad-scope";
+import {
   DEFAULT_SPEND_AUTOMATION_SETTINGS,
   normalizeCooldownHours,
   parseAutomationSettings,
@@ -55,23 +60,24 @@ function mapProfile(row: Record<string, unknown>): AutomationProfile {
 }
 
 export async function ensureDefaultAutomationProfile(
-  userId: string,
+  scope: AdDataScope,
 ): Promise<AutomationProfile> {
   const supabase = await createClient();
 
-  const { data: existing } = await supabase
-    .from("ad_automation_profiles")
-    .select("id, name, description, is_default, optimization_goal, settings")
-    .eq("user_id", userId)
-    .eq("is_default", true)
-    .maybeSingle();
+  const { data: existing } = await withAdScope(
+    supabase
+      .from("ad_automation_profiles")
+      .select("id, name, description, is_default, optimization_goal, settings")
+      .eq("is_default", true),
+    scope,
+  ).maybeSingle();
 
   if (existing) return mapProfile(existing);
 
   const { data, error } = await supabase
     .from("ad_automation_profiles")
     .insert({
-      user_id: userId,
+      ...adScopeFields(scope),
       name: "Balanced ROAS",
       description: "Default AdPilot preset — moderate ramp toward ROAS targets.",
       is_default: true,
@@ -86,14 +92,16 @@ export async function ensureDefaultAutomationProfile(
 }
 
 export async function listAutomationProfiles(
-  userId: string,
+  scope: AdDataScope,
 ): Promise<AutomationProfile[]> {
   const supabase = await createClient();
 
-  const { data, error } = await supabase
-    .from("ad_automation_profiles")
-    .select("id, name, description, is_default, optimization_goal, settings")
-    .eq("user_id", userId)
+  const { data, error } = await withAdScope(
+    supabase
+      .from("ad_automation_profiles")
+      .select("id, name, description, is_default, optimization_goal, settings"),
+    scope,
+  )
     .order("is_default", { ascending: false })
     .order("name", { ascending: true });
 
@@ -103,14 +111,14 @@ export async function listAutomationProfiles(
 
 /** Settings workspace — guarantees at least one preset exists. */
 export async function listAutomationProfilesForSettings(
-  userId: string,
+  scope: AdDataScope,
 ): Promise<AutomationProfile[]> {
-  await ensureDefaultAutomationProfile(userId);
-  return listAutomationProfiles(userId);
+  await ensureDefaultAutomationProfile(scope);
+  return listAutomationProfiles(scope);
 }
 
 export async function createAutomationProfile(input: {
-  userId: string;
+  scope: AdDataScope;
   name: string;
   description?: string | null;
   optimizationGoal?: OptimizationGoal;
@@ -121,16 +129,18 @@ export async function createAutomationProfile(input: {
   const now = new Date().toISOString();
 
   if (input.isDefault) {
-    await supabase
-      .from("ad_automation_profiles")
-      .update({ is_default: false, updated_at: now })
-      .eq("user_id", input.userId);
+    await withAdScope(
+      supabase
+        .from("ad_automation_profiles")
+        .update({ is_default: false, updated_at: now }),
+      input.scope,
+    );
   }
 
   const { data, error } = await supabase
     .from("ad_automation_profiles")
     .insert({
-      user_id: input.userId,
+      ...adScopeFields(input.scope),
       name: input.name,
       description: input.description ?? null,
       is_default: input.isDefault ?? false,
@@ -145,7 +155,7 @@ export async function createAutomationProfile(input: {
 }
 
 export async function updateAutomationProfile(input: {
-  userId: string;
+  scope: AdDataScope;
   profileId: string;
   patch: Partial<{
     name: string;
@@ -159,11 +169,13 @@ export async function updateAutomationProfile(input: {
   const now = new Date().toISOString();
 
   if (input.patch.isDefault) {
-    await supabase
-      .from("ad_automation_profiles")
-      .update({ is_default: false, updated_at: now })
-      .eq("user_id", input.userId)
-      .neq("id", input.profileId);
+    await withAdScope(
+      supabase
+        .from("ad_automation_profiles")
+        .update({ is_default: false, updated_at: now })
+        .neq("id", input.profileId),
+      input.scope,
+    );
   }
 
   const row: Record<string, unknown> = { updated_at: now };
@@ -175,11 +187,13 @@ export async function updateAutomationProfile(input: {
   }
   if (input.patch.settings !== undefined) row.settings = input.patch.settings;
 
-  const { data, error } = await supabase
-    .from("ad_automation_profiles")
-    .update(row)
-    .eq("id", input.profileId)
-    .eq("user_id", input.userId)
+  const { data, error } = await withAdScope(
+    supabase
+      .from("ad_automation_profiles")
+      .update(row)
+      .eq("id", input.profileId),
+    input.scope,
+  )
     .select("id, name, description, is_default, optimization_goal, settings")
     .single();
 
@@ -234,28 +248,30 @@ function mapEntityAutomation(
 }
 
 export async function getEntityAutomation(input: {
-  userId: string;
+  scope: AdDataScope;
   entityId: string;
 }): Promise<EntityAutomationState> {
   const supabase = await createClient();
 
-  const { data: automation } = await supabase
-    .from("ad_entity_automation")
-    .select(
-      "enabled, profile_id, settings_override, cooldown_hours, min_daily_budget_micros, max_daily_budget_micros, automation_status, last_reviewed_at, last_adjusted_at, last_error",
-    )
-    .eq("user_id", input.userId)
-    .eq("entity_id", input.entityId)
-    .maybeSingle();
+  const { data: automation } = await withAdScope(
+    supabase
+      .from("ad_entity_automation")
+      .select(
+        "enabled, profile_id, settings_override, cooldown_hours, min_daily_budget_micros, max_daily_budget_micros, automation_status, last_reviewed_at, last_adjusted_at, last_error",
+      )
+      .eq("entity_id", input.entityId),
+    input.scope,
+  ).maybeSingle();
 
   let profile: AutomationProfile | null = null;
   if (automation?.profile_id) {
-    const { data: profileRow } = await supabase
-      .from("ad_automation_profiles")
-      .select("id, name, description, is_default, optimization_goal, settings")
-      .eq("id", automation.profile_id)
-      .eq("user_id", input.userId)
-      .maybeSingle();
+    const { data: profileRow } = await withAdScope(
+      supabase
+        .from("ad_automation_profiles")
+        .select("id, name, description, is_default, optimization_goal, settings")
+        .eq("id", automation.profile_id),
+      input.scope,
+    ).maybeSingle();
     if (profileRow) profile = mapProfile(profileRow);
   }
 
@@ -263,7 +279,7 @@ export async function getEntityAutomation(input: {
 }
 
 export async function upsertEntityAutomation(input: {
-  userId: string;
+  scope: AdDataScope;
   entityId: string;
   patch: {
     enabled?: boolean;
@@ -278,12 +294,13 @@ export async function upsertEntityAutomation(input: {
   const supabase = await createClient();
   const now = new Date().toISOString();
 
-  const { data: entity, error: entityError } = await supabase
-    .from("ad_entities")
-    .select("id, entity_type, user_connection_id")
-    .eq("id", input.entityId)
-    .eq("user_id", input.userId)
-    .maybeSingle();
+  const { data: entity, error: entityError } = await withAdScope(
+    supabase
+      .from("ad_entities")
+      .select("id, entity_type, user_connection_id")
+      .eq("id", input.entityId),
+    input.scope,
+  ).maybeSingle();
 
   if (entityError) throw entityError;
   if (!entity) throw new Error("Entity not found");
@@ -292,16 +309,17 @@ export async function upsertEntityAutomation(input: {
     throw new Error("Only campaigns and ad sets support budget automation.");
   }
 
-  const defaultProfile = await ensureDefaultAutomationProfile(input.userId);
+  const defaultProfile = await ensureDefaultAutomationProfile(input.scope);
 
-  const { data: existing } = await supabase
-    .from("ad_entity_automation")
-    .select(
-      "enabled, profile_id, settings_override, cooldown_hours, min_daily_budget_micros, max_daily_budget_micros, automation_status",
-    )
-    .eq("user_id", input.userId)
-    .eq("entity_id", input.entityId)
-    .maybeSingle();
+  const { data: existing } = await withAdScope(
+    supabase
+      .from("ad_entity_automation")
+      .select(
+        "enabled, profile_id, settings_override, cooldown_hours, min_daily_budget_micros, max_daily_budget_micros, automation_status",
+      )
+      .eq("entity_id", input.entityId),
+    input.scope,
+  ).maybeSingle();
 
   const nextEnabled = input.patch.enabled ?? Boolean(existing?.enabled);
   const profileId =
@@ -337,7 +355,7 @@ export async function upsertEntityAutomation(input: {
     : "inactive";
 
   const row = {
-    user_id: input.userId,
+    ...adScopeFields(input.scope),
     user_connection_id: entity.user_connection_id as string,
     entity_id: input.entityId,
     enabled: nextEnabled,
@@ -357,28 +375,30 @@ export async function upsertEntityAutomation(input: {
   if (error) throw error;
 
   return getEntityAutomation({
-    userId: input.userId,
+    scope: input.scope,
     entityId: input.entityId,
   });
 }
 
 export async function listBudgetAdjustments(input: {
-  userId: string;
+  scope: AdDataScope;
   entityId: string;
   limit?: number;
 }): Promise<BudgetAdjustmentRow[]> {
   const supabase = await createClient();
   const limit = input.limit ?? 10;
 
-  const { data, error } = await supabase
-    .from("ad_budget_adjustments")
-    .select(
-      "id, created_at, previous_daily_budget_micros, new_daily_budget_micros, change_pct, optimization_goal, decision_reason, provider_applied",
-    )
-    .eq("user_id", input.userId)
-    .eq("entity_id", input.entityId)
-    .order("created_at", { ascending: false })
-    .limit(limit);
+  const { data, error } = await withAdScope(
+    supabase
+      .from("ad_budget_adjustments")
+      .select(
+        "id, created_at, previous_daily_budget_micros, new_daily_budget_micros, change_pct, optimization_goal, decision_reason, provider_applied",
+      )
+      .eq("entity_id", input.entityId)
+      .order("created_at", { ascending: false })
+      .limit(limit),
+    input.scope,
+  );
 
   if (error) throw error;
 

@@ -1,5 +1,6 @@
 import { createClient } from "@walls/supabase/server";
 
+import { type AdDataScope, withAdScope } from "@/lib/ad-scope";
 import {
   getEntityAutomation,
   listAutomationProfiles,
@@ -173,7 +174,7 @@ function sortAdSummaries(ads: AdSetAdSummary[]): AdSetAdSummary[] {
 }
 
 async function buildEntityDetail(input: {
-  userId: string;
+  scope: AdDataScope;
   entity: {
     id: string;
     entity_type: CampaignEntityType;
@@ -212,10 +213,10 @@ async function buildEntityDetail(input: {
         )
         .eq("entity_id", entityId)
         .gte("metric_date", metricsStartDateIso()),
-      getEntityAutomation({ userId: input.userId, entityId }),
-      listAutomationProfiles(input.userId),
+      getEntityAutomation({ scope: input.scope, entityId }),
+      listAutomationProfiles(input.scope),
       listBudgetAdjustments({
-        userId: input.userId,
+        scope: input.scope,
         entityId,
         limit: 8,
       }),
@@ -272,59 +273,63 @@ async function buildEntityDetail(input: {
 }
 
 export async function getEntityDetail(input: {
-  userId: string;
+  scope: AdDataScope;
   entityId: string;
 }): Promise<EntityDetailResult | null> {
   const supabase = await createClient();
 
-  const { data: entity, error } = await supabase
-    .from("ad_entities")
-    .select(
-      "id, entity_type, name, status, objective, parent_id, user_connection_id, daily_budget_micros",
-    )
-    .eq("id", input.entityId)
-    .eq("user_id", input.userId)
-    .maybeSingle();
+  const { data: entity, error } = await withAdScope(
+    supabase
+      .from("ad_entities")
+      .select(
+        "id, entity_type, name, status, objective, parent_id, user_connection_id, daily_budget_micros",
+      )
+      .eq("id", input.entityId),
+    input.scope,
+  ).maybeSingle();
 
   if (error) throw error;
   if (!entity) return null;
 
   return buildEntityDetail({
-    userId: input.userId,
+    scope: input.scope,
     entity: entity as Parameters<typeof buildEntityDetail>[0]["entity"],
   });
 }
 
 export async function getCampaignDetail(input: {
-  userId: string;
+  scope: AdDataScope;
   campaignId: string;
 }): Promise<CampaignDetailResult | null> {
   const supabase = await createClient();
 
-  const { data: entity, error } = await supabase
-    .from("ad_entities")
-    .select(
-      "id, entity_type, name, status, objective, parent_id, user_connection_id, daily_budget_micros",
-    )
-    .eq("id", input.campaignId)
-    .eq("user_id", input.userId)
-    .maybeSingle();
+  const { data: entity, error } = await withAdScope(
+    supabase
+      .from("ad_entities")
+      .select(
+        "id, entity_type, name, status, objective, parent_id, user_connection_id, daily_budget_micros",
+      )
+      .eq("id", input.campaignId),
+    input.scope,
+  ).maybeSingle();
 
   if (error) throw error;
   if (!entity || entity.entity_type !== "campaign") return null;
 
   const base = await buildEntityDetail({
-    userId: input.userId,
+    scope: input.scope,
     entity: entity as Parameters<typeof buildEntityDetail>[0]["entity"],
   });
 
-  const { data: adSetEntities } = await supabase
-    .from("ad_entities")
-    .select("id, name, status, daily_budget_micros, learning_status")
-    .eq("user_id", input.userId)
-    .eq("parent_id", input.campaignId)
-    .eq("entity_type", "ad_group")
-    .order("name", { ascending: true });
+  const { data: adSetEntities } = await withAdScope(
+    supabase
+      .from("ad_entities")
+      .select("id, name, status, daily_budget_micros, learning_status")
+      .eq("parent_id", input.campaignId)
+      .eq("entity_type", "ad_group")
+      .order("name", { ascending: true }),
+    input.scope,
+  );
 
   const adSetList = adSetEntities ?? [];
   const adSetIds = adSetList.map((row) => row.id as string);
@@ -402,27 +407,28 @@ export async function getCampaignDetail(input: {
 }
 
 export async function getAdSetDetail(input: {
-  userId: string;
+  scope: AdDataScope;
   campaignId: string;
   adSetId: string;
 }): Promise<AdSetDetailResult | null> {
   const supabase = await createClient();
 
-  const { data: entity, error } = await supabase
-    .from("ad_entities")
-    .select(
-      "id, entity_type, name, status, objective, parent_id, user_connection_id, daily_budget_micros",
-    )
-    .eq("id", input.adSetId)
-    .eq("user_id", input.userId)
-    .maybeSingle();
+  const { data: entity, error } = await withAdScope(
+    supabase
+      .from("ad_entities")
+      .select(
+        "id, entity_type, name, status, objective, parent_id, user_connection_id, daily_budget_micros",
+      )
+      .eq("id", input.adSetId),
+    input.scope,
+  ).maybeSingle();
 
   if (error) throw error;
   if (!entity || entity.entity_type !== "ad_group") return null;
   if (entity.parent_id !== input.campaignId) return null;
 
   const base = await buildEntityDetail({
-    userId: input.userId,
+    scope: input.scope,
     entity: entity as Parameters<typeof buildEntityDetail>[0]["entity"],
   });
 
@@ -451,13 +457,15 @@ export async function getAdSetDetail(input: {
 
   const tracksWebsitePurchases = isSalesObjective(campaignObjective);
 
-  const { data: adEntities } = await supabase
-    .from("ad_entities")
-    .select("id, name, status")
-    .eq("user_id", input.userId)
-    .eq("parent_id", input.adSetId)
-    .eq("entity_type", "ad")
-    .order("name", { ascending: true });
+  const { data: adEntities } = await withAdScope(
+    supabase
+      .from("ad_entities")
+      .select("id, name, status")
+      .eq("parent_id", input.adSetId)
+      .eq("entity_type", "ad")
+      .order("name", { ascending: true }),
+    input.scope,
+  );
 
   const adList = adEntities ?? [];
   const adIds = adList.map((row) => row.id as string);

@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 
 import type { AdPilotPreview } from "@/lib/adpilot-preview";
 import { applyAdPilotPreview } from "@/lib/adpilot-apply-server";
-import { getCurrentUserId } from "@/lib/connections-server";
+import { getAdDataScope } from "@/lib/organizations-server";
 
 type ApplyBody = {
   entityId?: string;
@@ -10,8 +10,8 @@ type ApplyBody = {
 };
 
 export async function POST(request: Request) {
-  const userId = await getCurrentUserId();
-  if (!userId) {
+  const scope = await getAdDataScope();
+  if (!scope) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
@@ -33,7 +33,7 @@ export async function POST(request: Request) {
 
   try {
     const result = await applyAdPilotPreview({
-      userId,
+      scope,
       entityId,
       preview: body.preview,
     });

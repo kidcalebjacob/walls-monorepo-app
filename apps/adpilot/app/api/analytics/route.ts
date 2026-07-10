@@ -1,12 +1,12 @@
 import { NextResponse } from "next/server";
 
 import { getDashboardAnalytics } from "@/lib/analytics-server";
-import { getCurrentUserId } from "@/lib/connections-server";
+import { getAdDataScope } from "@/lib/organizations-server";
 import { parseTimeRangeParam, timeRangeToDays } from "@/lib/time-range";
 
 export async function GET(request: Request) {
-  const userId = await getCurrentUserId();
-  if (!userId) {
+  const scope = await getAdDataScope();
+  if (!scope) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
@@ -14,6 +14,6 @@ export async function GET(request: Request) {
   const timeRange = parseTimeRangeParam(searchParams.get("range"));
   const rangeDays = timeRangeToDays(timeRange);
 
-  const analytics = await getDashboardAnalytics(userId, { rangeDays });
+  const analytics = await getDashboardAnalytics(scope, { rangeDays });
   return NextResponse.json(analytics);
 }

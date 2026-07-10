@@ -5,20 +5,20 @@ import {
   listAutomationProfilesForSettings,
   updateAutomationProfile,
 } from "@/lib/automation-server";
-import { getCurrentUserId } from "@/lib/connections-server";
+import { getAdDataScope } from "@/lib/organizations-server";
 import type {
   OptimizationGoal,
   SpendAutomationSettings,
 } from "@/lib/spend-automation-settings";
 
 export async function GET() {
-  const userId = await getCurrentUserId();
-  if (!userId) {
+  const scope = await getAdDataScope();
+  if (!scope) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
   try {
-    const profiles = await listAutomationProfilesForSettings(userId);
+    const profiles = await listAutomationProfilesForSettings(scope);
     return NextResponse.json({ profiles });
   } catch (error) {
     console.error("[adpilot] automation profiles:", error);
@@ -35,8 +35,8 @@ type CreateProfileBody = {
 };
 
 export async function POST(request: Request) {
-  const userId = await getCurrentUserId();
-  if (!userId) {
+  const scope = await getAdDataScope();
+  if (!scope) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
@@ -53,7 +53,7 @@ export async function POST(request: Request) {
 
   try {
     const profile = await createAutomationProfile({
-      userId,
+      scope,
       name: body.name.trim(),
       description: body.description,
       optimizationGoal: body.optimizationGoal,

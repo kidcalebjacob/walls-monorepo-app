@@ -1,22 +1,22 @@
 import { NextResponse } from "next/server";
 
 import { getAdSetDetail } from "@/lib/entity-detail-server";
-import { getCurrentUserId } from "@/lib/connections-server";
+import { getAdDataScope } from "@/lib/organizations-server";
 
 type RouteContext = {
   params: Promise<{ campaignId: string; adSetId: string }>;
 };
 
 export async function GET(_request: Request, context: RouteContext) {
-  const userId = await getCurrentUserId();
-  if (!userId) {
+  const scope = await getAdDataScope();
+  if (!scope) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
   const { campaignId, adSetId } = await context.params;
 
   try {
-    const detail = await getAdSetDetail({ userId, campaignId, adSetId });
+    const detail = await getAdSetDetail({ scope, campaignId, adSetId });
     if (!detail) {
       return NextResponse.json({ error: "Ad set not found" }, { status: 404 });
     }

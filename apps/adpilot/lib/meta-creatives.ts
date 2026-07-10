@@ -1,5 +1,6 @@
 import { createAdminClient } from "@walls/supabase/admin";
 
+import { type AdDataScope, adScopeFields } from "@/lib/ad-scope";
 import { META_PROVIDER } from "@/lib/connections";
 import {
   fetchMetaAdImagesByHash,
@@ -245,7 +246,7 @@ export function parseCreative(creative: MetaAdCreative | null | undefined): Pars
 }
 
 type PersistCreativeInput = {
-  userId: string;
+  scope: AdDataScope;
   connectionId: string;
   accountId: string;
   accessToken: string;
@@ -287,7 +288,7 @@ export async function persistAdCreative(input: PersistCreativeInput): Promise<vo
     : null;
 
   const creativeRow = {
-    user_id: input.userId,
+    ...adScopeFields(input.scope),
     user_connection_id: input.connectionId,
     ad_entity_id: input.adEntityId,
     provider: META_PROVIDER,
@@ -362,7 +363,7 @@ export async function persistAdCreative(input: PersistCreativeInput): Promise<vo
     }
 
     const assetRow = {
-      user_id: input.userId,
+      ...adScopeFields(input.scope),
       ad_creative_id: adCreativeId,
       ad_entity_id: input.adEntityId,
       asset_type: asset.assetType,

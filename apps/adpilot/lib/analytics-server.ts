@@ -1,5 +1,6 @@
 import { createClient } from "@walls/supabase/server";
 
+import { type AdDataScope, withAdScope } from "@/lib/ad-scope";
 import { META_PROVIDER } from "@/lib/connections";
 import {
   formatChange,
@@ -329,15 +330,17 @@ function selectTopAndBottomAds(
 
 async function buildTopPerformingAds(
   supabase: Awaited<ReturnType<typeof createClient>>,
-  userId: string,
+  scope: AdDataScope,
   currentStartIso: string,
 ): Promise<DashboardTopAdsByObjective> {
-  const { data: ads } = await supabase
-    .from("ad_entities")
-    .select("id, name, parent_id")
-    .eq("user_id", userId)
-    .eq("provider", META_PROVIDER)
-    .eq("entity_type", "ad");
+  const { data: ads } = await withAdScope(
+    supabase
+      .from("ad_entities")
+      .select("id, name, parent_id")
+      .eq("provider", META_PROVIDER)
+      .eq("entity_type", "ad"),
+    scope,
+  );
 
   if (!ads?.length) return EMPTY_TOP_PERFORMING_ADS;
 
@@ -348,13 +351,15 @@ async function buildTopPerformingAds(
 
   if (adSetIds.length === 0) return EMPTY_TOP_PERFORMING_ADS;
 
-  const { data: adSetEntities } = await supabase
-    .from("ad_entities")
-    .select("id, name, entity_type, parent_id, objective")
-    .eq("user_id", userId)
-    .eq("provider", META_PROVIDER)
-    .eq("entity_type", "ad_group")
-    .in("id", adSetIds);
+  const { data: adSetEntities } = await withAdScope(
+    supabase
+      .from("ad_entities")
+      .select("id, name, entity_type, parent_id, objective")
+      .eq("provider", META_PROVIDER)
+      .eq("entity_type", "ad_group")
+      .in("id", adSetIds),
+    scope,
+  );
 
   const adSetById = new Map<string, HierarchyEntityRow>();
   const campaignIds = new Set<string>();
@@ -367,13 +372,15 @@ async function buildTopPerformingAds(
   const campaignById = new Map<string, HierarchyEntityRow>();
 
   if (campaignIds.size > 0) {
-    const { data: campaigns } = await supabase
-      .from("ad_entities")
-      .select("id, name, entity_type, parent_id, objective")
-      .eq("user_id", userId)
-      .eq("provider", META_PROVIDER)
-      .eq("entity_type", "campaign")
-      .in("id", Array.from(campaignIds));
+    const { data: campaigns } = await withAdScope(
+      supabase
+        .from("ad_entities")
+        .select("id, name, entity_type, parent_id, objective")
+        .eq("provider", META_PROVIDER)
+        .eq("entity_type", "campaign")
+        .in("id", Array.from(campaignIds)),
+      scope,
+    );
 
     for (const campaign of (campaigns ?? []) as HierarchyEntityRow[]) {
       campaignById.set(campaign.id, campaign);
@@ -528,7 +535,7 @@ async function attachCreativePreviews(
 }
 
 export async function getDashboardAnalytics(
-  userId: string,
+  scope: AdDataScope,
   options?: { rangeDays?: number },
 ): Promise<DashboardAnalytics> {
   const rangeDays = options?.rangeDays ?? 30;
@@ -549,16 +556,15 @@ export async function getDashboardAnalytics(
   const previousEndIso = previousEnd.toISOString().slice(0, 10);
 
   const [{ data: accountEntities }, { data: syncStates }] = await Promise.all([
-    supabase
-      .from("ad_entities")
-      .select("id, user_connection_id, name, status, provider_entity_id")
-      .eq("user_id", userId)
-      .eq("provider", META_PROVIDER)
-      .eq("entity_type", "account"),
-    supabase
-      .from("ad_sync_state")
-      .select("sync_status")
-      .eq("user_id", userId),
+    withAdScope(
+      supabase
+        .from("ad_entities")
+        .select("id, user_connection_id, name, status, provider_entity_id")
+        .eq("provider", META_PROVIDER)
+        .eq("entity_type", "account"),
+      scope,
+    ),
+    withAdScope(supabase.from("ad_sync_state").select("sync_status"), scope),
   ]);
 
   const entities = (accountEntities ?? []) as AccountEntity[];
@@ -587,7 +593,7 @@ export async function getDashboardAnalytics(
       .in("entity_id", entityIds)
       .gte("metric_date", previousStartIso)
       .order("metric_date", { ascending: true }),
-    buildTopPerformingAds(supabase, userId, currentStartIso),
+    buildTopPerformingAds(supabase, scope, currentStartIso),
   ]);
 
   const metricRows = (metrics ?? []) as Array<MetricRow & { entity_id: string }>;

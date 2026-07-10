@@ -1,5 +1,6 @@
 import { createAdminClient } from "@walls/supabase/admin";
 
+import { type AdDataScope, adScopeFields } from "@/lib/ad-scope";
 import { META_PROVIDER } from "@/lib/connections";
 import {
   fetchMetaGraphCollection,
@@ -186,7 +187,7 @@ function parseInsightMetrics(row: MetaInsightRow) {
 
 async function upsertSyncState(
   connectionId: string,
-  userId: string,
+  scope: AdDataScope,
   patch: Record<string, unknown>,
 ) {
   const admin = createAdminClient();
@@ -200,7 +201,7 @@ async function upsertSyncState(
 
   const row = {
     user_connection_id: connectionId,
-    user_id: userId,
+    ...adScopeFields(scope),
     updated_at: now,
     ...patch,
   };
@@ -213,7 +214,7 @@ async function upsertSyncState(
 }
 
 async function upsertEntity(input: {
-  userId: string;
+  scope: AdDataScope;
   connectionId: string;
   entityType: EntityType;
   providerEntityId: string;
@@ -232,7 +233,7 @@ async function upsertEntity(input: {
   const learning = input.learning ?? EMPTY_LEARNING_FIELDS;
 
   const row = {
-    user_id: input.userId,
+    ...adScopeFields(input.scope),
     user_connection_id: input.connectionId,
     provider: META_PROVIDER,
     entity_type: input.entityType,
@@ -294,7 +295,7 @@ async function updateEntityLearning(entityId: string, learning: LearningFields) 
 }
 
 async function upsertDailyMetrics(input: {
-  userId: string;
+  scope: AdDataScope;
   connectionId: string;
   entityId: string;
   metricDate: string;
@@ -304,7 +305,7 @@ async function upsertDailyMetrics(input: {
   const now = new Date().toISOString();
 
   const row = {
-    user_id: input.userId,
+    ...adScopeFields(input.scope),
     user_connection_id: input.connectionId,
     entity_id: input.entityId,
     metric_date: input.metricDate,
@@ -348,6 +349,7 @@ function metaAccountStatusLabel(status: number | null | undefined): string {
 
 export async function syncMetaConnection(
   connection: MetaConnectionRecord,
+  scope: AdDataScope,
 ): Promise<void> {
   if (!connection.account_id) {
     throw new Error("Meta connection is missing account_id.");
@@ -358,7 +360,7 @@ export async function syncMetaConnection(
   const accountName =
     connection.token_payload?.account_name ?? accountId.replace(/^act_/, "Ad account ");
 
-  await upsertSyncState(connection.id, connection.user_id, {
+  await upsertSyncState(connection.id, scope, {
     sync_status: "running",
     last_error: null,
   });
@@ -367,7 +369,7 @@ export async function syncMetaConnection(
     const entityIds = new Map<string, string>();
 
     const accountEntityId = await upsertEntity({
-      userId: connection.user_id,
+      scope,
       connectionId: connection.id,
       entityType: "account",
       providerEntityId: accountId,
@@ -396,7 +398,7 @@ export async function syncMetaConnection(
 
     for (const campaign of campaigns) {
       const campaignEntityId = await upsertEntity({
-        userId: connection.user_id,
+        scope,
         connectionId: connection.id,
         entityType: "campaign",
         providerEntityId: campaign.id,
@@ -436,7 +438,7 @@ export async function syncMetaConnection(
       const learning = parseLearningStageInfo(adSet.learning_stage_info);
 
       const adSetEntityId = await upsertEntity({
-        userId: connection.user_id,
+        scope,
         connectionId: connection.id,
         entityType: "ad_group",
         providerEntityId: adSet.id,
@@ -482,7 +484,7 @@ export async function syncMetaConnection(
         : accountEntityId;
 
       const adEntityId = await upsertEntity({
-        userId: connection.user_id,
+        scope,
         connectionId: connection.id,
         entityType: "ad",
         providerEntityId: ad.id,
@@ -499,7 +501,7 @@ export async function syncMetaConnection(
       if (parsedCreative) {
         try {
           await persistAdCreative({
-            userId: connection.user_id,
+            scope,
             connectionId: connection.id,
             accountId,
             accessToken,
@@ -529,7 +531,7 @@ export async function syncMetaConnection(
     for (const row of accountInsights) {
       if (!row.date_start) continue;
       await upsertDailyMetrics({
-        userId: connection.user_id,
+        scope,
         connectionId: connection.id,
         entityId: accountEntityId,
         metricDate: row.date_start,
@@ -551,7 +553,7 @@ export async function syncMetaConnection(
       if (!campaignEntityId) continue;
 
       await upsertDailyMetrics({
-        userId: connection.user_id,
+        scope,
         connectionId: connection.id,
         entityId: campaignEntityId,
         metricDate: row.date_start,
@@ -573,7 +575,7 @@ export async function syncMetaConnection(
       if (!adSetEntityId) continue;
 
       await upsertDailyMetrics({
-        userId: connection.user_id,
+        scope,
         connectionId: connection.id,
         entityId: adSetEntityId,
         metricDate: row.date_start,
@@ -595,7 +597,7 @@ export async function syncMetaConnection(
       if (!adEntityId) continue;
 
       await upsertDailyMetrics({
-        userId: connection.user_id,
+        scope,
         connectionId: connection.id,
         entityId: adEntityId,
         metricDate: row.date_start,
@@ -604,7 +606,7 @@ export async function syncMetaConnection(
     }
 
     const now = new Date().toISOString();
-    await upsertSyncState(connection.id, connection.user_id, {
+    await upsertSyncState(connection.id, scope, {
       sync_status: "idle",
       last_full_sync_at: now,
       last_insights_sync_at: now,
@@ -619,7 +621,7 @@ export async function syncMetaConnection(
     });
   } catch (error) {
     const message = error instanceof Error ? error.message : "Meta sync failed";
-    await upsertSyncState(connection.id, connection.user_id, {
+    await upsertSyncState(connection.id, scope, {
       sync_status: "error",
       last_error: message,
     });
@@ -627,13 +629,13 @@ export async function syncMetaConnection(
   }
 }
 
-export async function syncMetaConnectionsForUser(userId: string) {
-  const connections = await listMetaConnectionsWithTokens(userId);
+export async function syncMetaConnectionsForUser(scope: AdDataScope) {
+  const connections = await listMetaConnectionsWithTokens(scope.userId);
   const results: Array<{ connectionId: string; ok: boolean; error?: string }> = [];
 
   for (const connection of connections) {
     try {
-      await syncMetaConnection(connection);
+      await syncMetaConnection(connection, scope);
       results.push({ connectionId: connection.id, ok: true });
     } catch (error) {
       const message = error instanceof Error ? error.message : "Sync failed";

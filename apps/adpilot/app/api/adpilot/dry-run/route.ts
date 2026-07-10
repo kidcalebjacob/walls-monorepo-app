@@ -2,16 +2,17 @@ import { NextResponse } from "next/server";
 
 import { createClient } from "@walls/supabase/server";
 
+import { withAdScope } from "@/lib/ad-scope";
 import { getAdpilotApiKey, getAdpilotApiUrl } from "@/lib/algorithm-env";
-import { getCurrentUserId } from "@/lib/connections-server";
+import { getAdDataScope } from "@/lib/organizations-server";
 
 type DryRunBody = {
   entityId?: string;
 };
 
 export async function POST(request: Request) {
-  const userId = await getCurrentUserId();
-  if (!userId) {
+  const scope = await getAdDataScope();
+  if (!scope) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
@@ -29,12 +30,10 @@ export async function POST(request: Request) {
 
   // Ownership check — only preview entities that belong to the current user.
   const supabase = await createClient();
-  const { data: entity, error: entityError } = await supabase
-    .from("ad_entities")
-    .select("id")
-    .eq("id", entityId)
-    .eq("user_id", userId)
-    .maybeSingle();
+  const { data: entity, error: entityError } = await withAdScope(
+    supabase.from("ad_entities").select("id").eq("id", entityId),
+    scope,
+  ).maybeSingle();
 
   if (entityError) {
     console.error("[adpilot] dry-run ownership check:", entityError);

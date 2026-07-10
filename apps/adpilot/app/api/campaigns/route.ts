@@ -4,7 +4,7 @@ import {
   listCampaignPerformance,
   type CampaignEntityType,
 } from "@/lib/campaigns-server";
-import { getCurrentUserId } from "@/lib/connections-server";
+import { getAdDataScope } from "@/lib/organizations-server";
 import {
   DASHBOARD_OBJECTIVE_BUCKETS,
   type DashboardObjectiveBucket,
@@ -24,8 +24,8 @@ const RANGE_DAYS: Record<string, number> = {
 };
 
 export async function GET(request: Request) {
-  const userId = await getCurrentUserId();
-  if (!userId) {
+  const scope = await getAdDataScope();
+  if (!scope) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
@@ -47,7 +47,7 @@ export async function GET(request: Request) {
 
   try {
     const result = await listCampaignPerformance({
-      userId,
+      scope,
       entityType,
       search,
       accountId,

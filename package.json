@@ -8,6 +8,7 @@
     "dev:adpilot": "turbo dev --filter=adpilot",
     "dev:portal": "turbo dev --filter=portal",
     "dev:wallie": "turbo dev --filter=wallie",
+    "dev:settings": "turbo dev --filter=settings",
     "dev:wallie-mobile": "pnpm --filter wallie-mobile dev",
     "ios:wallie-mobile": "pnpm --filter wallie-mobile ios:device",
     "ios:wallie-mobile:sim": "pnpm --filter wallie-mobile ios:simulator",

@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 
 import { updateAutomationProfile } from "@/lib/automation-server";
-import { getCurrentUserId } from "@/lib/connections-server";
+import { getAdDataScope } from "@/lib/organizations-server";
 import type {
   OptimizationGoal,
   SpendAutomationSettings,
@@ -20,8 +20,8 @@ type UpdateProfileBody = Partial<{
 }>;
 
 export async function PATCH(request: Request, context: RouteContext) {
-  const userId = await getCurrentUserId();
-  if (!userId) {
+  const scope = await getAdDataScope();
+  if (!scope) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
@@ -40,7 +40,7 @@ export async function PATCH(request: Request, context: RouteContext) {
 
   try {
     const profile = await updateAutomationProfile({
-      userId,
+      scope,
       profileId: id,
       patch: {
         ...body,

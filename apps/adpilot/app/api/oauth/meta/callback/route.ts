@@ -6,6 +6,7 @@ import {
   getCurrentUserId,
   upsertMetaConnections,
 } from "@/lib/connections-server";
+import { getAdDataScope } from "@/lib/organizations-server";
 import { syncMetaConnectionsForUser } from "@/lib/meta-sync";
 import {
   exchangeMetaCodeForToken,
@@ -71,7 +72,10 @@ export async function GET(request: NextRequest) {
 
     after(async () => {
       try {
-        await syncMetaConnectionsForUser(userId);
+        const scope = await getAdDataScope();
+        if (scope) {
+          await syncMetaConnectionsForUser(scope);
+        }
       } catch (syncError) {
         console.error("[adpilot] Meta sync after OAuth:", syncError);
       }

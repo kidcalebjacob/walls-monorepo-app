@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 
 import { upsertEntityAutomation } from "@/lib/automation-server";
-import { getCurrentUserId } from "@/lib/connections-server";
+import { getAdDataScope } from "@/lib/organizations-server";
 import type { SpendAutomationSettings } from "@/lib/spend-automation-settings";
 
 type RouteContext = {
@@ -18,8 +18,8 @@ type AutomationPatchBody = {
 };
 
 export async function PATCH(request: Request, context: RouteContext) {
-  const userId = await getCurrentUserId();
-  if (!userId) {
+  const scope = await getAdDataScope();
+  if (!scope) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
@@ -34,7 +34,7 @@ export async function PATCH(request: Request, context: RouteContext) {
 
   try {
     const automation = await upsertEntityAutomation({
-      userId,
+      scope,
       entityId,
       patch: body,
     });

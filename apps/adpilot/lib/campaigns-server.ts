@@ -1,5 +1,6 @@
 import { createClient } from "@walls/supabase/server";
 
+import { type AdDataScope, withAdScope } from "@/lib/ad-scope";
 import { META_PROVIDER } from "@/lib/connections";
 import {
   buildAdCreativePreview,
@@ -239,7 +240,7 @@ function sortEntityRows(
 }
 
 export async function listCampaignPerformance(input: {
-  userId: string;
+  scope: AdDataScope;
   entityType: CampaignEntityType;
   search?: string;
   accountId?: string;
@@ -260,22 +261,26 @@ export async function listCampaignPerformance(input: {
 
   const [{ data: accountEntities }, { data: syncStates }, { data: budgetEntities }] =
     await Promise.all([
-      supabase
-        .from("ad_entities")
-        .select("id, name, user_connection_id")
-        .eq("user_id", input.userId)
-        .eq("provider", META_PROVIDER)
-        .eq("entity_type", "account"),
-      supabase
-        .from("ad_sync_state")
-        .select("sync_status")
-        .eq("user_id", input.userId),
-      supabase
-        .from("ad_entities")
-        .select("id, objective, entity_type, parent_id, daily_budget_micros")
-        .eq("user_id", input.userId)
-        .eq("provider", META_PROVIDER)
-        .in("entity_type", ["campaign", "ad_group"]),
+      withAdScope(
+        supabase
+          .from("ad_entities")
+          .select("id, name, user_connection_id")
+          .eq("provider", META_PROVIDER)
+          .eq("entity_type", "account"),
+        input.scope,
+      ),
+      withAdScope(
+        supabase.from("ad_sync_state").select("sync_status"),
+        input.scope,
+      ),
+      withAdScope(
+        supabase
+          .from("ad_entities")
+          .select("id, objective, entity_type, parent_id, daily_budget_micros")
+          .eq("provider", META_PROVIDER)
+          .in("entity_type", ["campaign", "ad_group"]),
+        input.scope,
+      ),
     ]);
 
   const accounts: CampaignAccountOption[] = (accountEntities ?? []).map(
@@ -308,14 +313,16 @@ export async function listCampaignPerformance(input: {
     ? accounts.find((account) => account.id === input.accountId)
     : undefined;
 
-  let entityQuery = supabase
-    .from("ad_entities")
-    .select(
-      "id, entity_type, name, status, objective, parent_id, user_connection_id, last_synced_at, daily_budget_micros, learning_status",
-    )
-    .eq("user_id", input.userId)
-    .eq("provider", META_PROVIDER)
-    .eq("entity_type", input.entityType);
+  let entityQuery = withAdScope(
+    supabase
+      .from("ad_entities")
+      .select(
+        "id, entity_type, name, status, objective, parent_id, user_connection_id, last_synced_at, daily_budget_micros, learning_status",
+      )
+      .eq("provider", META_PROVIDER)
+      .eq("entity_type", input.entityType),
+    input.scope,
+  );
 
   if (selectedAccount) {
     entityQuery = entityQuery.eq(

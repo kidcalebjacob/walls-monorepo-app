@@ -17,11 +17,13 @@ export interface AppHeaderProps extends UserProfileButtonProps {
   logoHref?: string;
   hidden?: boolean;
   className?: string;
+  leftContent?: React.ReactNode;
 }
 
 export default function AppHeader({
   logoHref,
   hidden = false,
+  leftContent,
   className,
   dashboardPath = "/",
   ...profileProps
@@ -29,6 +31,23 @@ export default function AppHeader({
   const homeHref = logoHref ?? dashboardPath;
   const headerVisible = useAppHeaderVisible();
   const isHidden = hidden || !headerVisible;
+
+  const leading = leftContent ?? (
+    <Link
+      href={homeHref}
+      className="flex items-center"
+      aria-label="WALLS home"
+    >
+      <Image
+        src={WALLS_LOGO_URL}
+        alt="WALLS Entertainment logo"
+        width={48}
+        height={48}
+        className="h-10 w-10 flex-none"
+        priority
+      />
+    </Link>
+  );
 
   return (
     <header
@@ -38,20 +57,7 @@ export default function AppHeader({
         className,
       )}
     >
-      <Link
-        href={homeHref}
-        className="flex items-center"
-        aria-label="WALLS home"
-      >
-        <Image
-          src={WALLS_LOGO_URL}
-          alt="WALLS Entertainment logo"
-          width={48}
-          height={48}
-          className="h-10 w-10 flex-none"
-          priority
-        />
-      </Link>
+      <div className="min-w-0 flex-1">{leading}</div>
 
       <UserProfileButton dashboardPath={dashboardPath} {...profileProps} />
     </header>
