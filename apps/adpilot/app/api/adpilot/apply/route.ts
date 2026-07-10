@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 
 import type { AdPilotPreview } from "@/lib/adpilot-preview";
 import { applyAdPilotPreview } from "@/lib/adpilot-apply-server";
-import { getAdDataScope } from "@/lib/organizations-server";
+import { getAdDataScope } from "@/lib/ad-scope";
 
 type ApplyBody = {
   entityId?: string;

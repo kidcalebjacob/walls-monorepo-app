@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 
 import { upsertEntityAutomation } from "@/lib/automation-server";
-import { getAdDataScope } from "@/lib/organizations-server";
+import { getAdDataScope } from "@/lib/ad-scope";
 import type { SpendAutomationSettings } from "@/lib/spend-automation-settings";
 
 type RouteContext = {

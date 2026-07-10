@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 
 import { getAdSetDetail } from "@/lib/entity-detail-server";
-import { getAdDataScope } from "@/lib/organizations-server";
+import { getAdDataScope } from "@/lib/ad-scope";
 
 type RouteContext = {
   params: Promise<{ campaignId: string; adSetId: string }>;

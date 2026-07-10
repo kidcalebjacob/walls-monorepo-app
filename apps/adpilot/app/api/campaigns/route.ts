@@ -4,7 +4,7 @@ import {
   listCampaignPerformance,
   type CampaignEntityType,
 } from "@/lib/campaigns-server";
-import { getAdDataScope } from "@/lib/organizations-server";
+import { getAdDataScope } from "@/lib/ad-scope";
 import {
   DASHBOARD_OBJECTIVE_BUCKETS,
   type DashboardObjectiveBucket,

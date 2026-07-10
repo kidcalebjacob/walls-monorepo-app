@@ -8,8 +8,6 @@ import {
   type AppHeaderProps,
 } from "@walls/ui/private-app-chrome";
 
-import { OrganizationSwitcher } from "./organization-switcher";
-
 /**
  * Viewport-locked app header. Portaled to `document.body` so it never rides
  * inside the scrolling main column.
@@ -24,7 +22,7 @@ export function AppTopChrome(props: AppHeaderProps) {
   if (!mounted) return null;
 
   return createPortal(
-    <AppHeader {...props} leftContent={<OrganizationSwitcher />} />,
+    <AppHeader {...props} />,
     document.body,
   );
 }

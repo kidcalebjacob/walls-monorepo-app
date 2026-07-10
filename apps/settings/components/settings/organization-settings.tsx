@@ -1041,7 +1041,6 @@ export default function OrganizationSettingsPage() {
                 <div className="pb-8">
                   <p className="mb-4 max-w-2xl text-sm font-light text-neutral-500">
                     Permanently delete this organization and remove all members.
-                    AdPilot data linked to this organization will be unlinked.
                     This action cannot be undone.
                   </p>
                   <Button

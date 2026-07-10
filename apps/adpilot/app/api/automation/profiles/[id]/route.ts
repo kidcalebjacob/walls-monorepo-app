@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 
 import { updateAutomationProfile } from "@/lib/automation-server";
-import { getAdDataScope } from "@/lib/organizations-server";
+import { getAdDataScope } from "@/lib/ad-scope";
 import type {
   OptimizationGoal,
   SpendAutomationSettings,

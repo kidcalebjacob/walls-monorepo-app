@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-07-10T17:53:32.583Z",
+  "generatedAt": "2026-07-10T19:34:01.999Z",
   "source": "packages/supabase/scripts/dump-schema.mjs",
   "schemasIncluded": [
     "public",
@@ -11,7 +11,7 @@
     "views": 1,
     "materializedViews": 6,
     "enums": 26,
-    "columns": 2016
+    "columns": 2007
   },
   "schemas": {
     "public": {
@@ -264,38 +264,12 @@
               "maxLength": null,
               "numericPrecision": null,
               "numericScale": null
-            },
-            {
-              "name": "organization_id",
-              "position": 7,
-              "dataType": "uuid",
-              "udtName": "uuid",
-              "nullable": true,
-              "default": null,
-              "maxLength": null,
-              "numericPrecision": null,
-              "numericScale": null
             }
           ],
           "primaryKey": [
             "id"
           ],
           "foreignKeys": [
-            {
-              "name": "ad_account_settings_organization_id_fkey",
-              "columns": [
-                "organization_id"
-              ],
-              "references": {
-                "schema": "public",
-                "table": "organizations",
-                "columns": [
-                  "id"
-                ]
-              },
-              "onUpdate": "NO ACTION",
-              "onDelete": "SET NULL"
-            },
             {
               "name": "ad_account_settings_user_connection_id_fkey",
               "columns": [
@@ -336,10 +310,6 @@
             }
           ],
           "indexes": [
-            {
-              "name": "ad_account_settings_organization_id_idx",
-              "definition": "CREATE INDEX ad_account_settings_organization_id_idx ON public.ad_account_settings USING btree (organization_id)"
-            },
             {
               "name": "ad_account_settings_pkey",
               "definition": "CREATE UNIQUE INDEX ad_account_settings_pkey ON public.ad_account_settings USING btree (id)"
@@ -493,38 +463,12 @@
               "maxLength": null,
               "numericPrecision": null,
               "numericScale": null
-            },
-            {
-              "name": "organization_id",
-              "position": 10,
-              "dataType": "uuid",
-              "udtName": "uuid",
-              "nullable": true,
-              "default": null,
-              "maxLength": null,
-              "numericPrecision": null,
-              "numericScale": null
             }
           ],
           "primaryKey": [
             "id"
           ],
           "foreignKeys": [
-            {
-              "name": "ad_automation_profiles_organization_id_fkey",
-              "columns": [
-                "organization_id"
-              ],
-              "references": {
-                "schema": "public",
-                "table": "organizations",
-                "columns": [
-                  "id"
-                ]
-              },
-              "onUpdate": "NO ACTION",
-              "onDelete": "SET NULL"
-            },
             {
               "name": "ad_automation_profiles_user_id_fkey",
               "columns": [
@@ -543,10 +487,6 @@
           ],
           "uniqueConstraints": [],
           "indexes": [
-            {
-              "name": "ad_automation_profiles_organization_id_idx",
-              "definition": "CREATE INDEX ad_automation_profiles_organization_id_idx ON public.ad_automation_profiles USING btree (organization_id)"
-            },
             {
               "name": "ad_automation_profiles_pkey",
               "definition": "CREATE UNIQUE INDEX ad_automation_profiles_pkey ON public.ad_automation_profiles USING btree (id)"
@@ -755,17 +695,6 @@
               "maxLength": null,
               "numericPrecision": null,
               "numericScale": null
-            },
-            {
-              "name": "organization_id",
-              "position": 15,
-              "dataType": "uuid",
-              "udtName": "uuid",
-              "nullable": true,
-              "default": null,
-              "maxLength": null,
-              "numericPrecision": null,
-              "numericScale": null
             }
           ],
           "primaryKey": [
@@ -786,21 +715,6 @@
               },
               "onUpdate": "NO ACTION",
               "onDelete": "CASCADE"
-            },
-            {
-              "name": "ad_budget_adjustments_organization_id_fkey",
-              "columns": [
-                "organization_id"
-              ],
-              "references": {
-                "schema": "public",
-                "table": "organizations",
-                "columns": [
-                  "id"
-                ]
-              },
-              "onUpdate": "NO ACTION",
-              "onDelete": "SET NULL"
             },
             {
               "name": "ad_budget_adjustments_profile_id_fkey",
@@ -853,10 +767,6 @@
             {
               "name": "ad_budget_adjustments_entity_created_idx",
               "definition": "CREATE INDEX ad_budget_adjustments_entity_created_idx ON public.ad_budget_adjustments USING btree (entity_id, created_at DESC)"
-            },
-            {
-              "name": "ad_budget_adjustments_organization_id_idx",
-              "definition": "CREATE INDEX ad_budget_adjustments_organization_id_idx ON public.ad_budget_adjustments USING btree (organization_id)"
             },
             {
               "name": "ad_budget_adjustments_pkey",
@@ -1249,17 +1159,6 @@
               "maxLength": null,
               "numericPrecision": null,
               "numericScale": null
-            },
-            {
-              "name": "organization_id",
-              "position": 32,
-              "dataType": "uuid",
-              "udtName": "uuid",
-              "nullable": true,
-              "default": null,
-              "maxLength": null,
-              "numericPrecision": null,
-              "numericScale": null
             }
           ],
           "primaryKey": [
@@ -1280,21 +1179,6 @@
               },
               "onUpdate": "NO ACTION",
               "onDelete": "CASCADE"
-            },
-            {
-              "name": "ad_creative_assets_organization_id_fkey",
-              "columns": [
-                "organization_id"
-              ],
-              "references": {
-                "schema": "public",
-                "table": "organizations",
-                "columns": [
-                  "id"
-                ]
-              },
-              "onUpdate": "NO ACTION",
-              "onDelete": "SET NULL"
             }
           ],
           "uniqueConstraints": [
@@ -1318,10 +1202,6 @@
             {
               "name": "ad_creative_assets_creative_key",
               "definition": "CREATE UNIQUE INDEX ad_creative_assets_creative_key ON public.ad_creative_assets USING btree (ad_creative_id, asset_key)"
-            },
-            {
-              "name": "ad_creative_assets_organization_id_idx",
-              "definition": "CREATE INDEX ad_creative_assets_organization_id_idx ON public.ad_creative_assets USING btree (organization_id)"
             },
             {
               "name": "ad_creative_assets_pkey",
@@ -1729,17 +1609,6 @@
               "maxLength": null,
               "numericPrecision": null,
               "numericScale": null
-            },
-            {
-              "name": "organization_id",
-              "position": 33,
-              "dataType": "uuid",
-              "udtName": "uuid",
-              "nullable": true,
-              "default": null,
-              "maxLength": null,
-              "numericPrecision": null,
-              "numericScale": null
             }
           ],
           "primaryKey": [
@@ -1760,21 +1629,6 @@
               },
               "onUpdate": "NO ACTION",
               "onDelete": "CASCADE"
-            },
-            {
-              "name": "ad_creatives_organization_id_fkey",
-              "columns": [
-                "organization_id"
-              ],
-              "references": {
-                "schema": "public",
-                "table": "organizations",
-                "columns": [
-                  "id"
-                ]
-              },
-              "onUpdate": "NO ACTION",
-              "onDelete": "SET NULL"
             }
           ],
           "uniqueConstraints": [
@@ -1794,10 +1648,6 @@
             {
               "name": "ad_creatives_connection_ad_key",
               "definition": "CREATE UNIQUE INDEX ad_creatives_connection_ad_key ON public.ad_creatives USING btree (user_connection_id, provider_ad_id)"
-            },
-            {
-              "name": "ad_creatives_organization_id_idx",
-              "definition": "CREATE INDEX ad_creatives_organization_id_idx ON public.ad_creatives USING btree (organization_id)"
             },
             {
               "name": "ad_creatives_pkey",
@@ -2095,38 +1945,12 @@
               "maxLength": null,
               "numericPrecision": null,
               "numericScale": null
-            },
-            {
-              "name": "organization_id",
-              "position": 23,
-              "dataType": "uuid",
-              "udtName": "uuid",
-              "nullable": true,
-              "default": null,
-              "maxLength": null,
-              "numericPrecision": null,
-              "numericScale": null
             }
           ],
           "primaryKey": [
             "id"
           ],
           "foreignKeys": [
-            {
-              "name": "ad_entities_organization_id_fkey",
-              "columns": [
-                "organization_id"
-              ],
-              "references": {
-                "schema": "public",
-                "table": "organizations",
-                "columns": [
-                  "id"
-                ]
-              },
-              "onUpdate": "NO ACTION",
-              "onDelete": "SET NULL"
-            },
             {
               "name": "ad_entities_parent_id_fkey",
               "columns": [
@@ -2191,10 +2015,6 @@
             {
               "name": "ad_entities_learning_status_idx",
               "definition": "CREATE INDEX ad_entities_learning_status_idx ON public.ad_entities USING btree (user_connection_id, learning_status) WHERE (learning_status IS NOT NULL)"
-            },
-            {
-              "name": "ad_entities_organization_id_idx",
-              "definition": "CREATE INDEX ad_entities_organization_id_idx ON public.ad_entities USING btree (organization_id)"
             },
             {
               "name": "ad_entities_parent_idx",
@@ -2438,17 +2258,6 @@
               "maxLength": null,
               "numericPrecision": 32,
               "numericScale": 0
-            },
-            {
-              "name": "organization_id",
-              "position": 17,
-              "dataType": "uuid",
-              "udtName": "uuid",
-              "nullable": true,
-              "default": null,
-              "maxLength": null,
-              "numericPrecision": null,
-              "numericScale": null
             }
           ],
           "primaryKey": [
@@ -2469,21 +2278,6 @@
               },
               "onUpdate": "NO ACTION",
               "onDelete": "CASCADE"
-            },
-            {
-              "name": "ad_entity_automation_organization_id_fkey",
-              "columns": [
-                "organization_id"
-              ],
-              "references": {
-                "schema": "public",
-                "table": "organizations",
-                "columns": [
-                  "id"
-                ]
-              },
-              "onUpdate": "NO ACTION",
-              "onDelete": "SET NULL"
             },
             {
               "name": "ad_entity_automation_profile_id_fkey",
@@ -2551,10 +2345,6 @@
             {
               "name": "ad_entity_automation_entity_id_key",
               "definition": "CREATE UNIQUE INDEX ad_entity_automation_entity_id_key ON public.ad_entity_automation USING btree (entity_id)"
-            },
-            {
-              "name": "ad_entity_automation_organization_id_idx",
-              "definition": "CREATE INDEX ad_entity_automation_organization_id_idx ON public.ad_entity_automation USING btree (organization_id)"
             },
             {
               "name": "ad_entity_automation_pkey",
@@ -2848,17 +2638,6 @@
               "maxLength": null,
               "numericPrecision": 14,
               "numericScale": 4
-            },
-            {
-              "name": "organization_id",
-              "position": 24,
-              "dataType": "uuid",
-              "udtName": "uuid",
-              "nullable": true,
-              "default": null,
-              "maxLength": null,
-              "numericPrecision": null,
-              "numericScale": null
             }
           ],
           "primaryKey": [
@@ -2879,21 +2658,6 @@
               },
               "onUpdate": "NO ACTION",
               "onDelete": "CASCADE"
-            },
-            {
-              "name": "ad_metrics_daily_organization_id_fkey",
-              "columns": [
-                "organization_id"
-              ],
-              "references": {
-                "schema": "public",
-                "table": "organizations",
-                "columns": [
-                  "id"
-                ]
-              },
-              "onUpdate": "NO ACTION",
-              "onDelete": "SET NULL"
             },
             {
               "name": "ad_metrics_daily_user_connection_id_fkey",
@@ -2943,10 +2707,6 @@
             {
               "name": "ad_metrics_daily_entity_date_idx",
               "definition": "CREATE INDEX ad_metrics_daily_entity_date_idx ON public.ad_metrics_daily USING btree (entity_id, metric_date DESC)"
-            },
-            {
-              "name": "ad_metrics_daily_organization_id_idx",
-              "definition": "CREATE INDEX ad_metrics_daily_organization_id_idx ON public.ad_metrics_daily USING btree (organization_id)"
             },
             {
               "name": "ad_metrics_daily_pkey",
@@ -3134,38 +2894,12 @@
               "maxLength": null,
               "numericPrecision": null,
               "numericScale": null
-            },
-            {
-              "name": "organization_id",
-              "position": 13,
-              "dataType": "uuid",
-              "udtName": "uuid",
-              "nullable": true,
-              "default": null,
-              "maxLength": null,
-              "numericPrecision": null,
-              "numericScale": null
             }
           ],
           "primaryKey": [
             "id"
           ],
           "foreignKeys": [
-            {
-              "name": "ad_sync_state_organization_id_fkey",
-              "columns": [
-                "organization_id"
-              ],
-              "references": {
-                "schema": "public",
-                "table": "organizations",
-                "columns": [
-                  "id"
-                ]
-              },
-              "onUpdate": "NO ACTION",
-              "onDelete": "SET NULL"
-            },
             {
               "name": "ad_sync_state_user_connection_id_fkey",
               "columns": [
@@ -3206,10 +2940,6 @@
             }
           ],
           "indexes": [
-            {
-              "name": "ad_sync_state_organization_id_idx",
-              "definition": "CREATE INDEX ad_sync_state_organization_id_idx ON public.ad_sync_state USING btree (organization_id)"
-            },
             {
               "name": "ad_sync_state_pkey",
               "definition": "CREATE UNIQUE INDEX ad_sync_state_pkey ON public.ad_sync_state USING btree (id)"

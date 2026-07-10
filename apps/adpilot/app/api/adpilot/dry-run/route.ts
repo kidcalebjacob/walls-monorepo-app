@@ -2,9 +2,8 @@ import { NextResponse } from "next/server";
 
 import { createClient } from "@walls/supabase/server";
 
-import { withAdScope } from "@/lib/ad-scope";
+import { getAdDataScope, withAdScope } from "@/lib/ad-scope";
 import { getAdpilotApiKey, getAdpilotApiUrl } from "@/lib/algorithm-env";
-import { getAdDataScope } from "@/lib/organizations-server";
 
 type DryRunBody = {
   entityId?: string;

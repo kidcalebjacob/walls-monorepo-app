@@ -2,8 +2,7 @@ import { NextResponse } from "next/server";
 
 import { createAdminClient } from "@walls/supabase/admin";
 
-import { entityBelongsToScope } from "@/lib/ad-scope";
-import { getAdDataScope } from "@/lib/organizations-server";
+import { entityBelongsToScope, getAdDataScope } from "@/lib/ad-scope";
 import { fetchMetaAdPreview } from "@/lib/meta-graph";
 
 type RouteContext = {
@@ -23,7 +22,7 @@ export async function GET(_request: Request, context: RouteContext) {
 
     const { data: entity, error: entityError } = await admin
       .from("ad_entities")
-      .select("id, user_id, organization_id, entity_type, provider_entity_id, user_connection_id")
+      .select("id, user_id, entity_type, provider_entity_id, user_connection_id")
       .eq("id", adId)
       .maybeSingle();
 
@@ -34,10 +33,7 @@ export async function GET(_request: Request, context: RouteContext) {
 
     if (
       !entity ||
-      !entityBelongsToScope(
-        entity as { user_id: string; organization_id: string | null },
-        scope,
-      ) ||
+      !entityBelongsToScope(entity as { user_id: string }, scope) ||
       entity.entity_type !== "ad"
     ) {
       return NextResponse.json({ error: "Ad not found" }, { status: 404 });

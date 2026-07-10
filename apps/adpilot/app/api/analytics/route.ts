@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 
 import { getDashboardAnalytics } from "@/lib/analytics-server";
-import { getAdDataScope } from "@/lib/organizations-server";
+import { getAdDataScope } from "@/lib/ad-scope";
 import { parseTimeRangeParam, timeRangeToDays } from "@/lib/time-range";
 
 export async function GET(request: Request) {

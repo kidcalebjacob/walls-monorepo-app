@@ -6,7 +6,7 @@ import {
   getCurrentUserId,
   upsertMetaConnections,
 } from "@/lib/connections-server";
-import { getAdDataScope } from "@/lib/organizations-server";
+import { getAdDataScope } from "@/lib/ad-scope";
 import { syncMetaConnectionsForUser } from "@/lib/meta-sync";
 import {
   exchangeMetaCodeForToken,
