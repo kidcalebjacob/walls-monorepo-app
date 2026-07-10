@@ -18,10 +18,11 @@ interface RecordingSilenceDetectorOptions {
   onLevel?: (level: number) => void;
 }
 
-function meteringToLevel(db?: number): number {
-  if (db == null || Number.isNaN(db)) return 0;
+function meteringToLevel(db: number): number {
   const clamped = Math.max(-60, Math.min(0, db));
-  return (clamped + 60) / 60;
+  const normalized = (clamped + 60) / 60;
+  // Boost mid-range speech so the orb reacts more like the web analyser.
+  return Math.min(1, Math.pow(normalized, 0.72) * 1.15);
 }
 
 export function createRecordingSilenceDetector({
@@ -57,11 +58,17 @@ export function createRecordingSilenceDetector({
     }
   }, NO_SPEECH_TIMEOUT_MS);
 
+  let lastLevel = 0;
+
   const tick = (meteringDb?: number) => {
     if (stopped) return;
 
-    const level = meteringToLevel(meteringDb);
-    onLevel?.(level);
+    if (meteringDb != null && !Number.isNaN(meteringDb)) {
+      lastLevel = meteringToLevel(meteringDb);
+      onLevel?.(lastLevel);
+    } else if (lastLevel > 0) {
+      onLevel?.(lastLevel);
+    }
 
     if (meteringDb == null || Number.isNaN(meteringDb)) {
       return;

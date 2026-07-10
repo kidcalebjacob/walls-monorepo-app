@@ -15,8 +15,10 @@ const MIN_RECORDING_MS = 450;
 const RECORDING_OPTIONS: Audio.RecordingOptions = {
   ...Audio.RecordingOptionsPresets.HIGH_QUALITY,
   isMeteringEnabled: true,
-  progressUpdateIntervalMillis: 100,
+  progressUpdateIntervalMillis: 50,
 };
+
+const METERING_POLL_MS = 32;
 
 export function useWallieVoice(
   onTranscript: (text: string) => Promise<string | null | undefined>,
@@ -31,6 +33,8 @@ export function useWallieVoice(
   const silenceDetectorRef = useRef<ReturnType<
     typeof createRecordingSilenceDetector
   > | null>(null);
+  const meteringPollRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const levelRafRef = useRef<number | null>(null);
   const finishListeningRef = useRef<() => void>(() => undefined);
   const startListeningRef = useRef<() => Promise<void>>(async () => undefined);
 
@@ -38,11 +42,50 @@ export function useWallieVoice(
   const [isSessionOpen, setIsSessionOpen] = useState(false);
   const [audioLevel, setAudioLevel] = useState(0);
 
-  const stopSilenceDetector = useCallback(() => {
-    silenceDetectorRef.current?.stop();
-    silenceDetectorRef.current = null;
+  const stopLevelAnimation = useCallback(() => {
+    if (levelRafRef.current != null) {
+      cancelAnimationFrame(levelRafRef.current);
+      levelRafRef.current = null;
+    }
     setAudioLevel(0);
   }, []);
+
+  const animateLevelForState = useCallback(
+    (nextState: WallieVoiceState) => {
+      stopLevelAnimation();
+
+      if (nextState !== "listening" && nextState !== "speaking") {
+        return;
+      }
+
+      const start = performance.now();
+      const tick = (now: number) => {
+        const t = (now - start) / 1000;
+        const base = nextState === "speaking" ? 0.45 : 0.2;
+        const wave =
+          (Math.sin(t * (nextState === "speaking" ? 8 : 5)) + 1) * 0.22;
+        setAudioLevel(Math.min(1, base + wave));
+        levelRafRef.current = requestAnimationFrame(tick);
+      };
+
+      levelRafRef.current = requestAnimationFrame(tick);
+    },
+    [stopLevelAnimation],
+  );
+
+  const stopMeteringPoll = useCallback(() => {
+    if (meteringPollRef.current != null) {
+      clearInterval(meteringPollRef.current);
+      meteringPollRef.current = null;
+    }
+  }, []);
+
+  const stopSilenceDetector = useCallback(() => {
+    stopMeteringPoll();
+    silenceDetectorRef.current?.stop();
+    silenceDetectorRef.current = null;
+    stopLevelAnimation();
+  }, [stopLevelAnimation, stopMeteringPoll]);
 
   const stopSound = useCallback(async () => {
     const sound = soundRef.current;
@@ -106,6 +149,7 @@ export function useWallieVoice(
       }
 
       setState("processing");
+      stopLevelAnimation();
 
       try {
         if (!uri) throw new Error("Recording failed");
@@ -123,6 +167,7 @@ export function useWallieVoice(
 
         if (reply?.trim()) {
           setState("speaking");
+          animateLevelForState("speaking");
           const fileUri = await fetchSpeechFileUri(reply);
           if (!sessionRef.current) return;
 
@@ -184,7 +229,7 @@ export function useWallieVoice(
         }
       }
     },
-    [onTranscript, resetToIdle, stopSound],
+    [animateLevelForState, onTranscript, resetToIdle, stopLevelAnimation, stopSound],
   );
 
   const finishListening = useCallback(async () => {
@@ -237,6 +282,20 @@ export function useWallieVoice(
       const recording = new Audio.Recording();
       await recording.prepareToRecordAsync(RECORDING_OPTIONS);
 
+      silenceDetectorRef.current = createRecordingSilenceDetector({
+        onSilence: () => finishListeningRef.current(),
+        onMaxDuration: () => {
+          if (__DEV__) {
+            console.log("[wallie-mobile] voice: max recording duration reached");
+          }
+        },
+        onNoSpeech: () => {
+          discardRecordingRef.current = true;
+          finishListeningRef.current();
+        },
+        onLevel: setAudioLevel,
+      });
+
       recording.setOnRecordingStatusUpdate((status) => {
         if (!status.isRecording) return;
         silenceDetectorRef.current?.tick(status.metering);
@@ -252,24 +311,21 @@ export function useWallieVoice(
       recordingRef.current = recording;
       recordingStartedAtRef.current = Date.now();
       setState("listening");
+      stopLevelAnimation();
 
-      silenceDetectorRef.current = createRecordingSilenceDetector({
-        onSilence: () => finishListeningRef.current(),
-        onMaxDuration: () => {
-          if (__DEV__) {
-            console.log("[wallie-mobile] voice: max recording duration reached");
-          }
-        },
-        onNoSpeech: () => {
-          discardRecordingRef.current = true;
-          finishListeningRef.current();
-        },
-        onLevel: setAudioLevel,
-      });
+      meteringPollRef.current = setInterval(() => {
+        const activeRecording = recordingRef.current;
+        if (!activeRecording || !silenceDetectorRef.current) return;
+
+        void activeRecording.getStatusAsync().then((status) => {
+          if (!status.isRecording) return;
+          silenceDetectorRef.current?.tick(status.metering);
+        });
+      }, METERING_POLL_MS);
     } finally {
       isStartingRef.current = false;
     }
-  }, [stopSilenceDetector]);
+  }, [stopLevelAnimation, stopSilenceDetector]);
 
   startListeningRef.current = startListening;
 

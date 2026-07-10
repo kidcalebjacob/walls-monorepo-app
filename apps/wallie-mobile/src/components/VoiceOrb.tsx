@@ -151,9 +151,15 @@ const ROTATION_SPEED_A = 0.022;
 const ROTATION_SPEED_B = -0.03;
 const ROTATION_SPEED_C = 0.017;
 const BREATHE_DURATION_MS = 2400;
-const LEVEL_SMOOTH_MS = 360;
+const LEVEL_SMOOTH_MS = 120;
 
-function useOrbMotion(audioLevel: number) {
+function levelBoostForState(state: WallieVoiceState): number {
+  if (state === "listening") return 1;
+  if (state === "speaking") return 0.72;
+  return 0.35;
+}
+
+function useOrbMotion(audioLevel: number, state: WallieVoiceState) {
   const spinA = useSharedValue(0);
   const spinB = useSharedValue(0);
   const spinC = useSharedValue(0);
@@ -204,17 +210,23 @@ function useOrbMotion(audioLevel: number) {
     transform: [{ rotate: `${spinC.value}deg` }, { scale: 0.88 }],
   }));
 
+  const boost = levelBoostForState(state);
+
   const haloStyle = useAnimatedStyle(() => {
-    const pulse = 1 + breathe.value * 0.1 + level.value * 0.1;
+    const driven = level.value * boost;
+    const pulse = 1 + breathe.value * 0.08 + driven * 0.22;
     return {
       transform: [{ scale: pulse }],
-      opacity: 0.45 + breathe.value * 0.35 + level.value * 0.15,
+      opacity: 0.35 + breathe.value * 0.3 + driven * 0.45,
     };
-  });
+  }, [boost]);
 
-  const coreStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: 1 + breathe.value * 0.05 + level.value * 0.06 }],
-  }));
+  const coreStyle = useAnimatedStyle(() => {
+    const driven = level.value * boost;
+    return {
+      transform: [{ scale: 1 + breathe.value * 0.05 + driven * 0.12 }],
+    };
+  }, [boost]);
 
   const meltStyle = useAnimatedStyle(() => ({
     opacity: 0.82 + breathe.value * 0.1,
@@ -240,7 +252,7 @@ export function VoiceOrb({ state, audioLevel = 0 }: VoiceOrbProps) {
     haloStyle,
     coreStyle,
     meltStyle,
-  } = useOrbMotion(audioLevel);
+  } = useOrbMotion(audioLevel, state);
 
   return (
     <View style={styles.wrap}>
