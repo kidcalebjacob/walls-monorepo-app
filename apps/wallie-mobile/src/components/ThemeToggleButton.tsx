@@ -1,8 +1,10 @@
+import { useCallback, useRef } from "react";
 import { Pressable, StyleSheet } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import Animated, {
   Easing,
   interpolate,
+  runOnJS,
   useAnimatedStyle,
   useSharedValue,
   withSequence,
@@ -13,38 +15,61 @@ import { GlassSurface } from "@/components/GlassSurface";
 import { useTheme } from "@/context/ThemeContext";
 
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
+const SPIN_MS = 520;
 
 export function ThemeToggleButton() {
   const { isDark, colors, toggleTheme } = useTheme();
   const spin = useSharedValue(0);
   const press = useSharedValue(0);
+  const isSpinningRef = useRef(false);
+
+  const finishSpin = useCallback(() => {
+    isSpinningRef.current = false;
+  }, []);
 
   const iconStyle = useAnimatedStyle(() => ({
     transform: [
-      { rotate: `${interpolate(spin.value, [0, 1], [0, 180])}deg` },
+      { rotate: `${interpolate(spin.value, [0, 1], [0, 360])}deg` },
       { scale: interpolate(press.value, [0, 1], [1, 0.88]) },
     ],
   }));
 
   const handlePress = () => {
+    if (isSpinningRef.current) return;
+
+    isSpinningRef.current = true;
     spin.value = 0;
-    spin.value = withTiming(
-      1,
-      {
-        duration: 520,
-        easing: Easing.out(Easing.cubic),
-      },
-      (finished) => {
-        if (finished) {
-          spin.value = 0;
-        }
-      },
+    spin.value = withSequence(
+      withTiming(
+        0.5,
+        {
+          duration: SPIN_MS / 2,
+          easing: Easing.out(Easing.cubic),
+        },
+        (finished) => {
+          if (finished) {
+            runOnJS(toggleTheme)();
+          }
+        },
+      ),
+      withTiming(
+        1,
+        {
+          duration: SPIN_MS / 2,
+          easing: Easing.in(Easing.cubic),
+        },
+        (finished) => {
+          if (finished) {
+            spin.value = 0;
+            runOnJS(finishSpin)();
+          }
+        },
+      ),
     );
     press.value = withSequence(
       withTiming(1, { duration: 90 }),
       withTiming(0, { duration: 220 }),
     );
-    toggleTheme();
   };
 
   return (
