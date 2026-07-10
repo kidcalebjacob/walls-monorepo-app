@@ -22,21 +22,35 @@ export function TwoLineMenuIcon({
   const barColor = color ?? colors.text;
 
   const topBarStyle = useAnimatedStyle(() => ({
-    width: interpolate(progress.value, [0, 1], [size, size * 0.7]),
+    width: interpolate(progress.value, [-1, 0, 1], [size * 1.12, size, size * 0.7]),
     transform: [
-      { translateY: interpolate(progress.value, [0, 1], [0, -5]) },
-      { rotate: `${interpolate(progress.value, [0, 1], [0, -8])}deg` },
+      { translateY: interpolate(progress.value, [-1, 0, 1], [4, 0, -5]) },
+      {
+        rotate: `${interpolate(progress.value, [-1, 0, 1], [8, 0, -8])}deg`,
+      },
     ],
   }));
 
   const bottomBarStyle = useAnimatedStyle(() => ({
-    width: interpolate(progress.value, [0, 0.2, 1], [size, size, size * 0.7]),
+    width: interpolate(
+      progress.value,
+      [-1, -0.2, 0, 0.2, 1],
+      [size * 1.12, size, size, size, size * 0.7],
+    ),
     transform: [
       {
-        translateY: interpolate(progress.value, [0, 0.2, 1], [0, 0, 5]),
+        translateY: interpolate(
+          progress.value,
+          [-1, -0.2, 0, 0.2, 1],
+          [-4, 0, 0, 0, 5],
+        ),
       },
       {
-        rotate: `${interpolate(progress.value, [0, 0.2, 1], [0, 0, 8])}deg`,
+        rotate: `${interpolate(
+          progress.value,
+          [-1, -0.2, 0, 0.2, 1],
+          [-8, 0, 0, 0, 8],
+        )}deg`,
       },
     ],
   }));

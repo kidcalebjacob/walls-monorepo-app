@@ -325,7 +325,7 @@ export default function ChatScreen() {
               style={[styles.floatingHeader, { top: floatingHeaderTop }]}
               pointerEvents="box-none"
             >
-              <MenuButton onPress={openThreads} />
+              <MenuButton onPress={openThreads} drawerOpen={threadsOpen} />
 
               <ThemeToggleButton />
             </View>
