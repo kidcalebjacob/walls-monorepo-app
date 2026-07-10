@@ -27,10 +27,13 @@ export function ThemeToggleButton() {
     isSpinningRef.current = false;
   }, []);
 
+  const pressStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: interpolate(press.value, [0, 1], [1, 0.88]) }],
+  }));
+
   const iconStyle = useAnimatedStyle(() => ({
     transform: [
       { rotate: `${interpolate(spin.value, [0, 1], [0, 360])}deg` },
-      { scale: interpolate(press.value, [0, 1], [1, 0.88]) },
     ],
   }));
 
@@ -39,32 +42,19 @@ export function ThemeToggleButton() {
 
     isSpinningRef.current = true;
     spin.value = 0;
-    spin.value = withSequence(
-      withTiming(
-        0.5,
-        {
-          duration: SPIN_MS / 2,
-          easing: Easing.out(Easing.cubic),
-        },
-        (finished) => {
-          if (finished) {
-            runOnJS(toggleTheme)();
-          }
-        },
-      ),
-      withTiming(
-        1,
-        {
-          duration: SPIN_MS / 2,
-          easing: Easing.in(Easing.cubic),
-        },
-        (finished) => {
-          if (finished) {
-            spin.value = 0;
-            runOnJS(finishSpin)();
-          }
-        },
-      ),
+    spin.value = withTiming(
+      1,
+      {
+        duration: SPIN_MS,
+        easing: Easing.out(Easing.cubic),
+      },
+      (finished) => {
+        if (finished) {
+          runOnJS(toggleTheme)();
+          spin.value = 0;
+          runOnJS(finishSpin)();
+        }
+      },
     );
     press.value = withSequence(
       withTiming(1, { duration: 90 }),
@@ -90,12 +80,14 @@ export function ThemeToggleButton() {
         contentStyle={styles.glassContent}
         style={styles.glass}
       >
-        <Animated.View style={iconStyle}>
-          <Ionicons
-            name={isDark ? "sunny" : "moon"}
-            size={20}
-            color={isDark ? colors.wallsYellow : colors.textMuted}
-          />
+        <Animated.View style={pressStyle}>
+          <Animated.View style={iconStyle}>
+            <Ionicons
+              name={isDark ? "sunny" : "moon"}
+              size={20}
+              color={isDark ? colors.wallsYellow : colors.textMuted}
+            />
+          </Animated.View>
         </Animated.View>
       </GlassSurface>
     </AnimatedPressable>
