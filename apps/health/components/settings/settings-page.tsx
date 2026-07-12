@@ -29,7 +29,7 @@ export function SettingsPage() {
   const [sex, setSex] = React.useState("male");
   const [activityLevel, setActivityLevel] = React.useState("moderate");
   const [goalType, setGoalType] = React.useState("maintain");
-  const [calorieDeficit, setCalorieDeficit] = React.useState("500");
+  const [calorieTarget, setCalorieTarget] = React.useState("");
   const [proteinTarget, setProteinTarget] = React.useState("150");
   const [carbsTarget, setCarbsTarget] = React.useState("200");
   const [fatTarget, setFatTarget] = React.useState("65");
@@ -140,7 +140,9 @@ export function SettingsPage() {
       setSex(row.sex ?? "male");
       setActivityLevel(row.activity_level ?? "moderate");
       setGoalType(row.goal_type ?? "maintain");
-      setCalorieDeficit(String(row.calorie_deficit_daily ?? 500));
+      setCalorieTarget(
+        row.calorie_target_daily != null ? String(row.calorie_target_daily) : "",
+      );
       setProteinTarget(row.protein_target_g != null ? String(row.protein_target_g) : "150");
       setCarbsTarget(row.carbs_target_g != null ? String(row.carbs_target_g) : "200");
       setFatTarget(row.fat_target_g != null ? String(row.fat_target_g) : "65");
@@ -168,8 +170,7 @@ export function SettingsPage() {
           sex,
           activity_level: activityLevel,
           goal_type: goalType,
-          calorie_deficit_daily:
-            goalType === "lose_weight" ? Number(calorieDeficit) : 0,
+          calorie_target_daily: calorieTarget ? Number(calorieTarget) : null,
           protein_target_g: proteinTarget ? Number(proteinTarget) : null,
           carbs_target_g: carbsTarget ? Number(carbsTarget) : null,
           fat_target_g: fatTarget ? Number(fatTarget) : null,
@@ -271,16 +272,14 @@ export function SettingsPage() {
                 </Field>
               </div>
 
-              {goalType === "lose_weight" ? (
-                <Field label="Daily calorie deficit">
-                  <Input
-                    type="number"
-                    value={calorieDeficit}
-                    onChange={(e) => setCalorieDeficit(e.target.value)}
-                    placeholder="500"
-                  />
-                </Field>
-              ) : null}
+              <Field label="Daily calorie target">
+                <Input
+                  type="number"
+                  value={calorieTarget}
+                  onChange={(e) => setCalorieTarget(e.target.value)}
+                  placeholder="Leave blank to use your TDEE"
+                />
+              </Field>
 
               <div className="grid gap-4 md:grid-cols-2">
                 <Field label="Protein target (g)">

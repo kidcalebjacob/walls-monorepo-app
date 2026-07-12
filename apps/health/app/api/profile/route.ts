@@ -42,9 +42,8 @@ export async function PUT(request: Request) {
 
   const calorieTarget =
     body.calorie_target_daily ??
-    (tdee != null
-      ? Math.max(1200, tdee - (merged.calorie_deficit_daily ?? 0))
-      : null);
+    existing.calorie_target_daily ??
+    (tdee != null ? Math.max(1200, tdee) : null);
 
   const profile = await updateHealthProfile(scope, {
     ...body,
