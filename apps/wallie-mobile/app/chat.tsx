@@ -5,7 +5,6 @@ import {
   Keyboard,
   Platform,
   StyleSheet,
-  Text,
   View,
 } from "react-native";
 import { Redirect } from "expo-router";
@@ -13,6 +12,7 @@ import Animated, {
   Easing,
   Extrapolation,
   interpolate,
+  interpolateColor,
   useAnimatedStyle,
   useSharedValue,
   withDelay,
@@ -32,10 +32,16 @@ import {
   ModeToggle,
   type WallieAppMode,
 } from "@/components/ModeToggle";
-import { ThemeToggleButton } from "@/components/ThemeToggleButton";
+import { ThemeToggleButton, type ThemeWipeRequest } from "@/components/ThemeToggleButton";
+import { ThemeWipeOverlay } from "@/components/ThemeWipeOverlay";
 import { WallieVoiceOverlay } from "@/components/WallieVoiceOverlay";
-import { spacing } from "@/constants/theme";
+import { darkColors, lightColors, spacing } from "@/constants/theme";
 import { useTheme } from "@/context/ThemeContext";
+import {
+  ThemeWipeProvider,
+  useThemeWipe,
+  type ThemeWipeState,
+} from "@/context/ThemeWipeContext";
 import { useAuth } from "@/context/AuthContext";
 import { useWallieChat } from "@/hooks/useWallieChat";
 import { useWallieThreads } from "@/hooks/useWallieThreads";
@@ -162,17 +168,46 @@ function HeaderChromeSlot({
   );
 }
 
+function LandingGreeting({ text }: { text: string }) {
+  const { colors } = useTheme();
+  const wipe = useThemeWipe();
+
+  const textStyle = useAnimatedStyle(() => {
+    if (!wipe?.active) {
+      return { color: colors.textSecondary };
+    }
+
+    return {
+      color: interpolateColor(
+        wipe.progress.value,
+        [0, 1],
+        [wipe.fromColors.textSecondary, wipe.toColors.textSecondary],
+      ),
+    };
+  }, [colors.textSecondary, wipe]);
+
+  return <Animated.Text style={[styles.emptyTitle, textStyle]}>{text}</Animated.Text>;
+}
+
 export default function ChatScreen() {
   const insets = useSafeAreaInsets();
-  const { colors } = useTheme();
+  const { colors, isDark, setThemePreference } = useTheme();
   const { user, loading } = useAuth();
   const [currentThreadId, setCurrentThreadId] = useState<string | null>(null);
   const [inputValue, setInputValue] = useState("");
   const [threadsOpen, setThreadsOpen] = useState(false);
   const [appMode, setAppMode] = useState<WallieAppMode>("chat");
+  const [themeWipe, setThemeWipe] = useState<{
+    nextIsDark: boolean;
+    background: string;
+    fromDark: boolean;
+    fromColors: typeof lightColors;
+    toColors: typeof lightColors;
+  } | null>(null);
   const [firstName, setFirstName] = useState<string | null>(null);
   const [keyboardHeight, setKeyboardHeight] = useState(0);
   const listRef = useRef<FlatList>(null);
+  const wipeProgress = useSharedValue(0);
 
   const {
     threads,
@@ -264,6 +299,42 @@ export default function ChatScreen() {
   const closeThreads = useCallback(() => {
     setThreadsOpen(false);
   }, []);
+
+  const handleThemeWipeRequest = useCallback(
+    (request: ThemeWipeRequest) => {
+      setThemeWipe({
+        ...request,
+        fromDark: isDark,
+        fromColors: isDark ? darkColors : lightColors,
+        toColors: request.nextIsDark ? darkColors : lightColors,
+      });
+    },
+    [isDark],
+  );
+
+  const handleThemeWipeComplete = useCallback(() => {
+    if (!themeWipe) return;
+
+    // Set the absolute target theme (not toggle) so a double-complete
+    // can't bounce back to the previous scheme.
+    const nextPreference = themeWipe.nextIsDark ? "dark" : "light";
+    void setThemePreference(nextPreference);
+    setThemeWipe(null);
+  }, [setThemePreference, themeWipe]);
+
+  const wipeContextValue = useMemo<ThemeWipeState | null>(() => {
+    if (!themeWipe) return null;
+
+    return {
+      progress: wipeProgress,
+      active: true,
+      fromDark: themeWipe.fromDark,
+      toDark: themeWipe.nextIsDark,
+      fromColors: themeWipe.fromColors,
+      toColors: themeWipe.toColors,
+    };
+  }, [themeWipe, wipeProgress]);
+
   const handleNewChat = useCallback(async () => {
     setCurrentThreadId(null);
     setMessages([]);
@@ -384,114 +455,124 @@ export default function ChatScreen() {
     : "Hi, how can I help?";
 
   return (
-    <View style={styles.screen}>
-      <ChatDrawerLayout
-        open={threadsOpen}
-        onClose={closeThreads}
-        drawer={
-          <ConversationDrawer
-            threads={threads}
-            currentThreadId={currentThreadId}
-            loading={threadsLoading}
-            onSelect={handleSelectThread}
-            onNewChat={handleNewChat}
-            onRenameThread={updateThreadTitle}
-            onPinThread={(threadId) => void togglePinThread(threadId)}
-            onArchiveThread={handleArchiveThread}
-            onDeleteThread={handleDeleteThread}
-          />
-        }
-      >
-        <View style={styles.safeArea}>
-          <View style={styles.flex}>
-            {isEmpty ? (
-              <View
-                style={[
-                  styles.emptyContent,
-                  {
-                    paddingTop: scrollTopInset,
-                    paddingBottom: scrollBottomInset,
-                  },
-                ]}
-              >
-                <Text style={[styles.emptyTitle, { color: colors.textSecondary }]}>
-                  {greeting}
-                </Text>
-                {isLoading ? (
-                  <View style={styles.emptyLoading}>
-                    <LoadingIndicator status={loadingStatus} />
-                  </View>
-                ) : null}
-              </View>
-            ) : (
-              <FlatList
-                ref={listRef}
-                style={styles.flex}
-                data={messages}
-                keyExtractor={(item) => item.id}
-                contentContainerStyle={[
-                  styles.messages,
-                  {
-                    paddingTop: scrollTopInset,
-                    paddingBottom: scrollBottomInset,
-                  },
-                ]}
-                contentInsetAdjustmentBehavior="never"
-                automaticallyAdjustContentInsets={false}
-                scrollIndicatorInsets={{ top: scrollTopInset }}
-                renderItem={({ item }) => (
-                  <ChatMessage message={item} />
-                )}
-                keyboardShouldPersistTaps="handled"
-                keyboardDismissMode="interactive"
-                ListFooterComponent={
-                  isLoading ? (
-                    <LoadingIndicator status={loadingStatus} />
-                  ) : null
-                }
-                onContentSizeChange={() =>
-                  listRef.current?.scrollToEnd({ animated: true })
-                }
+    <ThemeWipeProvider value={wipeContextValue}>
+      <View style={styles.screen}>
+        <ChatDrawerLayout
+          open={threadsOpen}
+          onClose={closeThreads}
+          drawer={
+            <ConversationDrawer
+              threads={threads}
+              currentThreadId={currentThreadId}
+              loading={threadsLoading}
+              onSelect={handleSelectThread}
+              onNewChat={handleNewChat}
+              onRenameThread={updateThreadTitle}
+              onPinThread={(threadId) => void togglePinThread(threadId)}
+              onArchiveThread={handleArchiveThread}
+              onDeleteThread={handleDeleteThread}
+            />
+          }
+        >
+          <View style={styles.safeArea}>
+            <View style={styles.flex}>
+              <ThemeWipeOverlay
+                active={themeWipe !== null}
+                color={themeWipe?.background ?? colors.background}
+                progress={wipeProgress}
+                onComplete={handleThemeWipeComplete}
               />
-            )}
 
-            <View
-              style={[styles.floatingHeader, { top: floatingHeaderTop }]}
-              pointerEvents="box-none"
-            >
-              <MenuButton onPress={openThreads} drawerOpen={threadsOpen} />
+              {isEmpty ? (
+                <View
+                  style={[
+                    styles.emptyContent,
+                    {
+                      paddingTop: scrollTopInset,
+                      paddingBottom: scrollBottomInset,
+                    },
+                  ]}
+                >
+                  <LandingGreeting text={greeting} />
+                  {isLoading ? (
+                    <View style={styles.emptyLoading}>
+                      <LoadingIndicator status={loadingStatus} />
+                    </View>
+                  ) : null}
+                </View>
+              ) : (
+                <FlatList
+                  ref={listRef}
+                  style={styles.flex}
+                  data={messages}
+                  keyExtractor={(item) => item.id}
+                  contentContainerStyle={[
+                    styles.messages,
+                    {
+                      paddingTop: scrollTopInset,
+                      paddingBottom: scrollBottomInset,
+                    },
+                  ]}
+                  contentInsetAdjustmentBehavior="never"
+                  automaticallyAdjustContentInsets={false}
+                  scrollIndicatorInsets={{ top: scrollTopInset }}
+                  renderItem={({ item }) => (
+                    <ChatMessage message={item} />
+                  )}
+                  keyboardShouldPersistTaps="handled"
+                  keyboardDismissMode="interactive"
+                  ListFooterComponent={
+                    isLoading ? (
+                      <LoadingIndicator status={loadingStatus} />
+                    ) : null
+                  }
+                  onContentSizeChange={() =>
+                    listRef.current?.scrollToEnd({ animated: true })
+                  }
+                />
+              )}
 
-              <HeaderChromeSlot visible={showHeaderChrome} variant="center">
-                <ModeToggle value={appMode} onChange={setAppMode} />
-              </HeaderChromeSlot>
-
-              <HeaderChromeSlot
-                visible={showHeaderChrome}
-                delayMs={55}
-                variant="trailing"
+              <View
+                style={[styles.floatingHeader, { top: floatingHeaderTop }]}
+                pointerEvents="box-none"
               >
-                <ThemeToggleButton />
-              </HeaderChromeSlot>
-            </View>
+                <MenuButton onPress={openThreads} drawerOpen={threadsOpen} />
 
-            <View
-              style={[styles.floatingComposer, { bottom: composerBottomInset }]}
-              pointerEvents="box-none"
-            >
-              <ChatInput {...chatInputProps} />
+                <HeaderChromeSlot visible={showHeaderChrome} variant="center">
+                  <ModeToggle value={appMode} onChange={setAppMode} />
+                </HeaderChromeSlot>
+
+                <HeaderChromeSlot
+                  visible={showHeaderChrome}
+                  delayMs={55}
+                  variant="trailing"
+                >
+                  <ThemeToggleButton
+                    disabled={themeWipe !== null}
+                    onCinematicToggle={handleThemeWipeRequest}
+                  />
+                </HeaderChromeSlot>
+              </View>
+
+              <View
+                style={[styles.floatingComposer, { bottom: composerBottomInset }]}
+                pointerEvents="box-none"
+              >
+                <ChatInput {...chatInputProps} />
+              </View>
             </View>
           </View>
-        </View>
-      </ChatDrawerLayout>
+        </ChatDrawerLayout>
 
-      <WallieVoiceOverlay
-        visible={voice.isSessionOpen}
-        state={voice.state}
-        audioLevel={voice.audioLevel}
-        loadingStatus={loadingStatus}
-        onClose={voice.exitSession}
-      />
-    </View>
+        <WallieVoiceOverlay
+          visible={voice.isSessionOpen}
+          state={voice.state}
+          audioLevel={voice.audioLevel}
+          loadingStatus={loadingStatus}
+          onClose={voice.exitSession}
+        />
+      </View>
+    </ThemeWipeProvider>
   );
 }
 
@@ -506,6 +587,7 @@ const styles = StyleSheet.create({
   },
   flex: {
     flex: 1,
+    overflow: "hidden",
   },
   floatingHeader: {
     position: "absolute",
@@ -524,6 +606,7 @@ const styles = StyleSheet.create({
   },
   emptyContent: {
     flex: 1,
+    zIndex: 1,
     alignItems: "center",
     justifyContent: "center",
     paddingHorizontal: spacing.xl,

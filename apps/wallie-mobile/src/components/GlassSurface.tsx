@@ -1,7 +1,12 @@
 import { BlurView } from "expo-blur";
 import { StyleSheet, View, type StyleProp, type ViewStyle } from "react-native";
+import Animated, {
+  interpolateColor,
+  useAnimatedStyle,
+} from "react-native-reanimated";
 
 import { useTheme } from "@/context/ThemeContext";
+import { useThemeWipe } from "@/context/ThemeWipeContext";
 
 interface GlassSurfaceProps {
   children: React.ReactNode;
@@ -21,41 +26,82 @@ export function GlassSurface({
   elevated = false,
 }: GlassSurfaceProps) {
   const { colors, blurTint } = useTheme();
+  const wipe = useThemeWipe();
+
+  const shellStyle = useAnimatedStyle(() => {
+    if (!wipe?.active) {
+      return { backgroundColor: colors.surface };
+    }
+
+    return {
+      backgroundColor: interpolateColor(
+        wipe.progress.value,
+        [0, 1],
+        [wipe.fromColors.surface, wipe.toColors.surface],
+      ),
+    };
+  }, [colors.surface, wipe]);
+
+  const tintStyle = useAnimatedStyle(() => {
+    if (!wipe?.active) {
+      return {
+        backgroundColor: colors.glassTint,
+        borderColor: colors.glassBorder,
+      };
+    }
+
+    return {
+      backgroundColor: interpolateColor(
+        wipe.progress.value,
+        [0, 1],
+        [wipe.fromColors.glassTint, wipe.toColors.glassTint],
+      ),
+      borderColor: interpolateColor(
+        wipe.progress.value,
+        [0, 1],
+        [wipe.fromColors.glassBorder, wipe.toColors.glassBorder],
+      ),
+    };
+  }, [colors.glassBorder, colors.glassTint, wipe]);
+
+  // Destination blur for the wipe so the composite matches the final theme.
+  const liveBlurTint = wipe?.active
+    ? wipe.toDark
+      ? "dark"
+      : "light"
+    : blurTint;
 
   return (
-    <View
+    <Animated.View
       style={[
         elevated ? styles.shadowElevated : styles.shadow,
         {
           borderRadius,
           shadowColor: colors.shadowColor,
-          backgroundColor: colors.surface,
         },
+        shellStyle,
         style,
       ]}
     >
       <View style={[styles.clip, { borderRadius }]}>
         <BlurView
           intensity={intensity}
-          tint={blurTint}
+          tint={liveBlurTint}
           style={[styles.blur, { borderRadius }]}
         >
-          <View
+          <Animated.View
             style={[
               styles.tint,
-              {
-                borderRadius,
-                backgroundColor: colors.glassTint,
-                borderColor: colors.glassBorder,
-              },
+              { borderRadius },
+              tintStyle,
               contentStyle,
             ]}
           >
             {children}
-          </View>
+          </Animated.View>
         </BlurView>
       </View>
-    </View>
+    </Animated.View>
   );
 }
 

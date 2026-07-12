@@ -11,6 +11,7 @@ import Animated, {
 
 import { GlassSurface } from "@/components/GlassSurface";
 import { useTheme } from "@/context/ThemeContext";
+import { useThemeWipe } from "@/context/ThemeWipeContext";
 
 export type WallieAppMode = "work" | "chat";
 
@@ -38,6 +39,7 @@ function ModeLabel({
   active: boolean;
 }) {
   const { colors } = useTheme();
+  const wipe = useThemeWipe();
   const progress = useSharedValue(active ? 1 : 0);
 
   useEffect(() => {
@@ -47,15 +49,28 @@ function ModeLabel({
     });
   }, [active, progress]);
 
-  const textStyle = useAnimatedStyle(() => ({
-    color: interpolateColor(
-      progress.value,
-      [0, 1],
-      [colors.textMuted, colors.text],
-    ),
-    opacity: 0.72 + progress.value * 0.28,
-    transform: [{ scale: 0.96 + progress.value * 0.04 }],
-  }));
+  const textStyle = useAnimatedStyle(() => {
+    const muted = wipe?.active
+      ? interpolateColor(
+          wipe.progress.value,
+          [0, 1],
+          [wipe.fromColors.textMuted, wipe.toColors.textMuted],
+        )
+      : colors.textMuted;
+    const text = wipe?.active
+      ? interpolateColor(
+          wipe.progress.value,
+          [0, 1],
+          [wipe.fromColors.text, wipe.toColors.text],
+        )
+      : colors.text;
+
+    return {
+      color: interpolateColor(progress.value, [0, 1], [muted, text]),
+      opacity: 0.72 + progress.value * 0.28,
+      transform: [{ scale: 0.96 + progress.value * 0.04 }],
+    };
+  }, [colors.text, colors.textMuted, wipe]);
 
   return (
     <Animated.Text style={[styles.label, textStyle]}>
@@ -66,6 +81,7 @@ function ModeLabel({
 
 export function ModeToggle({ value, onChange }: ModeToggleProps) {
   const { colors } = useTheme();
+  const wipe = useThemeWipe();
   const index = value === "work" ? 0 : 1;
   const slide = useSharedValue(index);
 
@@ -73,9 +89,28 @@ export function ModeToggle({ value, onChange }: ModeToggleProps) {
     slide.value = withSpring(index, SPRING);
   }, [index, slide]);
 
-  const pillStyle = useAnimatedStyle(() => ({
-    transform: [{ translateX: slide.value * SEGMENT_WIDTH }],
-  }));
+  const pillStyle = useAnimatedStyle(() => {
+    const backgroundColor = wipe?.active
+      ? interpolateColor(
+          wipe.progress.value,
+          [0, 1],
+          [wipe.fromColors.glassHighlight, wipe.toColors.glassHighlight],
+        )
+      : colors.glassHighlight;
+    const borderColor = wipe?.active
+      ? interpolateColor(
+          wipe.progress.value,
+          [0, 1],
+          [wipe.fromColors.glassBorder, wipe.toColors.glassBorder],
+        )
+      : colors.glassBorder;
+
+    return {
+      backgroundColor,
+      borderColor,
+      transform: [{ translateX: slide.value * SEGMENT_WIDTH }],
+    };
+  }, [colors.glassBorder, colors.glassHighlight, wipe]);
 
   return (
     <GlassSurface
@@ -89,11 +124,7 @@ export function ModeToggle({ value, onChange }: ModeToggleProps) {
         <Animated.View
           style={[
             styles.pill,
-            {
-              backgroundColor: colors.glassHighlight,
-              borderColor: colors.glassBorder,
-              shadowColor: colors.shadowColor,
-            },
+            { shadowColor: colors.shadowColor },
             pillStyle,
           ]}
         />
