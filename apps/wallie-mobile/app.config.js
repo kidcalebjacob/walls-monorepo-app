@@ -1,5 +1,5 @@
-import path from "node:path";
-import { config as loadDotenv } from "dotenv";
+const path = require("node:path");
+const { config: loadDotenv } = require("dotenv");
 
 const monorepoRoot = path.resolve(__dirname, "../..");
 loadDotenv({ path: path.join(monorepoRoot, ".env.local") });
@@ -10,10 +10,11 @@ const wallieWebUrl =
   process.env.NEXT_PUBLIC_WALLIE_URL ?? "https://wallie.walls.agency";
 const wallieMobileWebUrl = process.env.NEXT_PUBLIC_WALLIE_MOBILE_WEB_URL ?? "";
 
-export default {
+module.exports = {
   expo: {
     name: "Wallie",
     slug: "wallie-mobile",
+    owner: "walls-entertainment-group-inc",
     version: "1.0.0",
     orientation: "portrait",
     icon: "./assets/icon.png",
@@ -64,6 +65,9 @@ export default {
       enabled: false,
     },
     extra: {
+      eas: {
+        projectId: "2f5771db-9a5f-42eb-a50d-b0264ad63d37",
+      },
       supabaseUrl: process.env.NEXT_PUBLIC_SUPABASE_URL,
       supabaseAnonKey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
       wallieApiUrl: wallieApiUrl.replace(/\/+$/, ""),
