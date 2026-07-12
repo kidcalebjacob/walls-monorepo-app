@@ -456,7 +456,7 @@ export default function ChatScreen() {
 
   return (
     <ThemeWipeProvider value={wipeContextValue}>
-      <View style={styles.screen}>
+      <View style={[styles.screen, { backgroundColor: colors.background }]}>
         <ChatDrawerLayout
           open={threadsOpen}
           onClose={closeThreads}
@@ -579,11 +579,9 @@ export default function ChatScreen() {
 const styles = StyleSheet.create({
   screen: {
     flex: 1,
-    backgroundColor: "transparent",
   },
   safeArea: {
     flex: 1,
-    backgroundColor: "transparent",
   },
   flex: {
     flex: 1,

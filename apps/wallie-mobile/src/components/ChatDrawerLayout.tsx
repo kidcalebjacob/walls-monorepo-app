@@ -1,11 +1,9 @@
 import { useEffect, type ReactNode } from "react";
 import { Pressable, StyleSheet, useWindowDimensions, View } from "react-native";
-import { BlurView } from "expo-blur";
 import { LinearGradient } from "expo-linear-gradient";
 import Animated, {
   Extrapolation,
   interpolate,
-  interpolateColor,
   useAnimatedStyle,
   useSharedValue,
   withTiming,
@@ -33,7 +31,7 @@ export function ChatDrawerLayout({
   drawer,
   children,
 }: ChatDrawerLayoutProps) {
-  const { colors, blurTint } = useTheme();
+  const { colors } = useTheme();
   const { width } = useWindowDimensions();
   const drawerWidth = width * DRAWER_WIDTH_RATIO;
   const pushDistance = width * MAIN_PUSH_RATIO;
@@ -69,15 +67,11 @@ export function ChatDrawerLayout({
       borderBottomLeftRadius: radius,
       borderWidth,
       borderColor: colors.glassBorder,
-      backgroundColor: interpolateColor(
-        progress.value,
-        [0, 1],
-        [colors.background, colors.glassPanelOpen],
-      ),
+      backgroundColor: colors.background,
     };
-  }, [colors.background, colors.glassBorder, colors.glassPanelOpen]);
+  }, [colors.background, colors.glassBorder]);
 
-  const glassLayerStyle = useAnimatedStyle(() => ({
+  const edgeStyle = useAnimatedStyle(() => ({
     opacity: interpolate(progress.value, [0, 1], [0, 1], Extrapolation.CLAMP),
   }));
 
@@ -117,18 +111,14 @@ export function ChatDrawerLayout({
       </View>
 
       <Animated.View style={[styles.mainPanel, { width }, mainPanelStyle]}>
-        <Animated.View
-          pointerEvents="none"
-          style={[styles.glassLayer, glassLayerStyle]}
+        <View
+          style={[styles.mainContent, { backgroundColor: colors.background }]}
+          pointerEvents={open ? "none" : "auto"}
         >
-          <BlurView
-            intensity={72}
-            tint={blurTint}
-            style={StyleSheet.absoluteFill}
-          />
-          <View
-            style={[styles.glassTint, { backgroundColor: colors.glassTint }]}
-          />
+          {children}
+        </View>
+
+        <Animated.View pointerEvents="none" style={[styles.edge, edgeStyle]}>
           <View
             style={[
               styles.glassHighlight,
@@ -140,13 +130,6 @@ export function ChatDrawerLayout({
         {open ? (
           <Pressable style={styles.dismissOverlay} onPress={onClose} />
         ) : null}
-
-        <View
-          style={styles.mainContent}
-          pointerEvents={open ? "none" : "auto"}
-        >
-          {children}
-        </View>
       </Animated.View>
     </View>
   );
@@ -185,12 +168,13 @@ const styles = StyleSheet.create({
     zIndex: 3,
     overflow: "hidden",
   },
-  glassLayer: {
-    ...StyleSheet.absoluteFillObject,
-    zIndex: 0,
+  mainContent: {
+    flex: 1,
+    zIndex: 1,
   },
-  glassTint: {
+  edge: {
     ...StyleSheet.absoluteFillObject,
+    zIndex: 2,
   },
   glassHighlight: {
     position: "absolute",
@@ -201,10 +185,6 @@ const styles = StyleSheet.create({
   },
   dismissOverlay: {
     ...StyleSheet.absoluteFillObject,
-    zIndex: 2,
-  },
-  mainContent: {
-    flex: 1,
-    zIndex: 1,
+    zIndex: 3,
   },
 });
