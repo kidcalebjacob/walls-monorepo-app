@@ -182,8 +182,11 @@ export function DeepQueryChat({ messages, isLoading, loadingStatus = null, setMe
       }
     }
     if (apolloIds.size === 0) {
-      setAlreadyEnrichedIds(new Set());
-      setEnrichedPeopleMap({});
+      // Only reset when there's actually something to clear. Allocating a fresh
+      // Set/object on every `messages` change would re-render on every typing
+      // tick and can trip React's "Maximum update depth exceeded" guard.
+      setAlreadyEnrichedIds((prev) => (prev.size === 0 ? prev : new Set()));
+      setEnrichedPeopleMap((prev) => (Object.keys(prev).length === 0 ? prev : {}));
       return;
     }
     const check = async () => {
@@ -242,30 +245,29 @@ export function DeepQueryChat({ messages, isLoading, loadingStatus = null, setMe
   const setMessagesRef = useRef(setMessages);
   setMessagesRef.current = setMessages;
 
-  // Fast typing delay – minimal pauses so text appears quickly
-  const getDelay = (prevChar: string) => {
-    // Base delay (1–3ms per char)
-    let delay = 1 + Math.random() * 2;
-    
-    // Very short pause after sentence-ending punctuation
-    if (['.', '!', '?'].includes(prevChar)) {
-      delay += 6 + Math.random() * 6; // ~6–12ms
-    } else if ([',', ':', ';'].includes(prevChar)) {
-      delay += 3 + Math.random() * 3; // ~3–6ms
-    } else if (prevChar === '\n') {
-      delay += 4 + Math.random() * 4; // ~4–8ms
-    }
-    
-    return delay;
-  };
+  // Typing speed in characters per millisecond (~500 chars/sec). We advance by
+  // elapsed time rather than one char per tick so the number of state updates is
+  // bounded by the frame rate instead of the length of the text.
+  const TYPING_CHARS_PER_MS = 0.5;
+  // Interval between ticks (~one update per animation frame).
+  const TYPING_TICK_MS = 16;
 
   // Start typing function (called once per new message)
   const startTyping = useCallback((messageId: string, fullText: string) => {
     let index = 0;
+    let lastTick =
+      typeof performance !== "undefined" ? performance.now() : Date.now();
 
     const typeNextChar = () => {
-      const prevChar = index > 0 ? fullText[index - 1] : '';
-      index += 1;
+      const now =
+        typeof performance !== "undefined" ? performance.now() : Date.now();
+      const elapsed = now - lastTick;
+      lastTick = now;
+
+      // Reveal however many characters "should" have appeared since the last
+      // tick (at least one), then batch them into a single state update.
+      const advance = Math.max(1, Math.round(elapsed * TYPING_CHARS_PER_MS));
+      index = Math.min(fullText.length, index + advance);
 
       const isDone = index >= fullText.length;
 
@@ -282,15 +284,14 @@ export function DeepQueryChat({ messages, isLoading, loadingStatus = null, setMe
       );
 
       if (!isDone) {
-        const delay = getDelay(prevChar);
-        typingTimeoutRef.current = setTimeout(typeNextChar, delay);
+        typingTimeoutRef.current = setTimeout(typeNextChar, TYPING_TICK_MS);
       } else {
         typingIdRef.current = null;
       }
     };
 
     // Start typing
-    typingTimeoutRef.current = setTimeout(typeNextChar, 16);
+    typingTimeoutRef.current = setTimeout(typeNextChar, TYPING_TICK_MS);
   }, []);
 
   // Detect when a new message needs typing (only triggers on NEW typing messages)
