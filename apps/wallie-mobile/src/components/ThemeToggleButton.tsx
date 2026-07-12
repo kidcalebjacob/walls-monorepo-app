@@ -75,7 +75,7 @@ export function ThemeToggleButton() {
       accessibilityLabel={isDark ? "Switch to light mode" : "Switch to dark mode"}
     >
       <GlassSurface
-        borderRadius={22}
+        borderRadius={24}
         intensity={60}
         contentStyle={styles.glassContent}
         style={styles.glass}
@@ -84,7 +84,7 @@ export function ThemeToggleButton() {
           <Animated.View style={iconStyle}>
             <Ionicons
               name={isDark ? "sunny" : "moon"}
-              size={20}
+              size={22}
               color={isDark ? colors.text : colors.textMuted}
             />
           </Animated.View>
@@ -96,12 +96,12 @@ export function ThemeToggleButton() {
 
 const styles = StyleSheet.create({
   glass: {
-    width: 44,
-    height: 44,
+    width: 48,
+    height: 48,
   },
   glassContent: {
-    width: 44,
-    height: 44,
+    width: 48,
+    height: 48,
     alignItems: "center",
     justifyContent: "center",
   },

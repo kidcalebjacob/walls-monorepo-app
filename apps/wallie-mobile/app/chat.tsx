@@ -9,6 +9,16 @@ import {
   View,
 } from "react-native";
 import { Redirect } from "expo-router";
+import Animated, {
+  Easing,
+  Extrapolation,
+  interpolate,
+  useAnimatedStyle,
+  useSharedValue,
+  withDelay,
+  withSpring,
+  withTiming,
+} from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { ChatDrawerLayout } from "@/components/ChatDrawerLayout";
@@ -17,6 +27,10 @@ import { ChatMessage } from "@/components/ChatMessage";
 import { ConversationDrawer } from "@/components/ConversationDrawer";
 import { LoadingIndicator } from "@/components/LoadingIndicator";
 import { MenuButton } from "@/components/MenuButton";
+import {
+  ModeToggle,
+  type WallieAppMode,
+} from "@/components/ModeToggle";
 import { ThemeToggleButton } from "@/components/ThemeToggleButton";
 import { WallieVoiceOverlay } from "@/components/WallieVoiceOverlay";
 import { spacing } from "@/constants/theme";
@@ -29,6 +43,73 @@ import { useWallieVoice } from "@/hooks/useWallieVoice";
 import { getSupabase } from "@/lib/supabase";
 
 const FLOATING_COMPOSER_HEIGHT = 84;
+const CHROME_SPRING = {
+  damping: 16,
+  stiffness: 200,
+  mass: 0.7,
+};
+
+function HeaderChromeSlot({
+  visible,
+  delayMs = 0,
+  driftX = 0,
+  children,
+}: {
+  visible: boolean;
+  delayMs?: number;
+  driftX?: number;
+  children: React.ReactNode;
+}) {
+  const progress = useSharedValue(visible ? 1 : 0);
+
+  useEffect(() => {
+    if (visible) {
+      progress.value = withDelay(
+        delayMs,
+        withSpring(1, CHROME_SPRING),
+      );
+      return;
+    }
+
+    progress.value = withDelay(
+      delayMs,
+      withTiming(0, {
+        duration: 340,
+        easing: Easing.bezier(0.22, 1, 0.36, 1),
+      }),
+    );
+  }, [delayMs, progress, visible]);
+
+  const style = useAnimatedStyle(() => {
+    const p = progress.value;
+    return {
+      opacity: interpolate(p, [0, 0.2, 1], [0, 0.35, 1], Extrapolation.CLAMP),
+      transform: [
+        {
+          translateY: interpolate(p, [0, 1], [-18, 0], Extrapolation.CLAMP),
+        },
+        {
+          translateX: interpolate(p, [0, 1], [driftX, 0], Extrapolation.CLAMP),
+        },
+        {
+          scale: interpolate(p, [0, 1], [0.72, 1], Extrapolation.CLAMP),
+        },
+        {
+          rotate: `${interpolate(p, [0, 1], [driftX > 0 ? 12 : driftX < 0 ? -8 : -4, 0], Extrapolation.CLAMP)}deg`,
+        },
+      ],
+    };
+  });
+
+  return (
+    <Animated.View
+      style={style}
+      pointerEvents={visible ? "auto" : "none"}
+    >
+      {children}
+    </Animated.View>
+  );
+}
 
 export default function ChatScreen() {
   const insets = useSafeAreaInsets();
@@ -37,6 +118,7 @@ export default function ChatScreen() {
   const [currentThreadId, setCurrentThreadId] = useState<string | null>(null);
   const [inputValue, setInputValue] = useState("");
   const [threadsOpen, setThreadsOpen] = useState(false);
+  const [appMode, setAppMode] = useState<WallieAppMode>("chat");
   const [firstName, setFirstName] = useState<string | null>(null);
   const [keyboardHeight, setKeyboardHeight] = useState(0);
   const listRef = useRef<FlatList>(null);
@@ -207,7 +289,7 @@ export default function ChatScreen() {
     : insets.bottom;
   const scrollBottomInset = FLOATING_COMPOSER_HEIGHT + composerBottomInset;
   const floatingHeaderTop = insets.top + spacing.sm;
-  const scrollTopInset = floatingHeaderTop + 44 + spacing.md;
+  const scrollTopInset = floatingHeaderTop + 48 + spacing.md;
 
   const chatInputProps = useMemo(
     () => ({
@@ -245,6 +327,7 @@ export default function ChatScreen() {
   }
 
   const isEmpty = messages.length === 0;
+  const showHeaderChrome = isEmpty;
   const greeting = firstName
     ? `Hi ${firstName}, how can I help?`
     : "Hi, how can I help?";
@@ -327,7 +410,17 @@ export default function ChatScreen() {
             >
               <MenuButton onPress={openThreads} drawerOpen={threadsOpen} />
 
-              <ThemeToggleButton />
+              <HeaderChromeSlot visible={showHeaderChrome} driftX={0}>
+                <ModeToggle value={appMode} onChange={setAppMode} />
+              </HeaderChromeSlot>
+
+              <HeaderChromeSlot
+                visible={showHeaderChrome}
+                delayMs={40}
+                driftX={28}
+              >
+                <ThemeToggleButton />
+              </HeaderChromeSlot>
             </View>
 
             <View

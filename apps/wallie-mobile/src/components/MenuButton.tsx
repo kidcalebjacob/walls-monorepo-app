@@ -75,12 +75,12 @@ export function MenuButton({ onPress, drawerOpen }: MenuButtonProps) {
     >
       <Animated.View style={buttonStyle}>
         <GlassSurface
-          borderRadius={22}
+          borderRadius={24}
           intensity={60}
           contentStyle={styles.glassContent}
           style={styles.glass}
         >
-          <TwoLineMenuIcon progress={progress} />
+          <TwoLineMenuIcon progress={progress} size={20} />
         </GlassSurface>
       </Animated.View>
     </AnimatedPressable>
@@ -89,12 +89,12 @@ export function MenuButton({ onPress, drawerOpen }: MenuButtonProps) {
 
 const styles = StyleSheet.create({
   glass: {
-    width: 44,
-    height: 44,
+    width: 48,
+    height: 48,
   },
   glassContent: {
-    width: 44,
-    height: 44,
+    width: 48,
+    height: 48,
     alignItems: "center",
     justifyContent: "center",
   },
