@@ -79,6 +79,7 @@ const nextConfig: NextConfig = {
     "@walls/supabase",
     "@walls/ui",
     "@walls/utils",
+    "@walls/wallie-core",
   ],
   turbopack: {
     root: monorepoRoot,

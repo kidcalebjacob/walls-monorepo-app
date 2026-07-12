@@ -4,6 +4,7 @@ import { WebView, type WebViewMessageEvent } from "react-native-webview";
 
 import { useTheme } from "@/context/ThemeContext";
 import type { AppColors } from "@/constants/theme";
+import { normalizeMarkdownBlocks } from "@walls/wallie-core";
 
 interface MarkdownTextProps {
   content: string;
@@ -24,22 +25,18 @@ function inlineToHtml(text: string): string {
     .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2">$1</a>');
 }
 
-function normalizeMarkdownBlocks(content: string): string {
-  return content
-    .replace(/\r\n/g, "\n")
-    .replace(/([^\n])\s+(#{1,3}\s+)/g, "$1\n\n$2");
-}
-
 /** Convert our lightweight markdown dialect to selectable HTML. */
 export function markdownToHtml(content: string): string {
-  const lines = normalizeMarkdownBlocks(content).split("\n");
+  const lines = normalizeMarkdownBlocks(content, 3).split("\n");
   const parts: string[] = [];
   let listItems: string[] = [];
+  let listOrdered = false;
 
   const flushList = () => {
     if (!listItems.length) return;
+    const tag = listOrdered ? "ol" : "ul";
     parts.push(
-      `<ul>${listItems.map((item) => `<li>${inlineToHtml(item)}</li>`).join("")}</ul>`,
+      `<${tag}>${listItems.map((item) => `<li>${inlineToHtml(item)}</li>`).join("")}</${tag}>`,
     );
     listItems = [];
   };
@@ -50,8 +47,17 @@ export function markdownToHtml(content: string): string {
       flushList();
       continue;
     }
-    if (/^[-*]\s+/.test(trimmed)) {
-      listItems.push(trimmed.replace(/^[-*]\s+/, ""));
+    const isBullet = /^[-*]\s+/.test(trimmed);
+    const isNumbered = /^\d+\.\s+/.test(trimmed);
+    if (isBullet || isNumbered) {
+      const ordered = isNumbered && !isBullet;
+      if (listItems.length && listOrdered !== ordered) {
+        flushList();
+      }
+      listOrdered = ordered;
+      listItems.push(
+        trimmed.replace(ordered ? /^\d+\.\s+/ : /^[-*]\s+/, ""),
+      );
       continue;
     }
     flushList();
@@ -70,7 +76,7 @@ export function markdownToHtml(content: string): string {
 }
 
 export function markdownToPlainText(content: string): string {
-  return normalizeMarkdownBlocks(content)
+  return normalizeMarkdownBlocks(content, 3)
     .replace(/\*\*([^*]+)\*\*/g, "$1")
     .replace(/\[([^\]]+)\]\(([^)]+)\)/g, "$1 ($2)")
     .replace(/^#{1,3}\s+/gm, "")
@@ -110,12 +116,13 @@ function buildDocument(colors: AppColors): string {
   h3 { font-size: 17px; line-height: 25px; font-weight: 600; margin: 0 0 8px 0; }
   strong { font-weight: 700; }
   a { color: ${colors.wallsSky}; text-decoration: underline; }
-  ul {
+  ul, ol {
     margin: 0 0 8px 0;
-    padding-left: 1.15em;
-    list-style-type: disc;
+    padding-left: 1.35em;
   }
-  ul:last-child { margin-bottom: 0; }
+  ul { list-style-type: disc; }
+  ol { list-style-type: decimal; }
+  ul:last-child, ol:last-child { margin-bottom: 0; }
   li { margin: 0 0 4px 0; padding-left: 0.15em; }
   li::marker { color: ${colors.textMuted}; font-size: 1.05em; }
 </style>

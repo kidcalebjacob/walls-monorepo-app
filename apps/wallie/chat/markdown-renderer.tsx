@@ -2,6 +2,7 @@
 
 import { useMemo, type ReactElement } from 'react';
 import { ExternalLink } from 'lucide-react';
+import { normalizeMarkdownBlocks } from '@walls/wallie-core';
 
 interface MarkdownRendererProps {
   content: string;
@@ -28,10 +29,8 @@ function normalizeCollapsedMarkdownTables(content: string): string {
     .join("\n");
 }
 
-function normalizeMarkdownBlocks(content: string): string {
-  return normalizeCollapsedMarkdownTables(content)
-    .replace(/\r\n/g, "\n")
-    .replace(/([^\n])\s+(#{1,4}\s+)/g, "$1\n\n$2");
+function normalizeMarkdown(content: string): string {
+  return normalizeMarkdownBlocks(normalizeCollapsedMarkdownTables(content), 4);
 }
 
 function isTableRow(line: string): boolean {
@@ -101,7 +100,7 @@ export function MarkdownRenderer({ content, className = "" }: MarkdownRendererPr
   const renderedContent = useMemo(() => {
     if (!content) return null;
 
-    const lines = normalizeMarkdownBlocks(content).split("\n");
+    const lines = normalizeMarkdown(content).split("\n");
     const elements: ReactElement[] = [];
     let currentParagraph: string[] = [];
     let key = 0;

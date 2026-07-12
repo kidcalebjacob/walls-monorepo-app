@@ -346,6 +346,9 @@ importers:
       '@walls/utils':
         specifier: workspace:*
         version: link:../../packages/utils
+      '@walls/wallie-core':
+        specifier: workspace:*
+        version: link:../../packages/wallie-core
       class-variance-authority:
         specifier: ^0.7.1
         version: 0.7.1
