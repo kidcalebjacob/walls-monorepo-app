@@ -5,7 +5,7 @@ import type { AppColors } from "@/constants/theme";
 
 export const THEME_WIPE_MS = 680;
 /** Hold destination wipe chrome after theme commit so JS/UI paint can catch up. */
-export const THEME_WIPE_SETTLE_MS = 280;
+export const THEME_WIPE_SETTLE_MS = 320;
 export const THEME_WIPE_EASE = Easing.bezier(0.22, 1, 0.36, 1);
 
 export type ThemeWipeState = {

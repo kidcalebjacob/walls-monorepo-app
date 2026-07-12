@@ -5,52 +5,91 @@ import Animated, {
   interpolate,
   runOnJS,
   useAnimatedStyle,
-  type SharedValue,
+  useSharedValue,
   withTiming,
+  type SharedValue,
 } from "react-native-reanimated";
 
-import { THEME_WIPE_EASE, THEME_WIPE_MS } from "@/context/ThemeWipeContext";
+import {
+  THEME_WIPE_EASE,
+  THEME_WIPE_MS,
+  THEME_WIPE_SETTLE_MS,
+} from "@/context/ThemeWipeContext";
+
+const FADE_OUT_MS = 180;
 
 interface ThemeWipeOverlayProps {
   active: boolean;
   color: string;
   progress: SharedValue<number>;
-  onComplete: () => void;
+  /** Sheet fully covers — parent should commit theme + canvas under it. */
+  onCovered: () => void;
+  /** Overlay faded out — parent can clear wipe state. */
+  onDismissed: () => void;
 }
 
-/** Rising color sheet that sits behind landing UI (text, chrome, composer). */
+/**
+ * Rising destination-color sheet behind landing chrome.
+ * Never hard-unmounts while opaque — fades out after the parent has committed.
+ */
 export function ThemeWipeOverlay({
   active,
   color,
   progress,
-  onComplete,
+  onCovered,
+  onDismissed,
 }: ThemeWipeOverlayProps) {
   const { height } = useWindowDimensions();
-  const onCompleteRef = useRef(onComplete);
-  const hasCompletedRef = useRef(false);
+  const opacity = useSharedValue(1);
+  const onCoveredRef = useRef(onCovered);
+  const onDismissedRef = useRef(onDismissed);
   const wipeIdRef = useRef(0);
+  const hasCoveredRef = useRef(false);
 
   useEffect(() => {
-    onCompleteRef.current = onComplete;
-  }, [onComplete]);
+    onCoveredRef.current = onCovered;
+  }, [onCovered]);
+
+  useEffect(() => {
+    onDismissedRef.current = onDismissed;
+  }, [onDismissed]);
 
   useEffect(() => {
     if (!active) {
-      // Leave progress at 1 — resetting here flashes chrome back to "from".
-      hasCompletedRef.current = false;
+      hasCoveredRef.current = false;
+      opacity.value = 1;
       return;
     }
 
     const wipeId = ++wipeIdRef.current;
-    hasCompletedRef.current = false;
+    hasCoveredRef.current = false;
+    opacity.value = 1;
 
-    const finish = () => {
-      if (hasCompletedRef.current) return;
+    const covered = () => {
+      if (hasCoveredRef.current) return;
       if (wipeId !== wipeIdRef.current) return;
-      hasCompletedRef.current = true;
-      // Lock exactly at destination before parent settling begins.
+      hasCoveredRef.current = true;
       progress.value = 1;
-      onCompleteRef.current();
+      onCoveredRef.current();
+
+      const dismiss = () => {
+        if (wipeId !== wipeIdRef.current) return;
+        onDismissedRef.current();
+      };
+
+      // Hold full cover while theme/canvas settle, then fade out (no hard cut).
+      setTimeout(() => {
+        if (wipeId !== wipeIdRef.current) return;
+        opacity.value = withTiming(
+          0,
+          { duration: FADE_OUT_MS, easing: THEME_WIPE_EASE },
+          (finished) => {
+            if (finished) {
+              runOnJS(dismiss)();
+            }
+          },
+        );
+      }, THEME_WIPE_SETTLE_MS);
     };
 
     progress.value = withTiming(
@@ -58,23 +97,21 @@ export function ThemeWipeOverlay({
       { duration: THEME_WIPE_MS, easing: THEME_WIPE_EASE },
       (finished) => {
         if (finished) {
-          runOnJS(finish)();
+          runOnJS(covered)();
         }
       },
     );
-  }, [active, progress]);
+  }, [active, opacity, progress]);
 
+  // Grow from the bottom — avoids translateY compositor gaps.
   const sheetStyle = useAnimatedStyle(() => ({
-    transform: [
-      {
-        translateY: interpolate(
-          progress.value,
-          [0, 1],
-          [height, 0],
-          Extrapolation.CLAMP,
-        ),
-      },
-    ],
+    opacity: opacity.value,
+    height: interpolate(
+      progress.value,
+      [0, 1],
+      [0, height],
+      Extrapolation.CLAMP,
+    ),
   }));
 
   if (!active) {
@@ -84,18 +121,17 @@ export function ThemeWipeOverlay({
   return (
     <Animated.View
       pointerEvents="none"
-      style={[
-        styles.sheet,
-        { height, backgroundColor: color },
-        sheetStyle,
-      ]}
+      style={[styles.sheet, { backgroundColor: color }, sheetStyle]}
     />
   );
 }
 
 const styles = StyleSheet.create({
   sheet: {
-    ...StyleSheet.absoluteFillObject,
+    position: "absolute",
+    left: 0,
+    right: 0,
+    bottom: 0,
     zIndex: 0,
     elevation: 0,
   },

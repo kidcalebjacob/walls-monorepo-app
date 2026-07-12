@@ -23,6 +23,8 @@ interface ChatDrawerLayoutProps {
   onClose: () => void;
   drawer: ReactNode;
   children: ReactNode;
+  /** Freeze chat canvas during theme wipe so commit/teardown can't flash. */
+  surfaceColor?: string;
 }
 
 export function ChatDrawerLayout({
@@ -30,18 +32,19 @@ export function ChatDrawerLayout({
   onClose,
   drawer,
   children,
+  surfaceColor,
 }: ChatDrawerLayoutProps) {
   const { colors, isDark } = useTheme();
   const { width } = useWindowDimensions();
   const drawerWidth = width * DRAWER_WIDTH_RATIO;
   const pushDistance = width * MAIN_PUSH_RATIO;
   const progress = useSharedValue(open ? 1 : 0);
+  const panelColor = surfaceColor ?? colors.background;
 
   useEffect(() => {
     progress.value = withTiming(open ? 1 : 0, { duration: ANIMATION_MS });
   }, [open, progress]);
 
-  // Border / radius always live on the chat panel (both themes).
   const mainPanelStyle = useAnimatedStyle(() => {
     const translateX = interpolate(
       progress.value,
@@ -68,15 +71,14 @@ export function ChatDrawerLayout({
       borderBottomLeftRadius: radius,
       borderWidth,
       borderColor: colors.glassBorder,
-      backgroundColor: colors.background,
+      backgroundColor: panelColor,
     };
-  }, [colors.background, colors.glassBorder, pushDistance]);
+  }, [colors.glassBorder, panelColor, pushDistance]);
 
   const chatEdgeStyle = useAnimatedStyle(() => ({
     opacity: interpolate(progress.value, [0, 1], [0, 1], Extrapolation.CLAMP),
   }));
 
-  // Dark: reverse (light) shadow into the sidebar. Light: soft dark falloff.
   const sidebarEdgeStyle = useAnimatedStyle(() => ({
     opacity: interpolate(progress.value, [0, 1], [0, 1], Extrapolation.CLAMP),
   }));
@@ -135,7 +137,7 @@ export function ChatDrawerLayout({
 
       <Animated.View style={[styles.mainPanel, { width }, mainPanelStyle]}>
         <View
-          style={[styles.mainContent, { backgroundColor: colors.background }]}
+          style={[styles.mainContent, { backgroundColor: panelColor }]}
           pointerEvents={open ? "none" : "auto"}
         >
           {children}

@@ -31,6 +31,9 @@ interface ThemeContextValue {
   themePreference: ThemePreference;
   isDark: boolean;
   blurTint: "light" | "dark";
+  /** Status bar style — freeze during theme wipe to avoid system chrome flash. */
+  statusBarStyle: "light" | "dark";
+  freezeStatusBar: (style: "light" | "dark" | null) => void;
   setThemePreference: (preference: ThemePreference) => Promise<void>;
   toggleTheme: () => void;
 }
@@ -42,6 +45,9 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
   const systemScheme = useColorScheme();
   const [themePreference, setThemePreferenceState] =
     useState<ThemePreference>("system");
+  const [statusBarFreeze, setStatusBarFreeze] = useState<"light" | "dark" | null>(
+    null,
+  );
   // Ignore a late DB hydrate after the user has already changed theme locally.
   const localThemeEditRef = useRef(false);
 
@@ -85,6 +91,12 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
   const voiceColors = getVoiceColorsForScheme(colorScheme);
   const isDark = colorScheme === "dark";
   const blurTint = isDark ? "dark" : "light";
+  const statusBarStyle =
+    statusBarFreeze ?? (isDark ? "light" : "dark");
+
+  const freezeStatusBar = useCallback((style: "light" | "dark" | null) => {
+    setStatusBarFreeze(style);
+  }, []);
 
   const persistThemePreference = useCallback(
     async (preference: ThemePreference) => {
@@ -126,6 +138,8 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
       themePreference,
       isDark,
       blurTint,
+      statusBarStyle,
+      freezeStatusBar,
       setThemePreference,
       toggleTheme,
     }),
@@ -133,8 +147,10 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
       blurTint,
       colorScheme,
       colors,
+      freezeStatusBar,
       isDark,
       setThemePreference,
+      statusBarStyle,
       themePreference,
       toggleTheme,
       voiceColors,

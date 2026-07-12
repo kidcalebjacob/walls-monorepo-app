@@ -40,7 +40,6 @@ import { useTheme } from "@/context/ThemeContext";
 import {
   ThemeWipeProvider,
   useThemeWipe,
-  THEME_WIPE_SETTLE_MS,
   type ThemeWipeState,
 } from "@/context/ThemeWipeContext";
 import { useAuth } from "@/context/AuthContext";
@@ -192,7 +191,7 @@ function LandingGreeting({ text }: { text: string }) {
 
 export default function ChatScreen() {
   const insets = useSafeAreaInsets();
-  const { colors, isDark, setThemePreference } = useTheme();
+  const { colors, isDark, setThemePreference, freezeStatusBar } = useTheme();
   const { user, loading } = useAuth();
   const [currentThreadId, setCurrentThreadId] = useState<string | null>(null);
   const [inputValue, setInputValue] = useState("");
@@ -205,6 +204,8 @@ export default function ChatScreen() {
     fromColors: typeof lightColors;
     toColors: typeof lightColors;
   } | null>(null);
+  // Canvas bg is frozen during wipe so theme commit can't flash through gaps.
+  const [canvasColor, setCanvasColor] = useState(colors.background);
   const [firstName, setFirstName] = useState<string | null>(null);
   const [keyboardHeight, setKeyboardHeight] = useState(0);
   const listRef = useRef<FlatList>(null);
@@ -305,35 +306,48 @@ export default function ChatScreen() {
   const themeWipeRef = useRef(themeWipe);
   themeWipeRef.current = themeWipe;
 
+  // When idle, keep canvas locked to the live theme background.
+  useEffect(() => {
+    if (!themeWipe) {
+      setCanvasColor(colors.background);
+    }
+  }, [colors.background, themeWipe]);
+
   const handleThemeWipeRequest = useCallback(
     (request: ThemeWipeRequest) => {
       wipeCompletingRef.current = false;
-      // Reset before paint so the sheet never flashes full-cover from a prior wipe.
+      const fromColors = isDark ? darkColors : lightColors;
+      // Freeze old canvas + status bar under the rising sheet.
+      setCanvasColor(fromColors.background);
+      freezeStatusBar(isDark ? "light" : "dark");
       wipeProgress.value = 0;
       setThemeWipe({
         ...request,
         fromDark: isDark,
-        fromColors: isDark ? darkColors : lightColors,
+        fromColors,
         toColors: request.nextIsDark ? darkColors : lightColors,
       });
     },
-    [isDark, wipeProgress],
+    [freezeStatusBar, isDark, wipeProgress],
   );
 
-  const handleThemeWipeComplete = useCallback(() => {
+  // Sheet fully covers — swap canvas, status bar, and theme underneath.
+  const handleThemeWipeCovered = useCallback(() => {
     const current = themeWipeRef.current;
     if (!current || wipeCompletingRef.current) return;
     wipeCompletingRef.current = true;
 
-    // Sheet is fully covering (progress locked at 1). Commit theme under it,
-    // then hold wipe-driven chrome on toColors until paint is stable.
+    setCanvasColor(current.background);
+    freezeStatusBar(current.nextIsDark ? "light" : "dark");
     void setThemePreference(current.nextIsDark ? "dark" : "light");
+  }, [freezeStatusBar, setThemePreference]);
 
-    setTimeout(() => {
-      setThemeWipe(null);
-      wipeCompletingRef.current = false;
-    }, THEME_WIPE_SETTLE_MS);
-  }, [setThemePreference]);
+  // Overlay finished fading out — safe to drop wipe state.
+  const handleThemeWipeDismissed = useCallback(() => {
+    setThemeWipe(null);
+    freezeStatusBar(null);
+    wipeCompletingRef.current = false;
+  }, [freezeStatusBar]);
 
   const wipeContextValue = useMemo<ThemeWipeState | null>(() => {
     if (!themeWipe) return null;
@@ -469,10 +483,11 @@ export default function ChatScreen() {
 
   return (
     <ThemeWipeProvider value={wipeContextValue}>
-      <View style={[styles.screen, { backgroundColor: colors.background }]}>
+      <View style={[styles.screen, { backgroundColor: canvasColor }]}>
         <ChatDrawerLayout
           open={threadsOpen}
           onClose={closeThreads}
+          surfaceColor={canvasColor}
           drawer={
             <ConversationDrawer
               threads={threads}
@@ -493,7 +508,8 @@ export default function ChatScreen() {
                 active={themeWipe !== null}
                 color={themeWipe?.background ?? colors.background}
                 progress={wipeProgress}
-                onComplete={handleThemeWipeComplete}
+                onCovered={handleThemeWipeCovered}
+                onDismissed={handleThemeWipeDismissed}
               />
 
               {isEmpty ? (
