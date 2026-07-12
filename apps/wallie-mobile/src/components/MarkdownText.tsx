@@ -66,6 +66,7 @@ function createStyles(colors: AppColors) {
   return StyleSheet.create({
     container: {
       gap: spacing.sm,
+      width: "100%",
     },
     h1: {
       fontSize: 22,
@@ -92,16 +93,28 @@ function createStyles(colors: AppColors) {
     },
     list: {
       gap: spacing.xs,
+      width: "100%",
     },
     listItem: {
       flexDirection: "row",
       alignItems: "flex-start",
       gap: spacing.sm,
+      width: "100%",
+      paddingRight: spacing.xs,
     },
     bullet: {
+      width: 8,
+      height: 8,
+      borderRadius: 4,
+      backgroundColor: colors.textMuted,
+      marginTop: 9,
+    },
+    listItemText: {
+      flex: 1,
+      flexShrink: 1,
       fontSize: 16,
       lineHeight: 26,
-      color: colors.textMuted,
+      color: colors.text,
     },
   });
 }
@@ -123,8 +136,8 @@ export function MarkdownText({ content }: MarkdownTextProps) {
       <View key={`list-${blockIndex}`} style={styles.list}>
         {listItems.map((item, index) => (
           <View key={`li-${index}`} style={styles.listItem}>
-            <Text style={styles.bullet}>•</Text>
-            <Text style={styles.paragraph}>
+            <View style={styles.bullet} />
+            <Text style={styles.listItemText}>
               {parseInline(item, `li-${index}`, colors)}
             </Text>
           </View>
