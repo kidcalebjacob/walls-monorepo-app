@@ -1,14 +1,22 @@
 "use client";
 
 import * as React from "react";
-import { Loader2, Save } from "lucide-react";
+import { Check, Loader2, Save } from "lucide-react";
 
 import { Button } from "@walls/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@walls/ui/card";
 import { Input } from "@walls/ui/input";
 
 import type { HealthProfile } from "@/lib/profile-server";
+import type { SafeUserConnection } from "@/lib/connections";
 import { formatCalories } from "@/lib/format-health";
+
+const STRAVA_ERROR_MESSAGES: Record<string, string> = {
+  unauthorized: "Your session expired. Please sign in again.",
+  invalid_oauth_state: "Strava sign-in expired. Please try again.",
+  access_denied: "Strava access was denied.",
+  strava_oauth_failed: "Could not connect Strava. Please try again.",
+};
 
 export function SettingsPage() {
   const [profile, setProfile] = React.useState<HealthProfile | null>(null);
@@ -26,6 +34,67 @@ export function SettingsPage() {
   const [carbsTarget, setCarbsTarget] = React.useState("200");
   const [fatTarget, setFatTarget] = React.useState("65");
   const [sugarLimit, setSugarLimit] = React.useState("50");
+
+  const [strava, setStrava] = React.useState<SafeUserConnection | null>(null);
+  const [stravaLoading, setStravaLoading] = React.useState(true);
+  const [stravaDisconnecting, setStravaDisconnecting] = React.useState(false);
+  const [stravaNotice, setStravaNotice] = React.useState<string | null>(null);
+
+  const loadStrava = React.useCallback(async () => {
+    setStravaLoading(true);
+    try {
+      const response = await fetch("/api/strava");
+      if (!response.ok) return;
+      const payload = (await response.json()) as {
+        connection?: SafeUserConnection | null;
+      };
+      setStrava(payload.connection ?? null);
+    } finally {
+      setStravaLoading(false);
+    }
+  }, []);
+
+  React.useEffect(() => {
+    void loadStrava();
+  }, [loadStrava]);
+
+  React.useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const connected = params.get("connected");
+    const error = params.get("error");
+
+    if (connected === "strava") {
+      setStravaNotice("Strava connected.");
+    } else if (error) {
+      setStravaNotice(
+        STRAVA_ERROR_MESSAGES[error] ?? "Could not connect Strava.",
+      );
+    }
+
+    if (connected || error) {
+      window.history.replaceState({}, "", window.location.pathname);
+    }
+  }, []);
+
+  const handleConnectStrava = () => {
+    window.location.href = "/api/strava/login";
+  };
+
+  const handleDisconnectStrava = async () => {
+    setStravaDisconnecting(true);
+    setStravaNotice(null);
+    try {
+      const response = await fetch("/api/strava", { method: "DELETE" });
+      if (!response.ok) {
+        setStravaNotice("Could not disconnect Strava.");
+        return;
+      }
+      setStrava(null);
+      setStravaNotice("Strava disconnected.");
+    } finally {
+      setStravaDisconnecting(false);
+    }
+  };
 
   const loadProfile = React.useCallback(async () => {
     setLoading(true);
@@ -252,16 +321,54 @@ export function SettingsPage() {
           </CardHeader>
           <CardContent className="space-y-3">
             <p className="text-sm font-light text-neutral-500">
-              Strava OAuth sync is coming next. Activities will flow into your
-              calorie burn and weekly fitness goals automatically.
+              Connect Strava to sync your activities into calorie burn and
+              weekly fitness goals automatically.
             </p>
-            <Button
-              variant="outline"
-              disabled
-              className="rounded-full font-light"
-            >
-              Connect Strava (soon)
-            </Button>
+
+            {stravaLoading ? (
+              <div className="flex items-center gap-2 text-sm font-light text-neutral-500">
+                <Loader2 className="h-4 w-4 animate-spin" />
+                Checking connection…
+              </div>
+            ) : strava ? (
+              <div className="space-y-3">
+                <div className="flex items-center gap-2 rounded-lg bg-green-50 px-3 py-2 text-sm font-light text-green-700">
+                  <Check className="h-4 w-4" />
+                  Connected
+                  {strava.token_payload?.athlete_name
+                    ? ` as ${strava.token_payload.athlete_name}`
+                    : ""}
+                </div>
+                <Button
+                  variant="outline"
+                  onClick={handleDisconnectStrava}
+                  disabled={stravaDisconnecting}
+                  className="rounded-full font-light"
+                >
+                  {stravaDisconnecting ? (
+                    <>
+                      <Loader2 className="mr-1.5 h-4 w-4 animate-spin" />
+                      Disconnecting…
+                    </>
+                  ) : (
+                    "Disconnect Strava"
+                  )}
+                </Button>
+              </div>
+            ) : (
+              <Button
+                onClick={handleConnectStrava}
+                className="rounded-full bg-[#FC4C02] text-white hover:bg-[#e34402]"
+              >
+                Connect Strava
+              </Button>
+            )}
+
+            {stravaNotice ? (
+              <p className="text-sm font-light text-neutral-600">
+                {stravaNotice}
+              </p>
+            ) : null}
           </CardContent>
         </Card>
       </div>
