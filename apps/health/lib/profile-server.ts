@@ -12,7 +12,6 @@ export type HealthProfile = {
   bmr_calories: number | null;
   tdee_calories: number | null;
   calorie_target_daily: number | null;
-  calorie_deficit_daily: number | null;
   protein_target_g: number | null;
   carbs_target_g: number | null;
   fat_target_g: number | null;
@@ -38,7 +37,6 @@ const DEFAULT_PROFILE: Omit<HealthProfileInput, "settings"> = {
   goal_type: "maintain",
   unit_system: "imperial",
   timezone: "America/New_York",
-  calorie_deficit_daily: 0,
 };
 
 export async function getHealthProfile(

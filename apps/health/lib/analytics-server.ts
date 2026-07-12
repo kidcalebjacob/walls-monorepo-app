@@ -273,13 +273,6 @@ export async function getDashboardAnalytics(
       target: profile.fat_target_g ? Number(profile.fat_target_g) : null,
       color: "var(--walls-blue)",
     },
-    {
-      label: "Sugar",
-      value: formatGrams(todayTotals.sugar_g),
-      current: todayTotals.sugar_g,
-      target: profile.sugar_limit_g ? Number(profile.sugar_limit_g) : null,
-      color: "#f59e0b",
-    },
   ];
 
   return {

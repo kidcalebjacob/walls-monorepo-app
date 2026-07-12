@@ -45,8 +45,8 @@ export function AppSidebar({ headerVisible = true }: { headerVisible?: boolean }
       onMouseEnter={() => setIsHoverExpanded(true)}
       onMouseLeave={() => setIsHoverExpanded(false)}
     >
-      <div className="relative flex h-full flex-col overflow-y-auto">
-        <div className="space-y-1 p-2 pt-32">
+      <div className="relative flex h-full flex-col overflow-y-auto pr-6 -mr-6">
+        <div className="space-y-4 p-2 pt-32">
             <Button
               variant="ghost"
               size="icon"
@@ -158,8 +158,10 @@ export function AppSidebar({ headerVisible = true }: { headerVisible?: boolean }
                             "relative z-10 rounded-full border border-transparent p-3 transition-all duration-300 ease-in-out group-hover:scale-95 group-hover:border-neutral-200 group-hover:bg-walls-white",
                             isActive
                               ? [
-                                  "shadow-[0_0_0_1px_rgba(110,173,192,0.4),0_0_12px_rgba(110,173,192,0.4)]",
-                                  "group-hover:shadow-[inset_0_4px_8px_rgba(0,0,0,0.15),0_0_0_1px_rgba(110,173,192,0.4),0_0_12px_rgba(110,173,192,0.4)]",
+                                  "border-white/70 bg-white/45 backdrop-blur-md",
+                                  "shadow-[0_4px_14px_rgba(0,0,0,0.12),inset_0_1px_1px_rgba(255,255,255,0.65)]",
+                                  "group-hover:border-white/70 group-hover:bg-white/60",
+                                  "group-hover:shadow-[0_6px_18px_rgba(0,0,0,0.15),inset_0_1px_1px_rgba(255,255,255,0.7)]",
                                 ]
                               : "group-hover:shadow-[inset_0_4px_8px_rgba(0,0,0,0.15)]",
                           )}

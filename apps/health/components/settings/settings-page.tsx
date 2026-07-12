@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { Check, Loader2, Save } from "lucide-react";
+import { Check, Loader2, RefreshCw, Save } from "lucide-react";
 
 import { Button } from "@walls/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@walls/ui/card";
@@ -29,7 +29,7 @@ export function SettingsPage() {
   const [sex, setSex] = React.useState("male");
   const [activityLevel, setActivityLevel] = React.useState("moderate");
   const [goalType, setGoalType] = React.useState("maintain");
-  const [calorieDeficit, setCalorieDeficit] = React.useState("500");
+  const [calorieTarget, setCalorieTarget] = React.useState("");
   const [proteinTarget, setProteinTarget] = React.useState("150");
   const [carbsTarget, setCarbsTarget] = React.useState("200");
   const [fatTarget, setFatTarget] = React.useState("65");
@@ -38,6 +38,7 @@ export function SettingsPage() {
   const [strava, setStrava] = React.useState<SafeUserConnection | null>(null);
   const [stravaLoading, setStravaLoading] = React.useState(true);
   const [stravaDisconnecting, setStravaDisconnecting] = React.useState(false);
+  const [stravaSyncing, setStravaSyncing] = React.useState(false);
   const [stravaNotice, setStravaNotice] = React.useState<string | null>(null);
 
   const loadStrava = React.useCallback(async () => {
@@ -80,6 +81,35 @@ export function SettingsPage() {
     window.location.href = "/api/strava/login";
   };
 
+  const handleSyncStrava = async () => {
+    setStravaSyncing(true);
+    setStravaNotice(null);
+    try {
+      const response = await fetch("/api/strava/sync", { method: "POST" });
+      const payload = (await response.json()) as {
+        inserted?: number;
+        updated?: number;
+        fetched?: number;
+        error?: string;
+      };
+
+      if (!response.ok) {
+        setStravaNotice(payload.error ?? "Could not sync Strava activities.");
+        return;
+      }
+
+      const inserted = payload.inserted ?? 0;
+      const updated = payload.updated ?? 0;
+      setStravaNotice(
+        `Synced ${payload.fetched ?? 0} activities (${inserted} new, ${updated} updated).`,
+      );
+    } catch {
+      setStravaNotice("Could not sync Strava activities.");
+    } finally {
+      setStravaSyncing(false);
+    }
+  };
+
   const handleDisconnectStrava = async () => {
     setStravaDisconnecting(true);
     setStravaNotice(null);
@@ -110,7 +140,9 @@ export function SettingsPage() {
       setSex(row.sex ?? "male");
       setActivityLevel(row.activity_level ?? "moderate");
       setGoalType(row.goal_type ?? "maintain");
-      setCalorieDeficit(String(row.calorie_deficit_daily ?? 500));
+      setCalorieTarget(
+        row.calorie_target_daily != null ? String(row.calorie_target_daily) : "",
+      );
       setProteinTarget(row.protein_target_g != null ? String(row.protein_target_g) : "150");
       setCarbsTarget(row.carbs_target_g != null ? String(row.carbs_target_g) : "200");
       setFatTarget(row.fat_target_g != null ? String(row.fat_target_g) : "65");
@@ -138,8 +170,7 @@ export function SettingsPage() {
           sex,
           activity_level: activityLevel,
           goal_type: goalType,
-          calorie_deficit_daily:
-            goalType === "lose_weight" ? Number(calorieDeficit) : 0,
+          calorie_target_daily: calorieTarget ? Number(calorieTarget) : null,
           protein_target_g: proteinTarget ? Number(proteinTarget) : null,
           carbs_target_g: carbsTarget ? Number(carbsTarget) : null,
           fat_target_g: fatTarget ? Number(fatTarget) : null,
@@ -241,16 +272,14 @@ export function SettingsPage() {
                 </Field>
               </div>
 
-              {goalType === "lose_weight" ? (
-                <Field label="Daily calorie deficit">
-                  <Input
-                    type="number"
-                    value={calorieDeficit}
-                    onChange={(e) => setCalorieDeficit(e.target.value)}
-                    placeholder="500"
-                  />
-                </Field>
-              ) : null}
+              <Field label="Daily calorie target">
+                <Input
+                  type="number"
+                  value={calorieTarget}
+                  onChange={(e) => setCalorieTarget(e.target.value)}
+                  placeholder="Leave blank to use your TDEE"
+                />
+              </Field>
 
               <div className="grid gap-4 md:grid-cols-2">
                 <Field label="Protein target (g)">
@@ -339,21 +368,44 @@ export function SettingsPage() {
                     ? ` as ${strava.token_payload.athlete_name}`
                     : ""}
                 </div>
-                <Button
-                  variant="outline"
-                  onClick={handleDisconnectStrava}
-                  disabled={stravaDisconnecting}
-                  className="rounded-full font-light"
-                >
-                  {stravaDisconnecting ? (
-                    <>
-                      <Loader2 className="mr-1.5 h-4 w-4 animate-spin" />
-                      Disconnecting…
-                    </>
-                  ) : (
-                    "Disconnect Strava"
-                  )}
-                </Button>
+                <div className="flex flex-wrap items-center gap-2">
+                  <Button
+                    onClick={handleSyncStrava}
+                    disabled={stravaSyncing}
+                    className="rounded-full bg-[#FC4C02] text-white hover:bg-[#e34402]"
+                  >
+                    {stravaSyncing ? (
+                      <>
+                        <Loader2 className="mr-1.5 h-4 w-4 animate-spin" />
+                        Syncing…
+                      </>
+                    ) : (
+                      <>
+                        <RefreshCw className="mr-1.5 h-4 w-4" />
+                        Sync activities
+                      </>
+                    )}
+                  </Button>
+                  <Button
+                    variant="outline"
+                    onClick={handleDisconnectStrava}
+                    disabled={stravaDisconnecting || stravaSyncing}
+                    className="rounded-full font-light"
+                  >
+                    {stravaDisconnecting ? (
+                      <>
+                        <Loader2 className="mr-1.5 h-4 w-4 animate-spin" />
+                        Disconnecting…
+                      </>
+                    ) : (
+                      "Disconnect Strava"
+                    )}
+                  </Button>
+                </div>
+                <p className="text-xs font-light text-neutral-400">
+                  Pulls your full Strava history into WALLS. Safe to run again —
+                  existing activities are updated, not duplicated.
+                </p>
               </div>
             ) : (
               <Button

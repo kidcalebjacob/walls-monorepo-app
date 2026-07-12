@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-07-12T16:06:58.065Z",
+  "generatedAt": "2026-07-12T18:32:37.651Z",
   "source": "packages/supabase/scripts/dump-schema.mjs",
   "schemasIncluded": [
     "public",
@@ -7,11 +7,11 @@
     "storage"
   ],
   "summary": {
-    "tables": 205,
+    "tables": 204,
     "views": 1,
     "materializedViews": 6,
     "enums": 26,
-    "columns": 2184
+    "columns": 2158
   },
   "schemas": {
     "public": {
@@ -10882,341 +10882,6 @@
             }
           ]
         },
-        "health_foods": {
-          "type": "BASE TABLE",
-          "columns": [
-            {
-              "name": "id",
-              "position": 1,
-              "dataType": "uuid",
-              "udtName": "uuid",
-              "nullable": false,
-              "default": "gen_random_uuid()",
-              "maxLength": null,
-              "numericPrecision": null,
-              "numericScale": null
-            },
-            {
-              "name": "created_at",
-              "position": 2,
-              "dataType": "timestamp with time zone",
-              "udtName": "timestamptz",
-              "nullable": false,
-              "default": "now()",
-              "maxLength": null,
-              "numericPrecision": null,
-              "numericScale": null
-            },
-            {
-              "name": "updated_at",
-              "position": 3,
-              "dataType": "timestamp with time zone",
-              "udtName": "timestamptz",
-              "nullable": true,
-              "default": null,
-              "maxLength": null,
-              "numericPrecision": null,
-              "numericScale": null
-            },
-            {
-              "name": "user_id",
-              "position": 4,
-              "dataType": "uuid",
-              "udtName": "uuid",
-              "nullable": false,
-              "default": null,
-              "maxLength": null,
-              "numericPrecision": null,
-              "numericScale": null
-            },
-            {
-              "name": "name",
-              "position": 5,
-              "dataType": "text",
-              "udtName": "text",
-              "nullable": false,
-              "default": null,
-              "maxLength": null,
-              "numericPrecision": null,
-              "numericScale": null
-            },
-            {
-              "name": "brand",
-              "position": 6,
-              "dataType": "text",
-              "udtName": "text",
-              "nullable": true,
-              "default": null,
-              "maxLength": null,
-              "numericPrecision": null,
-              "numericScale": null
-            },
-            {
-              "name": "description",
-              "position": 7,
-              "dataType": "text",
-              "udtName": "text",
-              "nullable": true,
-              "default": null,
-              "maxLength": null,
-              "numericPrecision": null,
-              "numericScale": null
-            },
-            {
-              "name": "serving_amount",
-              "position": 8,
-              "dataType": "numeric",
-              "udtName": "numeric",
-              "nullable": false,
-              "default": "1",
-              "maxLength": null,
-              "numericPrecision": 10,
-              "numericScale": 3
-            },
-            {
-              "name": "serving_unit",
-              "position": 9,
-              "dataType": "text",
-              "udtName": "text",
-              "nullable": false,
-              "default": "'serving'::text",
-              "maxLength": null,
-              "numericPrecision": null,
-              "numericScale": null
-            },
-            {
-              "name": "calories",
-              "position": 10,
-              "dataType": "integer",
-              "udtName": "int4",
-              "nullable": false,
-              "default": "0",
-              "maxLength": null,
-              "numericPrecision": 32,
-              "numericScale": 0
-            },
-            {
-              "name": "protein_g",
-              "position": 11,
-              "dataType": "numeric",
-              "udtName": "numeric",
-              "nullable": false,
-              "default": "0",
-              "maxLength": null,
-              "numericPrecision": 8,
-              "numericScale": 2
-            },
-            {
-              "name": "carbs_g",
-              "position": 12,
-              "dataType": "numeric",
-              "udtName": "numeric",
-              "nullable": false,
-              "default": "0",
-              "maxLength": null,
-              "numericPrecision": 8,
-              "numericScale": 2
-            },
-            {
-              "name": "fat_g",
-              "position": 13,
-              "dataType": "numeric",
-              "udtName": "numeric",
-              "nullable": false,
-              "default": "0",
-              "maxLength": null,
-              "numericPrecision": 8,
-              "numericScale": 2
-            },
-            {
-              "name": "fiber_g",
-              "position": 14,
-              "dataType": "numeric",
-              "udtName": "numeric",
-              "nullable": false,
-              "default": "0",
-              "maxLength": null,
-              "numericPrecision": 8,
-              "numericScale": 2
-            },
-            {
-              "name": "sugar_g",
-              "position": 15,
-              "dataType": "numeric",
-              "udtName": "numeric",
-              "nullable": false,
-              "default": "0",
-              "maxLength": null,
-              "numericPrecision": 8,
-              "numericScale": 2
-            },
-            {
-              "name": "sodium_mg",
-              "position": 16,
-              "dataType": "integer",
-              "udtName": "int4",
-              "nullable": false,
-              "default": "0",
-              "maxLength": null,
-              "numericPrecision": 32,
-              "numericScale": 0
-            },
-            {
-              "name": "saturated_fat_g",
-              "position": 17,
-              "dataType": "numeric",
-              "udtName": "numeric",
-              "nullable": false,
-              "default": "0",
-              "maxLength": null,
-              "numericPrecision": 8,
-              "numericScale": 2
-            },
-            {
-              "name": "cholesterol_mg",
-              "position": 18,
-              "dataType": "integer",
-              "udtName": "int4",
-              "nullable": false,
-              "default": "0",
-              "maxLength": null,
-              "numericPrecision": 32,
-              "numericScale": 0
-            },
-            {
-              "name": "barcode",
-              "position": 19,
-              "dataType": "text",
-              "udtName": "text",
-              "nullable": true,
-              "default": null,
-              "maxLength": null,
-              "numericPrecision": null,
-              "numericScale": null
-            },
-            {
-              "name": "external_source",
-              "position": 20,
-              "dataType": "text",
-              "udtName": "text",
-              "nullable": true,
-              "default": null,
-              "maxLength": null,
-              "numericPrecision": null,
-              "numericScale": null
-            },
-            {
-              "name": "external_id",
-              "position": 21,
-              "dataType": "text",
-              "udtName": "text",
-              "nullable": true,
-              "default": null,
-              "maxLength": null,
-              "numericPrecision": null,
-              "numericScale": null
-            },
-            {
-              "name": "source_metadata",
-              "position": 22,
-              "dataType": "jsonb",
-              "udtName": "jsonb",
-              "nullable": false,
-              "default": "'{}'::jsonb",
-              "maxLength": null,
-              "numericPrecision": null,
-              "numericScale": null
-            },
-            {
-              "name": "is_favorite",
-              "position": 23,
-              "dataType": "boolean",
-              "udtName": "bool",
-              "nullable": false,
-              "default": "false",
-              "maxLength": null,
-              "numericPrecision": null,
-              "numericScale": null
-            }
-          ],
-          "primaryKey": [
-            "id"
-          ],
-          "foreignKeys": [
-            {
-              "name": "health_foods_user_id_fkey",
-              "columns": [
-                "user_id"
-              ],
-              "references": {
-                "schema": "public",
-                "table": "users",
-                "columns": [
-                  "id"
-                ]
-              },
-              "onUpdate": "NO ACTION",
-              "onDelete": "CASCADE"
-            }
-          ],
-          "uniqueConstraints": [],
-          "indexes": [
-            {
-              "name": "health_foods_pkey",
-              "definition": "CREATE UNIQUE INDEX health_foods_pkey ON public.health_foods USING btree (id)"
-            },
-            {
-              "name": "health_foods_user_external_key",
-              "definition": "CREATE UNIQUE INDEX health_foods_user_external_key ON public.health_foods USING btree (user_id, external_source, external_id) WHERE ((external_source IS NOT NULL) AND (external_id IS NOT NULL))"
-            },
-            {
-              "name": "health_foods_user_id_idx",
-              "definition": "CREATE INDEX health_foods_user_id_idx ON public.health_foods USING btree (user_id)"
-            },
-            {
-              "name": "health_foods_user_name_idx",
-              "definition": "CREATE INDEX health_foods_user_name_idx ON public.health_foods USING btree (user_id, lower(name))"
-            }
-          ],
-          "rls": {
-            "enabled": true,
-            "forced": false
-          },
-          "policies": [
-            {
-              "name": "health_foods_delete_own",
-              "permissive": "PERMISSIVE",
-              "roles": "{authenticated}",
-              "command": "DELETE",
-              "using": "(user_id = auth.uid())",
-              "withCheck": null
-            },
-            {
-              "name": "health_foods_insert_own",
-              "permissive": "PERMISSIVE",
-              "roles": "{authenticated}",
-              "command": "INSERT",
-              "using": null,
-              "withCheck": "(user_id = auth.uid())"
-            },
-            {
-              "name": "health_foods_select_own",
-              "permissive": "PERMISSIVE",
-              "roles": "{authenticated}",
-              "command": "SELECT",
-              "using": "(user_id = auth.uid())",
-              "withCheck": null
-            },
-            {
-              "name": "health_foods_update_own",
-              "permissive": "PERMISSIVE",
-              "roles": "{authenticated}",
-              "command": "UPDATE",
-              "using": "(user_id = auth.uid())",
-              "withCheck": "(user_id = auth.uid())"
-            }
-          ]
-        },
         "health_goal_progress": {
           "type": "BASE TABLE",
           "columns": [
@@ -11731,17 +11396,6 @@
               "numericScale": null
             },
             {
-              "name": "food_id",
-              "position": 6,
-              "dataType": "uuid",
-              "udtName": "uuid",
-              "nullable": true,
-              "default": null,
-              "maxLength": null,
-              "numericPrecision": null,
-              "numericScale": null
-            },
-            {
               "name": "name",
               "position": 7,
               "dataType": "text",
@@ -11923,21 +11577,6 @@
           ],
           "foreignKeys": [
             {
-              "name": "health_meal_items_food_id_fkey",
-              "columns": [
-                "food_id"
-              ],
-              "references": {
-                "schema": "public",
-                "table": "health_foods",
-                "columns": [
-                  "id"
-                ]
-              },
-              "onUpdate": "NO ACTION",
-              "onDelete": "SET NULL"
-            },
-            {
               "name": "health_meal_items_meal_id_fkey",
               "columns": [
                 "meal_id"
@@ -11971,12 +11610,12 @@
           "uniqueConstraints": [],
           "indexes": [
             {
-              "name": "health_meal_items_food_id_idx",
-              "definition": "CREATE INDEX health_meal_items_food_id_idx ON public.health_meal_items USING btree (food_id) WHERE (food_id IS NOT NULL)"
-            },
-            {
               "name": "health_meal_items_meal_id_idx",
               "definition": "CREATE INDEX health_meal_items_meal_id_idx ON public.health_meal_items USING btree (meal_id, sort_order)"
+            },
+            {
+              "name": "health_meal_items_meal_id_idx1",
+              "definition": "CREATE INDEX health_meal_items_meal_id_idx1 ON public.health_meal_items USING btree (meal_id)"
             },
             {
               "name": "health_meal_items_pkey",
@@ -12251,12 +11890,20 @@
           "uniqueConstraints": [],
           "indexes": [
             {
+              "name": "health_meals_created_at_idx",
+              "definition": "CREATE INDEX health_meals_created_at_idx ON public.health_meals USING btree (created_at)"
+            },
+            {
               "name": "health_meals_pkey",
               "definition": "CREATE UNIQUE INDEX health_meals_pkey ON public.health_meals USING btree (id)"
             },
             {
               "name": "health_meals_user_date_idx",
               "definition": "CREATE INDEX health_meals_user_date_idx ON public.health_meals USING btree (user_id, meal_date DESC, meal_type)"
+            },
+            {
+              "name": "health_meals_user_id_idx",
+              "definition": "CREATE INDEX health_meals_user_id_idx ON public.health_meals USING btree (user_id)"
             },
             {
               "name": "health_meals_user_logged_at_idx",
@@ -12361,17 +12008,6 @@
               "numericScale": null
             },
             {
-              "name": "birth_date",
-              "position": 6,
-              "dataType": "date",
-              "udtName": "date",
-              "nullable": true,
-              "default": null,
-              "maxLength": null,
-              "numericPrecision": null,
-              "numericScale": null
-            },
-            {
               "name": "height_cm",
               "position": 7,
               "dataType": "numeric",
@@ -12433,17 +12069,6 @@
               "udtName": "int4",
               "nullable": true,
               "default": null,
-              "maxLength": null,
-              "numericPrecision": 32,
-              "numericScale": 0
-            },
-            {
-              "name": "calorie_deficit_daily",
-              "position": 13,
-              "dataType": "integer",
-              "udtName": "int4",
-              "nullable": true,
-              "default": "0",
               "maxLength": null,
               "numericPrecision": 32,
               "numericScale": 0

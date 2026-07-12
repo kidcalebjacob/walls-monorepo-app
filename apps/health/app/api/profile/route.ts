@@ -9,6 +9,7 @@ import {
   updateHealthProfile,
   type HealthProfileInput,
 } from "@/lib/profile-server";
+import { insertWeightLog } from "@/lib/weight-logs-server";
 
 export async function GET() {
   const scope = await getHealthDataScope();
@@ -42,9 +43,8 @@ export async function PUT(request: Request) {
 
   const calorieTarget =
     body.calorie_target_daily ??
-    (tdee != null
-      ? Math.max(1200, tdee - (merged.calorie_deficit_daily ?? 0))
-      : null);
+    existing.calorie_target_daily ??
+    (tdee != null ? Math.max(1200, tdee) : null);
 
   const profile = await updateHealthProfile(scope, {
     ...body,
@@ -52,6 +52,21 @@ export async function PUT(request: Request) {
     tdee_calories: tdee,
     calorie_target_daily: calorieTarget,
   });
+
+  // Record a weight-log entry whenever the saved weight changes so we can
+  // chart weight loss over time.
+  const newWeight = body.current_weight_kg;
+  if (
+    newWeight != null &&
+    Number.isFinite(Number(newWeight)) &&
+    Number(newWeight) !== existing.current_weight_kg
+  ) {
+    await insertWeightLog(scope, {
+      weight_kg: Number(newWeight),
+      source: "manual",
+      source_metadata: { origin: "settings" },
+    });
+  }
 
   return NextResponse.json({ profile });
 }
