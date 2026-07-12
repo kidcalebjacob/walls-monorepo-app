@@ -10,6 +10,7 @@
     "dev:wallie": "turbo dev --filter=wallie",
     "dev:settings": "turbo dev --filter=settings",
     "dev:health": "turbo dev --filter=health",
+    "dev:calendar": "turbo dev --filter=calendar",
     "dev:wallie-mobile": "pnpm --filter wallie-mobile dev",
     "ios:wallie-mobile": "pnpm --filter wallie-mobile ios:device",
     "ios:wallie-mobile:sim": "pnpm --filter wallie-mobile ios:simulator",
