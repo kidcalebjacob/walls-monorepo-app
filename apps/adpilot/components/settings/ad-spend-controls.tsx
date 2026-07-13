@@ -1,18 +1,9 @@
 "use client";
 
 import * as React from "react";
-import {
-  Gauge,
-  Loader2,
-  Plus,
-  Shield,
-  SlidersHorizontal,
-  TrendingUp,
-  Zap,
-} from "lucide-react";
+import { Gauge, Loader2, Plus, Shield, TrendingUp, Zap } from "lucide-react";
 
 import { Button } from "@walls/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@walls/ui/card";
 import { Input } from "@walls/ui/input";
 import { LabeledSwitch } from "@walls/ui/switch";
 import { cn } from "@walls/utils";
@@ -31,6 +22,8 @@ import {
 } from "@/lib/spend-automation-settings";
 
 import { SliderField } from "@/components/ui/slider-field";
+
+import { SectionLabel } from "./section-label";
 
 type ProfileFormState = {
   name: string;
@@ -198,22 +191,30 @@ export function AdSpendControls() {
 
   if (loading) {
     return (
-      <Card className="rounded-[32px] border-neutral-200/60 bg-neutral-100 shadow-inner">
-        <CardContent className="flex items-center justify-center gap-2 py-16 text-sm font-light text-neutral-500">
+      <section>
+        <SectionLabel
+          title="Ad spend automation"
+          description="Workspace-wide presets stored in your automation profile library. Enable AdPilot per campaign or ad set to apply them."
+        />
+        <div className="flex items-center justify-center gap-2 rounded-3xl border border-neutral-200/70 bg-walls-white py-16 text-sm font-light text-neutral-500 shadow-sm">
           <Loader2 className="h-4 w-4 animate-spin" />
           Loading automation presets…
-        </CardContent>
-      </Card>
+        </div>
+      </section>
     );
   }
 
   if (!form) {
     return (
-      <Card className="rounded-[32px] border-neutral-200/60 bg-neutral-100 shadow-inner">
-        <CardContent className="py-16 text-center text-sm font-light text-neutral-500">
+      <section>
+        <SectionLabel
+          title="Ad spend automation"
+          description="Workspace-wide presets stored in your automation profile library. Enable AdPilot per campaign or ad set to apply them."
+        />
+        <div className="rounded-3xl border border-neutral-200/70 bg-walls-white py-16 text-center text-sm font-light text-neutral-500 shadow-sm">
           No automation presets found.
-        </CardContent>
-      </Card>
+        </div>
+      </section>
     );
   }
 
@@ -228,18 +229,12 @@ export function AdSpendControls() {
   const autonomyLabel = getAggressivenessLabel(form.settings.aggressiveness);
 
   return (
-    <Card className="rounded-[32px] border-neutral-200/60 bg-neutral-100 shadow-inner">
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2 text-base font-medium">
-          <SlidersHorizontal className="h-4 w-4 text-neutral-500" />
-          Ad spend automation presets
-        </CardTitle>
-        <p className="text-sm font-light text-neutral-500">
-          Workspace-wide defaults stored in your automation profile library. Enable
-          AdPilot per campaign or ad set to apply these settings.
-        </p>
-      </CardHeader>
-      <CardContent className="space-y-6 pb-6">
+    <section>
+      <SectionLabel
+        title="Ad spend automation"
+        description="Workspace-wide presets stored in your automation profile library. Enable AdPilot per campaign or ad set to apply them."
+      />
+      <div className="space-y-6">
         {error ? (
           <div className="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-800">
             {error}
@@ -578,7 +573,7 @@ export function AdSpendControls() {
             )}
           </Button>
         </div>
-      </CardContent>
-    </Card>
+      </div>
+    </section>
   );
 }

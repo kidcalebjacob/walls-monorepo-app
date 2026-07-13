@@ -1,19 +1,16 @@
 "use client";
 
 import * as React from "react";
-import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import {
   AlertCircle,
   CheckCircle2,
   Facebook,
-  Link2,
   RefreshCw,
   Unplug,
 } from "lucide-react";
 
 import { Button } from "@walls/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@walls/ui/card";
 
 import {
   META_PROVIDER,
@@ -22,6 +19,7 @@ import {
 } from "@/lib/connections";
 
 import { AdSpendControls } from "./ad-spend-controls";
+import { SectionLabel } from "./section-label";
 
 function formatConnectionLabel(connection: SafeAccountConnection) {
   if (connection.provider_account_id) {
@@ -124,11 +122,13 @@ export function SettingsPage() {
   };
 
   return (
-    <main className="min-h-full w-full px-6 py-8 md:px-10 md:py-10">
-      <div className="flex w-full flex-col gap-8">
+    <main className="min-h-full w-full bg-walls-white px-6 py-8 md:px-10 md:py-12">
+      <div className="mx-auto flex w-full max-w-3xl flex-col gap-14">
         <header>
-          <p className="text-sm font-light text-neutral-500">Workspace</p>
-          <h1 className="mt-1 text-3xl font-semibold tracking-tight text-foreground">
+          <p className="text-xs font-medium uppercase tracking-widest text-neutral-500">
+            Workspace
+          </p>
+          <h1 className="mt-2 text-3xl font-semibold tracking-tight text-foreground">
             Settings
           </h1>
           <p className="mt-2 text-sm font-light text-neutral-500">
@@ -137,137 +137,126 @@ export function SettingsPage() {
         </header>
 
         {connected === "meta" && (
-          <div className="flex items-start gap-3 rounded-[24px] border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800">
+          <div className="flex items-start gap-3 rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800">
             <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0" />
             Meta account connected successfully.
           </div>
         )}
 
         {error && (
-          <div className="flex items-start gap-3 rounded-[24px] border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-800">
+          <div className="flex items-start gap-3 rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-800">
             <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
             Connection failed ({error}). Please try again.
           </div>
         )}
 
-        <Card className="rounded-[32px] border-neutral-200/60 bg-neutral-100 shadow-inner">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-base font-medium">
-              <Link2 className="h-4 w-4 text-neutral-500" />
-              Connected accounts
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4 pb-6">
-            {loading ? (
-              <p className="text-sm font-light text-neutral-500">Loading…</p>
-            ) : metaConnection ? (
-              <div className="rounded-[24px] border border-neutral-200/70 bg-walls-white p-5 shadow-sm">
-                <div className="flex items-start justify-between gap-4">
-                  <div className="flex items-start gap-3">
-                    <div className="rounded-full bg-[#1877F2]/10 p-3">
-                      <Facebook className="h-5 w-5 text-[#1877F2]" />
-                    </div>
-                    <div>
-                      <p className="font-medium text-foreground">Meta Ads</p>
-                      <p className="mt-1 text-sm font-light text-neutral-500">
-                        {formatConnectionLabel(metaConnection)}
-                      </p>
-                      <p className="mt-1 text-xs font-light text-neutral-400">
-                        Connected{" "}
-                        {new Date(metaConnection.created_at).toLocaleDateString()}
-                        {metaConnection.token_expiry
-                          ? ` · Token expires ${new Date(metaConnection.token_expiry).toLocaleDateString()}`
-                          : null}
-                      </p>
-                    </div>
-                  </div>
-                  <span className="rounded-full bg-emerald-50 px-2.5 py-1 text-xs text-emerald-700">
-                    Active
-                  </span>
-                </div>
-                <div className="mt-5 flex flex-wrap gap-3">
-                  <Button
-                    className="rounded-full bg-walls-yellow/90 font-medium text-black hover:bg-walls-yellow"
-                    onClick={() => void handleSync()}
-                    disabled={syncing}
-                  >
-                    <RefreshCw
-                      className={`mr-2 h-4 w-4 ${syncing ? "animate-spin" : ""}`}
-                    />
-                    {syncing ? "Pulling metrics…" : "Pull latest metrics"}
-                  </Button>
-                  <Button
-                    variant="outline"
-                    className="rounded-full border-neutral-200 bg-walls-white font-light"
-                    onClick={() => void handleDisconnect()}
-                    disabled={disconnecting}
-                  >
-                    <Unplug className="mr-2 h-4 w-4" />
-                    Disconnect
-                  </Button>
-                  <Button
-                    asChild
-                    variant="outline"
-                    className="rounded-full border-neutral-200 bg-walls-white font-light"
-                  >
-                    <a href="/api/oauth/meta/login">Reconnect</a>
-                  </Button>
-                </div>
-
-                {syncResult ? (
-                  <div
-                    className={`mt-4 flex items-start gap-2 rounded-[20px] border px-4 py-3 text-sm ${
-                      syncResult.ok
-                        ? "border-emerald-200 bg-emerald-50 text-emerald-800"
-                        : "border-rose-200 bg-rose-50 text-rose-800"
-                    }`}
-                  >
-                    {syncResult.ok ? (
-                      <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0" />
-                    ) : (
-                      <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
-                    )}
-                    {syncResult.message}
-                  </div>
-                ) : null}
-              </div>
-            ) : (
-              <div className="rounded-[24px] border border-dashed border-neutral-300 bg-walls-white p-6">
+        <section>
+          <SectionLabel
+            title="Connected accounts"
+            description="Ad platforms authorized to sync insights into AdPilot."
+          />
+          {loading ? (
+            <p className="text-sm font-light text-neutral-500">Loading…</p>
+          ) : metaConnection ? (
+            <div className="rounded-3xl border border-neutral-200/70 bg-walls-white p-5 shadow-sm">
+              <div className="flex items-start justify-between gap-4">
                 <div className="flex items-start gap-3">
                   <div className="rounded-full bg-[#1877F2]/10 p-3">
                     <Facebook className="h-5 w-5 text-[#1877F2]" />
                   </div>
-                  <div className="flex-1">
-                    <p className="font-medium text-foreground">Meta Ads API</p>
-                    <p className="mt-2 text-sm font-light leading-6 text-neutral-500">
-                      Authorize AdPilot to read ad account insights, campaigns,
-                      and performance data. You&apos;ll be redirected to Meta to
-                      grant consent for ads and business permissions.
+                  <div>
+                    <p className="font-medium text-foreground">Meta Ads</p>
+                    <p className="mt-1 text-sm font-light text-neutral-500">
+                      {formatConnectionLabel(metaConnection)}
                     </p>
-                    <ul className="mt-3 space-y-1 text-xs font-light text-neutral-500">
-                      <li>ads_read</li>
-                      <li>ads_management</li>
-                      <li>business_management</li>
-                    </ul>
-                    <Button
-                      asChild
-                      className="mt-5 rounded-full bg-walls-yellow/90 px-6 font-medium text-black hover:bg-walls-yellow"
-                    >
-                      <a href="/api/oauth/meta/login">Connect Meta account</a>
-                    </Button>
+                    <p className="mt-1 text-xs font-light text-neutral-400">
+                      Connected{" "}
+                      {new Date(metaConnection.created_at).toLocaleDateString()}
+                      {metaConnection.token_expiry
+                        ? ` · Token expires ${new Date(metaConnection.token_expiry).toLocaleDateString()}`
+                        : null}
+                    </p>
                   </div>
                 </div>
+                <span className="rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-medium text-emerald-700">
+                  Active
+                </span>
               </div>
-            )}
+              <div className="mt-5 flex flex-wrap gap-3">
+                <Button
+                  className="rounded-full bg-walls-yellow/90 font-medium text-black hover:bg-walls-yellow"
+                  onClick={() => void handleSync()}
+                  disabled={syncing}
+                >
+                  <RefreshCw
+                    className={`mr-2 h-4 w-4 ${syncing ? "animate-spin" : ""}`}
+                  />
+                  {syncing ? "Pulling metrics…" : "Pull latest metrics"}
+                </Button>
+                <Button
+                  variant="outline"
+                  className="rounded-full border-neutral-200 bg-walls-white font-light"
+                  onClick={() => void handleDisconnect()}
+                  disabled={disconnecting}
+                >
+                  <Unplug className="mr-2 h-4 w-4" />
+                  Disconnect
+                </Button>
+                <Button
+                  asChild
+                  variant="outline"
+                  className="rounded-full border-neutral-200 bg-walls-white font-light"
+                >
+                  <a href="/api/oauth/meta/login">Reconnect</a>
+                </Button>
+              </div>
 
-            <p className="text-xs font-light text-neutral-500">
-              Need another platform?{" "}
-              <Link href="/" className="text-walls-blue hover:underline">
-                Return to dashboard
-              </Link>
-            </p>
-          </CardContent>
-        </Card>
+              {syncResult ? (
+                <div
+                  className={`mt-4 flex items-start gap-2 rounded-2xl border px-4 py-3 text-sm ${
+                    syncResult.ok
+                      ? "border-emerald-200 bg-emerald-50 text-emerald-800"
+                      : "border-rose-200 bg-rose-50 text-rose-800"
+                  }`}
+                >
+                  {syncResult.ok ? (
+                    <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0" />
+                  ) : (
+                    <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
+                  )}
+                  {syncResult.message}
+                </div>
+              ) : null}
+            </div>
+          ) : (
+            <div className="rounded-3xl border border-dashed border-neutral-300 bg-walls-white p-6">
+              <div className="flex items-start gap-3">
+                <div className="rounded-full bg-[#1877F2]/10 p-3">
+                  <Facebook className="h-5 w-5 text-[#1877F2]" />
+                </div>
+                <div className="flex-1">
+                  <p className="font-medium text-foreground">Meta Ads API</p>
+                  <p className="mt-2 text-sm font-light leading-6 text-neutral-500">
+                    Authorize AdPilot to read ad account insights, campaigns, and
+                    performance data. You&apos;ll be redirected to Meta to grant
+                    consent for ads and business permissions.
+                  </p>
+                  <ul className="mt-3 space-y-1 text-xs font-light text-neutral-500">
+                    <li>ads_read</li>
+                    <li>ads_management</li>
+                    <li>business_management</li>
+                  </ul>
+                  <Button
+                    asChild
+                    className="mt-5 rounded-full bg-walls-yellow/90 px-6 font-medium text-black hover:bg-walls-yellow"
+                  >
+                    <a href="/api/oauth/meta/login">Connect Meta account</a>
+                  </Button>
+                </div>
+              </div>
+            </div>
+          )}
+        </section>
 
         <AdSpendControls />
       </div>
