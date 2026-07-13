@@ -129,7 +129,7 @@ export function AccountSwitcher() {
           Choose an account
         </p>
 
-        <div className="mt-1 space-y-1">
+        <div className="mt-1 space-y-0.5">
           {accounts.map((account) => {
             const isActive = account.id === activeAccount.id;
             return (
@@ -140,16 +140,19 @@ export function AccountSwitcher() {
                   void handleSelect(account.id);
                 }}
                 className={cn(
-                  "cursor-pointer rounded-xl p-2.5 focus:bg-transparent",
-                  isActive
-                    ? "bg-neutral-50"
-                    : "hover:bg-neutral-50/80",
+                  "cursor-pointer rounded-xl p-2 transition-colors focus:bg-transparent",
+                  isActive ? "bg-neutral-100" : "hover:bg-neutral-50",
                 )}
               >
                 <div className="flex w-full items-center gap-3">
                   <AccountAvatar account={account} size="md" />
                   <div className="min-w-0 flex-1">
-                    <p className="truncate text-sm font-semibold text-foreground">
+                    <p
+                      className={cn(
+                        "truncate text-sm text-foreground",
+                        isActive ? "font-semibold" : "font-medium",
+                      )}
+                    >
                       {account.name}
                     </p>
                     <AccountTypeBadge
@@ -159,12 +162,11 @@ export function AccountSwitcher() {
                     />
                   </div>
                   {isActive ? (
-                    <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-violet-600 text-white">
-                      <Check className="h-3.5 w-3.5" strokeWidth={2.5} />
-                    </span>
-                  ) : (
-                    <span className="h-6 w-6 shrink-0" aria-hidden />
-                  )}
+                    <Check
+                      className="h-4 w-4 shrink-0 text-foreground"
+                      strokeWidth={2.75}
+                    />
+                  ) : null}
                 </div>
               </DropdownMenuItem>
             );
