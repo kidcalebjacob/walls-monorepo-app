@@ -1,7 +1,19 @@
 "use client";
 
 import * as React from "react";
-import { Gauge, Loader2, Plus, Shield, TrendingUp, Zap } from "lucide-react";
+import {
+  Check,
+  Coins,
+  Gauge,
+  Loader2,
+  MousePointerClick,
+  Plus,
+  Shield,
+  Target,
+  TrendingUp,
+  Zap,
+  type LucideIcon,
+} from "lucide-react";
 
 import { Button } from "@walls/ui/button";
 import { Input } from "@walls/ui/input";
@@ -22,9 +34,28 @@ import {
 } from "@/lib/spend-automation-settings";
 
 import { SliderField } from "@/components/ui/slider-field";
+import { RoasFloorField } from "@/components/ui/roas-floor-field";
 
-import { primaryButtonClass, secondaryButtonClass } from "./button-styles";
+import {
+  primaryButtonClass,
+  secondaryButtonClass,
+  segmentTrackClass,
+  toggleCardActiveClass,
+  toggleCardBaseClass,
+  toggleCardInactiveClass,
+  toggleChipActiveClass,
+  toggleChipBaseClass,
+  toggleChipInactiveClass,
+} from "./button-styles";
 import { SectionLabel } from "./section-label";
+import { SegmentThumb } from "./segment-thumb";
+
+const GOAL_ICONS: Record<OptimizationGoal, LucideIcon> = {
+  roas: TrendingUp,
+  ctr: MousePointerClick,
+  cpa: Coins,
+  conversions: Target,
+};
 
 type ProfileFormState = {
   name: string;
@@ -243,22 +274,29 @@ export function AdSpendControls() {
         ) : null}
 
         <div className="flex flex-wrap items-center gap-2">
-          {profiles.map((profile) => (
-            <button
-              key={profile.id}
-              type="button"
-              onClick={() => selectProfile(profile)}
-              className={cn(
-                "rounded-full border px-3 py-1.5 text-xs font-light transition-colors",
-                selectedId === profile.id
-                  ? "border-walls-yellow bg-walls-yellow/20 text-foreground"
-                  : "border-neutral-200 bg-walls-white text-neutral-600 hover:bg-neutral-50",
-              )}
-            >
-              {profile.name}
-              {profile.isDefault ? " · Default" : ""}
-            </button>
-          ))}
+          <div className={segmentTrackClass}>
+            {profiles.map((profile) => (
+              <button
+                key={profile.id}
+                type="button"
+                onClick={() => selectProfile(profile)}
+                className={cn(
+                  toggleChipBaseClass,
+                  selectedId === profile.id
+                    ? toggleChipActiveClass
+                    : toggleChipInactiveClass,
+                )}
+              >
+                {selectedId === profile.id ? (
+                  <SegmentThumb layoutId="preset-thumb" />
+                ) : null}
+                <span className="relative z-10">
+                  {profile.name}
+                  {profile.isDefault ? " · Default" : ""}
+                </span>
+              </button>
+            ))}
+          </div>
           <Button
             type="button"
             variant="outline"
@@ -303,24 +341,59 @@ export function AdSpendControls() {
               What this preset optimizes for when your backend algorithm runs.
             </p>
             <div className="mt-3 grid gap-2 sm:grid-cols-2">
-              {OPTIMIZATION_GOAL_OPTIONS.map((option) => (
-                <button
-                  key={option.value}
-                  type="button"
-                  onClick={() => updateForm("optimizationGoal", option.value)}
-                  className={cn(
-                    "rounded-[20px] border px-3 py-3 text-left transition-colors",
-                    form.optimizationGoal === option.value
-                      ? "border-walls-yellow bg-walls-yellow/15"
-                      : "border-neutral-200 bg-neutral-50 hover:bg-neutral-100",
-                  )}
-                >
-                  <p className="text-sm font-medium text-foreground">{option.label}</p>
-                  <p className="mt-1 text-xs font-light leading-5 text-neutral-500">
-                    {option.hint}
-                  </p>
-                </button>
-              ))}
+              {OPTIMIZATION_GOAL_OPTIONS.map((option) => {
+                const selected = form.optimizationGoal === option.value;
+                const Icon = GOAL_ICONS[option.value];
+                return (
+                  <button
+                    key={option.value}
+                    type="button"
+                    onClick={() => updateForm("optimizationGoal", option.value)}
+                    className={cn(
+                      toggleCardBaseClass,
+                      selected ? toggleCardActiveClass : toggleCardInactiveClass,
+                    )}
+                  >
+                    {selected ? (
+                      <span className="absolute right-3 top-3 flex h-5 w-5 items-center justify-center rounded-full bg-[#3f4a0e] text-walls-yellow ring-1 ring-[#2c3406]/20">
+                        <Check className="h-3 w-3" strokeWidth={3} />
+                      </span>
+                    ) : null}
+                    <div className="flex items-start gap-3">
+                      <span
+                        className={cn(
+                          "flex h-9 w-9 shrink-0 items-center justify-center rounded-xl transition-colors",
+                          selected
+                            ? "bg-[#3f4a0e] text-walls-yellow"
+                            : "bg-neutral-100 text-neutral-500",
+                        )}
+                      >
+                        <Icon className="h-4 w-4" strokeWidth={1.75} />
+                      </span>
+                      <div className="min-w-0">
+                        <p
+                          className={cn(
+                            "text-sm",
+                            selected
+                              ? "pr-6 font-semibold text-walls-forest"
+                              : "font-medium text-foreground",
+                          )}
+                        >
+                          {option.label}
+                        </p>
+                        <p
+                          className={cn(
+                            "mt-1 text-xs font-light leading-5",
+                            selected ? "text-walls-forest/80" : "text-neutral-500",
+                          )}
+                        >
+                          {option.hint}
+                        </p>
+                      </div>
+                    </div>
+                  </button>
+                );
+              })}
             </div>
           </div>
 
@@ -438,25 +511,18 @@ export function AdSpendControls() {
 
           <div className="mt-5 grid gap-5 sm:grid-cols-2">
             {form.optimizationGoal === "roas" || form.optimizationGoal === "conversions" ? (
-              <label className="block space-y-2">
-                <span className="text-sm font-medium text-foreground">ROAS floor</span>
-                <span className="block text-xs font-light text-neutral-500">
-                  Minimum return before scaling continues
-                </span>
-                <Input
-                  type="number"
-                  min={0}
-                  step={0.1}
-                  value={form.settings.roasFloor ?? ""}
-                  onChange={(e) =>
-                    updateSetting(
-                      "roasFloor",
-                      e.target.value ? Number(e.target.value) : null,
-                    )
-                  }
-                  className="mt-2 rounded-full border-neutral-200 bg-neutral-50 font-light"
+              <div className="sm:col-span-2">
+                <RoasFloorField
+                  variant="settings"
+                  settings={form.settings}
+                  onChange={(patch) => {
+                    setForm((prev) =>
+                      prev ? { ...prev, settings: { ...prev.settings, ...patch } } : prev,
+                    );
+                    setSaved(false);
+                  }}
                 />
-              </label>
+              </div>
             ) : null}
 
             {form.optimizationGoal === "ctr" ? (
@@ -512,20 +578,23 @@ export function AdSpendControls() {
               Minimum wait before AdPilot can increase or decrease the daily budget
               again on the same entity.
             </p>
-            <div className="mt-3 flex flex-wrap gap-2">
+            <div className={cn("mt-3", segmentTrackClass)}>
               {COOLDOWN_OPTIONS.map((option) => (
                 <button
                   key={option.value}
                   type="button"
                   onClick={() => updateSetting("cooldownHours", option.value)}
                   className={cn(
-                    "rounded-full border px-3 py-1.5 text-xs font-light transition-colors",
+                    toggleChipBaseClass,
                     form.settings.cooldownHours === option.value
-                      ? "border-walls-yellow bg-walls-yellow/20 text-foreground"
-                      : "border-neutral-200 bg-neutral-50 text-neutral-600 hover:bg-neutral-100",
+                      ? toggleChipActiveClass
+                      : toggleChipInactiveClass,
                   )}
                 >
-                  {option.label}
+                  {form.settings.cooldownHours === option.value ? (
+                    <SegmentThumb layoutId="cooldown-thumb" />
+                  ) : null}
+                  <span className="relative z-10">{option.label}</span>
                 </button>
               ))}
             </div>

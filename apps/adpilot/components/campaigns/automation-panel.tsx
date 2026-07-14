@@ -27,6 +27,7 @@ import {
 } from "@/lib/spend-automation-settings";
 
 import { SliderField } from "@/components/ui/slider-field";
+import { RoasFloorField } from "@/components/ui/roas-floor-field";
 
 function automationStatusLabel(status: AutomationStatus): string {
   const labels: Record<AutomationStatus, string> = {
@@ -300,7 +301,7 @@ export function EntityAutomationSection({
             <p className="mt-1 text-xs font-light text-neutral-500">
               Hard min/max daily budget (USD) the algorithm may not exceed.
             </p>
-            <div className="mt-4 grid gap-4 sm:grid-cols-3">
+            <div className="mt-4 grid gap-4 sm:grid-cols-2">
               <label className="block space-y-2">
                 <span className="text-sm font-medium text-foreground">
                   Minimum daily budget
@@ -335,28 +336,19 @@ export function EntityAutomationSection({
                   className="rounded-full border-neutral-200 bg-walls-white font-light"
                 />
               </label>
-              {optimizationGoal === "roas" || optimizationGoal === "conversions" ? (
-                <label className="block space-y-2">
-                  <span className="text-sm font-medium text-foreground">
-                    ROAS floor
-                  </span>
-                  <Input
-                    type="number"
-                    min={0}
-                    step={0.1}
-                    placeholder="No floor"
-                    value={settings.roasFloor ?? ""}
-                    onChange={(e) =>
-                      updateSetting(
-                        "roasFloor",
-                        e.target.value ? Number(e.target.value) : null,
-                      )
-                    }
-                    className="rounded-full border-neutral-200 bg-walls-white font-light"
-                  />
-                </label>
-              ) : null}
             </div>
+            {optimizationGoal === "roas" || optimizationGoal === "conversions" ? (
+              <div className="mt-5 border-t border-neutral-100 pt-5">
+                <RoasFloorField
+                  variant="detail"
+                  settings={settings}
+                  onChange={(patch) => {
+                    setSettings((prev) => ({ ...prev, ...patch }));
+                    setSaved(false);
+                  }}
+                />
+              </div>
+            ) : null}
           </div>
 
           <div>

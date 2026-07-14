@@ -51,11 +51,13 @@ const Switch = React.forwardRef<
     >
       <SwitchPrimitives.Thumb
         className={cn(
-          "pointer-events-none flex items-center justify-center rounded-full bg-neutral-100 ring-0 shadow-[0_1px_3px_rgba(0,0,0,0.14)] transition-transform data-[state=unchecked]:translate-x-0 data-[state=checked]:shadow-lg",
+          "pointer-events-none flex items-center justify-center rounded-full bg-neutral-100 ring-0 shadow-[0_1px_3px_rgba(0,0,0,0.14)] data-[state=unchecked]:translate-x-0 data-[state=checked]:shadow-lg",
           sizes.thumb,
         )}
         style={{
-          transition: `transform 0.5s ${BOUNCY_EASING}`,
+          // Tailwind v4 moves the thumb via the `translate` property, while v3
+          // used `transform`. Transition both so the bouncy slide works on either.
+          transition: `translate 0.5s ${BOUNCY_EASING}, transform 0.5s ${BOUNCY_EASING}`,
         }}
       />
     </SwitchPrimitives.Root>

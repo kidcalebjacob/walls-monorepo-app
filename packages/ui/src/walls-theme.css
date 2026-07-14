@@ -28,6 +28,8 @@
   --walls-sky-hover: #5a9ba8;
   --walls-emerald: #8dcf76;
   --walls-emerald-hover: #75b85f;
+  --walls-forest: #2b5b00;
+  --walls-forest-hover: #234a00;
   --walls-white: #fcfcfc;
   --walls-white-hover: #fcfcfc;
 
@@ -67,6 +69,8 @@
   --color-walls-sky-hover: var(--walls-sky-hover);
   --color-walls-emerald: var(--walls-emerald);
   --color-walls-emerald-hover: var(--walls-emerald-hover);
+  --color-walls-forest: var(--walls-forest);
+  --color-walls-forest-hover: var(--walls-forest-hover);
   --color-walls-white: var(--walls-white);
   --color-walls-white-hover: var(--walls-white-hover);
 

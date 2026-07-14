@@ -8,12 +8,16 @@ export type AutomationStatus =
   | "learning"
   | "error";
 
+export type RoasFloorInputMode = "direct" | "margin";
+
 export type SpendAutomationSettings = {
   aggressiveness: number;
   maxDailyIncreasePct: number;
   maxDailyDecreasePct: number;
   scaleUpCapPct: number;
   roasFloor: number | null;
+  roasFloorInputMode: RoasFloorInputMode;
+  contributionMarginPct: number | null;
   ctrFloorPct: number | null;
   cpaCeiling: number | null;
   cooldownHours: number;
@@ -21,18 +25,97 @@ export type SpendAutomationSettings = {
   pauseOnFatigue: boolean;
 };
 
+export const CONTRIBUTION_MARGIN_PRESETS = [
+  { marginPct: 100, roasFloor: 1.0 },
+  { marginPct: 90, roasFloor: 1.11 },
+  { marginPct: 80, roasFloor: 1.25 },
+  { marginPct: 70, roasFloor: 1.43 },
+  { marginPct: 60, roasFloor: 1.67 },
+  { marginPct: 50, roasFloor: 2.0 },
+  { marginPct: 40, roasFloor: 2.5 },
+  { marginPct: 30, roasFloor: 3.33 },
+  { marginPct: 20, roasFloor: 5.0 },
+] as const;
+
 export const DEFAULT_SPEND_AUTOMATION_SETTINGS: SpendAutomationSettings = {
   aggressiveness: 62,
   maxDailyIncreasePct: 18,
   maxDailyDecreasePct: 12,
   scaleUpCapPct: 35,
   roasFloor: 2.4,
+  roasFloorInputMode: "direct",
+  contributionMarginPct: 41.67,
   ctrFloorPct: 1.2,
   cpaCeiling: 42,
   cooldownHours: 24,
   learningPhaseProtection: true,
   pauseOnFatigue: true,
 };
+
+/** Break-even ROAS from contribution margin % (revenue after variable costs, before ad spend). */
+export function roasFloorFromContributionMargin(marginPct: number): number | null {
+  if (!Number.isFinite(marginPct) || marginPct <= 0 || marginPct > 100) {
+    return null;
+  }
+  return Math.round((100 / marginPct) * 100) / 100;
+}
+
+export function contributionMarginFromRoasFloor(roasFloor: number): number | null {
+  if (!Number.isFinite(roasFloor) || roasFloor <= 0) {
+    return null;
+  }
+  return Math.round((100 / roasFloor) * 100) / 100;
+}
+
+export function getEffectiveRoasFloor(settings: SpendAutomationSettings): number | null {
+  if (settings.roasFloorInputMode === "margin") {
+    const fromMargin =
+      settings.contributionMarginPct != null
+        ? roasFloorFromContributionMargin(settings.contributionMarginPct)
+        : null;
+    if (fromMargin != null) return fromMargin;
+  }
+  return settings.roasFloor;
+}
+
+export function syncRoasFloorSettings(
+  settings: SpendAutomationSettings,
+): SpendAutomationSettings {
+  const next = { ...settings };
+
+  if (next.roasFloorInputMode === "margin") {
+    if (next.contributionMarginPct == null && next.roasFloor != null) {
+      next.contributionMarginPct = contributionMarginFromRoasFloor(next.roasFloor);
+    }
+    if (next.contributionMarginPct != null) {
+      next.roasFloor = roasFloorFromContributionMargin(next.contributionMarginPct);
+    }
+  } else if (next.roasFloor != null) {
+    next.contributionMarginPct = contributionMarginFromRoasFloor(next.roasFloor);
+  }
+
+  return next;
+}
+
+export function patchRoasFloorSettings(
+  settings: SpendAutomationSettings,
+  patch: Partial<
+    Pick<
+      SpendAutomationSettings,
+      "roasFloor" | "roasFloorInputMode" | "contributionMarginPct"
+    >
+  >,
+): Pick<
+  SpendAutomationSettings,
+  "roasFloor" | "roasFloorInputMode" | "contributionMarginPct"
+> {
+  const merged = syncRoasFloorSettings({ ...settings, ...patch });
+  return {
+    roasFloor: merged.roasFloor,
+    roasFloorInputMode: merged.roasFloorInputMode,
+    contributionMarginPct: merged.contributionMarginPct,
+  };
+}
 
 export const OPTIMIZATION_GOAL_OPTIONS: Array<{
   value: OptimizationGoal;
@@ -77,10 +160,11 @@ export function parseAutomationSettings(
 
   const input = raw as Partial<SpendAutomationSettings>;
   const parsed = mergeAutomationSettings(DEFAULT_SPEND_AUTOMATION_SETTINGS, input);
-  return {
+  return syncRoasFloorSettings({
     ...parsed,
     cooldownHours: normalizeCooldownHours(parsed.cooldownHours),
-  };
+    roasFloorInputMode: parsed.roasFloorInputMode ?? "direct",
+  });
 }
 
 export function optimizationGoalLabel(goal: OptimizationGoal): string {
