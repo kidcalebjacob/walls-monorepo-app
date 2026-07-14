@@ -14,10 +14,13 @@ export interface ProtectedAppMiddlewareOptions {
   /** Portal origin override (optional). Defaults from env via resolvePortalLoginOrigin. */
   portalLoginUrl?: string;
   /**
-   * When set, user must have a row in user_app_access for this apps.slug.
+   * When set, user must have access to this apps.slug via user_app_access
+   * OR membership in an account with account_app_access.
    * Omit to only require a valid portal session.
    */
   appSlug?: string;
+  /** When true, user must have users.is_admin = true. */
+  requireAdmin?: boolean;
 }
 
 export const protectedAppMiddlewareMatcher = [
@@ -98,7 +101,42 @@ async function userHasAppAccess(
     return false;
   }
 
-  return !!accessRow;
+  if (accessRow) {
+    return true;
+  }
+
+  const { data: memberships, error: membershipError } = await supabase
+    .from("account_users")
+    .select("account_id")
+    .eq("user_id", userId);
+
+  if (membershipError) {
+    console.error("[auth] Error checking account_users:", membershipError);
+    return false;
+  }
+
+  const accountIds = (memberships ?? [])
+    .map((row) => row.account_id)
+    .filter((id): id is string => !!id);
+
+  if (accountIds.length === 0) {
+    return false;
+  }
+
+  const { data: accountAccess, error: accountAccessError } = await supabase
+    .from("account_app_access")
+    .select("id")
+    .eq("app_id", appRow.id)
+    .in("account_id", accountIds)
+    .limit(1)
+    .maybeSingle();
+
+  if (accountAccessError) {
+    console.error("[auth] Error checking account_app_access:", accountAccessError);
+    return false;
+  }
+
+  return !!accountAccess;
 }
 
 /**
@@ -138,7 +176,7 @@ export async function handleProtectedAppRequest(
 
     const { data: userRow, error: statusError } = await supabase
       .from("users")
-      .select("status")
+      .select("status, is_admin")
       .eq("id", user!.id)
       .maybeSingle();
 
@@ -148,6 +186,10 @@ export async function handleProtectedAppRequest(
 
     if (userRow?.status && userRow.status !== "active") {
       await supabase.auth.signOut();
+      return redirectToPortalLogin(request, options.portalLoginUrl);
+    }
+
+    if (options.requireAdmin && userRow?.is_admin !== true) {
       return redirectToPortalLogin(request, options.portalLoginUrl);
     }
 

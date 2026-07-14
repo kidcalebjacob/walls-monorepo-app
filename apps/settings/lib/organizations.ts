@@ -183,6 +183,33 @@ export async function isOrganizationSlugAvailable(
   return !data;
 }
 
+function randomFourDigits(): string {
+  return String(Math.floor(1000 + Math.random() * 9000));
+}
+
+/** Builds a unique slug from the org name. On collision, appends `-` + 4 digits. */
+export async function allocateUniqueOrganizationSlug(
+  name: string,
+): Promise<string | null> {
+  const base =
+    normalizeOrganizationSlug(name) ??
+    normalizeOrganizationSlug(`org-${name}`) ??
+    "org";
+
+  if (await isOrganizationSlugAvailable(base)) {
+    return base;
+  }
+
+  for (let attempt = 0; attempt < 20; attempt += 1) {
+    const candidate = `${base}-${randomFourDigits()}`;
+    if (await isOrganizationSlugAvailable(candidate)) {
+      return candidate;
+    }
+  }
+
+  return null;
+}
+
 export async function updateOrganization(
   organizationId: string,
   input: OrganizationUpdateInput,
@@ -250,6 +277,51 @@ export async function updateOrganization(
   return { ok: true };
 }
 
+/**
+ * Sets the caller's default organization membership.
+ * Clears is_default on their other memberships first.
+ */
+export async function setDefaultOrganizationForUser(
+  userId: string,
+  organizationId: string,
+): Promise<{ ok: true } | { ok: false; error: string }> {
+  const membership = await getOrganizationForUser(userId, organizationId);
+  if (!membership) {
+    return { ok: false, error: "Organization not found" };
+  }
+
+  if (membership.isDefault) {
+    return { ok: true };
+  }
+
+  const admin = createAdminClient();
+  const now = new Date().toISOString();
+
+  const { error: clearError } = await admin
+    .from("account_users")
+    .update({ is_default: false, updated_at: now })
+    .eq("user_id", userId)
+    .eq("is_default", true);
+
+  if (clearError) {
+    console.error("[settings] clear default organization:", clearError);
+    return { ok: false, error: "Failed to update default organization" };
+  }
+
+  const { error: setError } = await admin
+    .from("account_users")
+    .update({ is_default: true, updated_at: now })
+    .eq("user_id", userId)
+    .eq("account_id", organizationId);
+
+  if (setError) {
+    console.error("[settings] set default organization:", setError);
+    return { ok: false, error: "Failed to update default organization" };
+  }
+
+  return { ok: true };
+}
+
 export async function deleteOrganization(
   organizationId: string,
 ): Promise<{ ok: true } | { ok: false; error: string }> {
@@ -277,46 +349,48 @@ export async function deleteOrganization(
 export async function createOrganizationForUser(input: {
   userId: string;
   name: string;
-  slug: string;
   iconUrl?: string | null;
   website?: string | null;
 }): Promise<
   | { organization: OrganizationRecord; error?: undefined }
   | { organization?: undefined; error: string }
 > {
-  const normalized = normalizeOrganizationSlug(input.slug);
-  if (!normalized) {
-    return {
-      error: "Slug must be at least 2 characters and use letters or numbers",
-    };
-  }
-
-  const available = await isOrganizationSlugAvailable(normalized);
-  if (!available) {
-    return { error: "This slug is already taken" };
-  }
-
   const admin = createAdminClient();
   const now = new Date().toISOString();
 
-  const { data: account, error: accountError } = await admin
-    .from("accounts")
-    .insert({
-      account_type: "organization",
-      name: input.name,
-      slug: normalized,
-      icon_url: input.iconUrl ?? null,
-      website: input.website ?? null,
-      updated_at: now,
-    })
-    .select(ACCOUNT_FIELDS)
-    .single();
+  let account: AccountRow | null = null;
 
-  if (accountError || !account) {
-    console.error("[settings] create organization:", accountError);
-    if (accountError?.code === "23505") {
-      return { error: "This slug is already taken" };
+  for (let attempt = 0; attempt < 5; attempt += 1) {
+    const slug = await allocateUniqueOrganizationSlug(input.name);
+    if (!slug) {
+      return { error: "Failed to generate a unique organization slug" };
     }
+
+    const { data, error } = await admin
+      .from("accounts")
+      .insert({
+        account_type: "organization",
+        name: input.name,
+        slug,
+        icon_url: input.iconUrl ?? null,
+        website: input.website ?? null,
+        updated_at: now,
+      })
+      .select(ACCOUNT_FIELDS)
+      .single();
+
+    if (data) {
+      account = data as AccountRow;
+      break;
+    }
+
+    console.error("[settings] create organization:", error);
+    if (error?.code !== "23505") {
+      return { error: "Failed to create organization" };
+    }
+  }
+
+  if (!account) {
     return { error: "Failed to create organization" };
   }
 
@@ -342,7 +416,7 @@ export async function createOrganizationForUser(input: {
   }
 
   return {
-    organization: mapOrganization(account as AccountRow, {
+    organization: mapOrganization(account, {
       role: "owner",
       is_default: !existingDefault,
     }),

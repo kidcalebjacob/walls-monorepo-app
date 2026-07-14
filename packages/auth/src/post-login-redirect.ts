@@ -31,6 +31,7 @@ function configuredOrigins(): string[] {
     process.env.NEXT_PUBLIC_HEALTH_URL,
     process.env.NEXT_PUBLIC_CALENDAR_URL,
     process.env.NEXT_PUBLIC_PROJECTS_URL,
+    process.env.NEXT_PUBLIC_ADMIN_URL,
     process.env.NEXT_PUBLIC_WALLS_PUBLIC_SITE_URL,
     process.env.APP_BASE_URL,
   ];

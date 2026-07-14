@@ -12,9 +12,10 @@ pnpm + Turborepo monorepo for the WALLS Entertainment ecosystem.
 | **portal**      | `apps/portal`      | Agency auth portal ([portal.walls.agency](https://portal.walls.agency)) — login & password reset |
 | **wallie**      | `apps/wallie`      | Wallie AI web app ([wallie.walls.agency](https://wallie.walls.agency)) |
 | **wallie-mobile** | `apps/wallie-mobile` | Wallie iOS/Android app (Expo dev client) |
+| **admin**       | `apps/admin`       | Agency admin ([admin.walls.agency](https://admin.walls.agency)) — users, apps, jobs, teams |
 
 
-Future apps (e.g. `agents.walls.agency`) will live under `apps/`.
+Future apps will live under `apps/`.
 
 ## Packages
 
@@ -74,6 +75,9 @@ pnpm dev:portal
 
 # Wallie web — http://localhost:3003
 pnpm dev:wallie
+
+# Admin — http://localhost:3008
+pnpm dev:admin
 
 # All apps at once
 pnpm dev
@@ -259,6 +263,7 @@ Also set in **`.env.local`** (dev) or Vercel / **`.env`** (production) on **both
 
 - `NEXT_PUBLIC_WALLS_AGENCY_URL` — portal origin (`https://portal.walls.agency` in production)
 - `NEXT_PUBLIC_ADPILOT_URL` — AdPilot origin (for safe post-login redirects)
+- `NEXT_PUBLIC_ADMIN_URL` — Admin origin (`https://admin.walls.agency` in production; include on portal so post-login redirects to Admin are allowed)
 
 Local dev uses `localhost` origins; cookies are **not** shared across ports — log in via the portal redirect flow when testing AdPilot locally.
 
@@ -271,6 +276,7 @@ Create **one Vercel project per app** with **Root Directory** set to `apps/<name
 | AdPilot | `cd ../.. && pnpm turbo build --filter=adpilot` |
 | Portal | `cd ../.. && pnpm turbo build --filter=portal` |
 | Public site | `cd ../.. && pnpm turbo build --filter=public-site` |
+| Admin | `cd ../.. && pnpm turbo build --filter=admin` |
 
 Set only the env vars each app needs in that project’s Vercel settings. Legacy walls-app keys (Stripe, Wise, AWS, etc.) are listed in `turbo.json` → `globalPassThroughEnv` so Turborepo won’t warn if they’re still on a project, but **AdPilot does not use them** — you can remove them from the AdPilot Vercel project to keep things clean.
 

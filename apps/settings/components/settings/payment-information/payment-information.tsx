@@ -583,7 +583,7 @@ const PaymentInformationPage = () => {
   // If user has payment details and not in edit mode, show payment display
   if (existingPayment && !editMode) {
     return (
-      <div className="flex flex-col h-full overflow-hidden bg-gray-50">
+      <div className="flex flex-col h-full overflow-hidden bg-walls-white">
         <div className="flex-1 w-full max-w-[90%] mx-auto min-h-0 overflow-y-auto">
           <div className="max-w-4xl mx-auto">
             <div className="w-full p-8 pb-16">
@@ -599,7 +599,7 @@ const PaymentInformationPage = () => {
 
   // Otherwise show form flow
   return (
-    <div className="flex flex-col h-full overflow-hidden bg-gray-50">
+    <div className="flex flex-col h-full overflow-hidden bg-walls-white">
       <div className="flex-1 w-full max-w-[90%] mx-auto overflow-hidden min-h-0">
         <div className="max-w-4xl mx-auto h-full flex flex-col min-h-0">
           <div className="w-full px-8 flex-shrink-0">

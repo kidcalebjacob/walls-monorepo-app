@@ -512,7 +512,7 @@ const AgentSettingsPage = () => {
   }, [existingFirstName, existingLastName, existingPersonalEmail, existingLinkedInUrl, existingPhoneNumber, existingTimezone]);
 
   return (
-    <div className="flex flex-col h-full overflow-y-auto overscroll-none bg-gray-50">
+    <div className="flex flex-col h-full overflow-y-auto overscroll-none bg-walls-white">
       <div className="w-full">
         <div className="max-w-5xl mx-auto px-8 pb-8">
           {/* Header */}
