@@ -114,11 +114,7 @@ export function EntityDailyProgressSection({
   }));
 
   return (
-    <DetailSection
-      title="Daily progress"
-      description={`${progress.periodLabel} · ${progress.objectiveLabel} outcome`}
-      defaultOpen
-    >
+    <DetailSection title="Daily progress">
       <div className="space-y-6">
         <div className="flex flex-wrap gap-6">
           <div>

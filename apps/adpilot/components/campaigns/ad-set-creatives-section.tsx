@@ -126,11 +126,7 @@ export function AdSetCreativesSection({
 
   return (
     <>
-      <DetailSection
-        title="Creatives"
-        description="Ads in this ad set — last 30 days, sorted by performance"
-        className="mb-8"
-      >
+      <DetailSection title="Creatives">
         {ads.length === 0 ? (
           <p className="text-sm font-light text-neutral-500">
             No ads synced for this ad set yet.

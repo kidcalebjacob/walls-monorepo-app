@@ -603,7 +603,6 @@ export function EntityAutomationSection({
 
       <AdPilotPreviewCard
         entityId={entityId}
-        entityLabel={entityLabel}
         onApplied={(adjustment) =>
           setAdjustments((current) => [adjustment, ...current].slice(0, 10))
         }
@@ -615,10 +614,7 @@ export function EntityAutomationSection({
         initialInstructions={detail.agentInstructions}
       />
 
-      <DetailSection
-        title="Budget history"
-        description="Recent daily budget adjustments for this entity."
-      >
+      <DetailSection title="Budget history">
         <AdjustmentsList rows={adjustments} />
       </DetailSection>
     </div>
@@ -709,7 +705,6 @@ function AgentInstructionsSection({
     <DetailSection
       title="Agent instructions"
       description="Natural-language guidance the AdPilot agent reads when deciding how to move spend. Add as many as you like, each with its own schedule."
-      defaultOpen={false}
       collapsedBadgeCount={activeCount}
     >
       <AgentInstructionsManager

@@ -42,7 +42,10 @@ export function DetailSection({
   children,
   className,
   collapsible = true,
-  defaultOpen = true,
+  defaultOpen = false,
+  open: openControlled,
+  onOpenChange,
+  trailing,
   collapsedBadgeCount,
 }: {
   title: string;
@@ -51,46 +54,76 @@ export function DetailSection({
   className?: string;
   collapsible?: boolean;
   defaultOpen?: boolean;
-  /** Shown beside the title when the section is collapsed (e.g. active instruction count). */
+  /** Controlled open state. When set, pair with `onOpenChange`. */
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
+  /**
+   * Replaces the default +/- collapse control on the far right.
+   * Title + rule still toggle the section open/closed.
+   */
+  trailing?: React.ReactNode;
+  /** Glowing status dot left of the title when > 0 (e.g. active instruction count). */
   collapsedBadgeCount?: number;
 }) {
-  const [open, setOpen] = React.useState(defaultOpen);
+  const [uncontrolledOpen, setUncontrolledOpen] = React.useState(defaultOpen);
+  const isControlled = openControlled !== undefined;
+  const open = isControlled ? openControlled : uncontrolledOpen;
+
+  const setOpen = (next: boolean) => {
+    if (!isControlled) setUncontrolledOpen(next);
+    onOpenChange?.(next);
+  };
+
   const isOpen = collapsible ? open : true;
-  const showBadge =
-    collapsible &&
-    !isOpen &&
-    collapsedBadgeCount != null &&
-    collapsedBadgeCount > 0;
+  const showActiveDot =
+    collapsedBadgeCount != null && collapsedBadgeCount > 0;
+
+  const titleBlock = (
+    <span className="mr-3 flex shrink-0 items-center gap-2.5">
+      {showActiveDot ? (
+        <span
+          className="relative flex h-2 w-2 shrink-0"
+          aria-label={`${collapsedBadgeCount} active instruction${collapsedBadgeCount === 1 ? "" : "s"}`}
+        >
+          <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[var(--walls-sky)] opacity-60 motion-reduce:animate-none" />
+          <span className="relative inline-flex h-2 w-2 rounded-full bg-[var(--walls-sky)] shadow-[0_0_8px_var(--walls-sky)]" />
+        </span>
+      ) : null}
+      <span className="text-2xl font-black tracking-tight text-black transition-opacity duration-300 group-hover:opacity-70 sm:text-3xl">
+        {title}
+      </span>
+    </span>
+  );
 
   return (
     <section className={cn("scroll-mt-24", className)}>
       {collapsible ? (
-        <button
-          type="button"
-          onClick={() => setOpen((prev) => !prev)}
-          aria-expanded={isOpen}
-          className="mb-4 flex w-full items-center transition-opacity hover:opacity-80"
-        >
-          <span className="mr-3 flex shrink-0 items-center gap-2.5">
-            <span className="text-2xl font-black tracking-tight text-black sm:text-3xl">
-              {title}
-            </span>
-            {showBadge ? (
-              <span
-                className="inline-flex h-6 min-w-6 items-center justify-center rounded-full bg-gradient-to-b from-[#eafb87] to-[#d2ef3a] px-1.5 text-xs font-semibold tabular-nums text-walls-forest shadow-[0_1px_2px_rgba(0,0,0,0.12)]"
-                aria-label={`${collapsedBadgeCount} active instruction${collapsedBadgeCount === 1 ? "" : "s"}`}
-              >
-                {collapsedBadgeCount}
-              </span>
-            ) : null}
-          </span>
-          <div className="h-px flex-1 border-t border-black/80" />
-          {isOpen ? (
-            <Minus className="ml-4 h-4 w-4 shrink-0 text-neutral-600" />
-          ) : (
-            <Plus className="ml-4 h-4 w-4 shrink-0 text-neutral-600" />
+        <div
+          className={cn(
+            "flex w-full items-center",
+            isOpen ? "mb-4" : "mb-0",
           )}
-        </button>
+        >
+          <button
+            type="button"
+            onClick={() => setOpen(!isOpen)}
+            aria-expanded={isOpen}
+            className="group flex min-w-0 flex-1 items-center"
+          >
+            {titleBlock}
+            <div className="h-px flex-1 border-t border-black/80 transition-opacity duration-300 group-hover:opacity-60" />
+            {!trailing ? (
+              isOpen ? (
+                <Minus className="ml-4 h-4 w-4 shrink-0 text-neutral-600 transition-opacity duration-300 group-hover:opacity-70" />
+              ) : (
+                <Plus className="ml-4 h-4 w-4 shrink-0 text-neutral-600 transition-opacity duration-300 group-hover:opacity-70" />
+              )
+            ) : null}
+          </button>
+          {trailing ? (
+            <div className="ml-4 shrink-0">{trailing}</div>
+          ) : null}
+        </div>
       ) : (
         <div className="mb-4 flex items-center">
           <span className="mr-4 text-2xl font-black tracking-tight text-black sm:text-3xl">

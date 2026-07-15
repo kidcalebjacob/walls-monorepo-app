@@ -109,7 +109,7 @@ function PreviewResult({ entityId, preview, onApplied }: PreviewResultProps) {
   };
 
   return (
-    <div className="mt-5 space-y-4">
+    <div className="space-y-4">
       <div className="flex flex-wrap items-center gap-3">
         {final != null ? (
           <span className="inline-flex items-center gap-2 text-sm font-medium text-foreground">
@@ -258,22 +258,73 @@ function PreviewResult({ entityId, preview, onApplied }: PreviewResultProps) {
   );
 }
 
+function AdPilotGenerateButton({
+  loading,
+  hasResult,
+  onClick,
+}: {
+  loading: boolean;
+  hasResult: boolean;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      disabled={loading}
+      onClick={onClick}
+      aria-label={
+        loading
+          ? "Generating AdPilot decision"
+          : hasResult
+            ? "Regenerate AdPilot decision"
+            : "Generate AdPilot decision"
+      }
+      className={cn(
+        "group relative inline-flex shrink-0 overflow-hidden rounded-2xl bg-walls-white p-[1.5px]",
+        "transition-[filter] duration-300 hover:brightness-[1.03]",
+        "focus-visible:outline-none",
+        "disabled:cursor-wait disabled:opacity-80",
+      )}
+    >
+      <span
+        aria-hidden
+        className="pointer-events-none absolute inset-[-60%] opacity-0 transition-opacity duration-300 group-hover:opacity-100 group-focus-visible:opacity-100"
+      >
+        <span className="adpilot-chrome-orbit absolute inset-0" />
+      </span>
+      <span className="relative inline-flex items-center gap-2 rounded-[14.5px] bg-walls-white px-3.5 py-2 text-sm font-medium text-neutral-700">
+        {loading ? (
+          <>
+            <Loader2 className="h-3.5 w-3.5 animate-spin" />
+            Generating…
+          </>
+        ) : (
+          <>
+            <Sparkles className="h-3.5 w-3.5" />
+            {hasResult ? "Regenerate" : "Generate"}
+          </>
+        )}
+      </span>
+    </button>
+  );
+}
+
 type AdPilotPreviewCardProps = {
   entityId: string;
-  entityLabel: string;
   onApplied?: (adjustment: BudgetAdjustmentRow) => void;
 };
 
 export function AdPilotPreviewCard({
   entityId,
-  entityLabel,
   onApplied,
 }: AdPilotPreviewCardProps) {
+  const [open, setOpen] = React.useState(false);
   const [loading, setLoading] = React.useState(false);
   const [preview, setPreview] = React.useState<AdPilotPreview | null>(null);
   const [error, setError] = React.useState<string | null>(null);
 
   const run = async () => {
+    setOpen(true);
     setLoading(true);
     setError(null);
     setPreview(null);
@@ -293,28 +344,25 @@ export function AdPilotPreviewCard({
   return (
     <DetailSection
       title="Preview AdPilot decision"
-      description={`See exactly what AdPilot would do to this ${entityLabel} right now — a dry run that reads live metrics and applies your guardrails without changing anything on Meta.`}
+      open={open}
+      onOpenChange={setOpen}
+      trailing={
+        <AdPilotGenerateButton
+          loading={loading}
+          hasResult={preview != null}
+          onClick={() => void run()}
+        />
+      }
     >
-      <Button
-        type="button"
-        disabled={loading}
-        onClick={() => void run()}
-        className={cn(primaryButtonClass, "inline-flex items-center gap-2")}
-      >
-        {loading ? (
-          <>
-            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-            Checking…
-          </>
-        ) : preview ? (
-          "Re-run preview"
-        ) : (
-          "Preview decision"
-        )}
-      </Button>
+      {loading && !preview && !error ? (
+        <div className="flex items-center gap-2 text-sm font-light text-neutral-500">
+          <Loader2 className="h-4 w-4 animate-spin" />
+          Reading live metrics and running guardrails…
+        </div>
+      ) : null}
 
       {error ? (
-        <div className="mt-4 rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-800">
+        <div className="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-800">
           {error}
         </div>
       ) : null}
