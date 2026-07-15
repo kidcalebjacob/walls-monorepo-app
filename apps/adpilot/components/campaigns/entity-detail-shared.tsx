@@ -621,10 +621,14 @@ export function AdPilotEnableToggle({
             className="pointer-events-none absolute inset-[-60%]"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            exit={{ opacity: 0, scale: 1.12, filter: "blur(8px)" }}
+            exit={{
+              opacity: 0,
+              scale: 1.12,
+              filter: "blur(8px)",
+              transition: { duration: 0.55, ease: [0.22, 1, 0.36, 1] },
+            }}
             transition={{
               opacity: { duration: 0.15 },
-              exit: { duration: 0.55, ease: [0.22, 1, 0.36, 1] },
             }}
           >
             <span className="adpilot-chrome-orbit absolute inset-0" />
