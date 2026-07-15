@@ -579,7 +579,7 @@ function LoginPageContent() {
                     return (
                       <div
                         key={i}
-                        className="w-12 h-16 flex-shrink-0 flex items-center justify-center gap-0.5 rounded-xl bg-neutral-100 backdrop-blur-md shadow-inner border border-neutral-200/50 text-xl font-mono text-foreground"
+                        className="w-12 h-16 flex-shrink-0 flex items-center justify-center gap-0.5 rounded-xl bg-walls-white backdrop-blur-md shadow-inner border border-neutral-200/50 text-xl font-mono text-foreground"
                       >
                         <span>{mfaCode[i] ?? ""}</span>
                         {isCursorHere && (
@@ -602,7 +602,7 @@ function LoginPageContent() {
                     return (
                       <div
                         key={i}
-                        className="w-12 h-16 flex-shrink-0 flex items-center justify-center gap-0.5 rounded-xl bg-neutral-100 backdrop-blur-md shadow-inner border border-neutral-200/50 text-xl font-mono text-foreground"
+                        className="w-12 h-16 flex-shrink-0 flex items-center justify-center gap-0.5 rounded-xl bg-walls-white backdrop-blur-md shadow-inner border border-neutral-200/50 text-xl font-mono text-foreground"
                       >
                         <span>{mfaCode[i] ?? ""}</span>
                         {isCursorHere && (
@@ -641,7 +641,7 @@ function LoginPageContent() {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   disabled={isLoading}
-                  className="h-12 bg-neutral-100 backdrop-blur-md shadow-inner border border-neutral-200/50 transition-all duration-300 placeholder:text-neutral-400/80"
+                  className="h-12 bg-walls-white backdrop-blur-md shadow-inner border border-neutral-200/50 transition-all duration-300 placeholder:text-neutral-400/80"
                   onKeyDown={(e) => {
                     if (e.key === "Enter" && !isLoading) handleLogin();
                   }}
@@ -652,7 +652,7 @@ function LoginPageContent() {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   disabled={isLoading}
-                  className="h-12 bg-neutral-100 backdrop-blur-md shadow-inner border border-neutral-200/50 transition-all duration-300 placeholder:text-neutral-400/80"
+                  className="h-12 bg-walls-white backdrop-blur-md shadow-inner border border-neutral-200/50 transition-all duration-300 placeholder:text-neutral-400/80"
                   onKeyDown={(e) => {
                     if (e.key === "Enter" && !isLoading) handleLogin();
                   }}
