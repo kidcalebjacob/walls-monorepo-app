@@ -411,47 +411,57 @@ function ReachSaturationBar({
           </div>
 
           <div className="pointer-events-none absolute inset-x-0 top-1/2 z-10 -translate-y-1/2">
-            {SATURATION_GUIDES.map((guide) => (
-              <button
-                key={guide.pct}
-                type="button"
-                style={{ left: `${guide.pct}%` }}
-                className={cn(
-                  "group/guide pointer-events-auto absolute top-1/2 -translate-x-1/2 -translate-y-1/2",
-                  "flex h-5 w-3 cursor-help items-center justify-center outline-none",
-                )}
-                aria-label={`${guide.label}: ${guide.title}. ${guide.description}`}
-              >
-                <span
+            {SATURATION_GUIDES.map((guide) => {
+              const tooltipAlign =
+                guide.pct <= 10
+                  ? "left-0 translate-x-0"
+                  : guide.pct >= 45
+                    ? "right-0 translate-x-0 left-auto"
+                    : "left-1/2 -translate-x-1/2";
+
+              return (
+                <button
+                  key={guide.pct}
+                  type="button"
+                  style={{ left: `${guide.pct}%` }}
                   className={cn(
-                    "block h-3.5 w-0.5 rounded-full bg-neutral-500/55 shadow-[0_0_0_1px_rgba(255,255,255,0.7)]",
-                    "transition-colors duration-150",
-                    "group-hover/guide:bg-neutral-700 group-focus-visible/guide:bg-neutral-700",
+                    "group/guide pointer-events-auto absolute top-1/2 -translate-x-1/2 -translate-y-1/2",
+                    "flex h-5 w-3 cursor-help items-center justify-center outline-none",
                   )}
-                />
-                <span
-                  role="tooltip"
-                  className={cn(
-                    "pointer-events-none absolute bottom-[calc(100%+10px)] left-1/2 z-20 w-56 -translate-x-1/2",
-                    "rounded-xl border border-neutral-200/80 bg-white/95 px-3 py-2 text-left shadow-lg backdrop-blur-sm",
-                    "opacity-0 transition-opacity duration-150",
-                    "group-hover/guide:opacity-100 group-focus-visible/guide:opacity-100",
-                  )}
+                  aria-label={`${guide.label}: ${guide.title}. ${guide.description}`}
                 >
-                  <span className="flex items-baseline justify-between gap-2">
-                    <span className="text-[11px] font-semibold text-neutral-800">
-                      {guide.title}
+                  <span
+                    className={cn(
+                      "block h-5 w-0 border-l-[1.5px] border-dashed border-red-400/75",
+                      "transition-colors duration-150",
+                      "group-hover/guide:border-red-500 group-focus-visible/guide:border-red-500",
+                    )}
+                  />
+                  <span
+                    role="tooltip"
+                    className={cn(
+                      "pointer-events-none absolute bottom-[calc(100%+10px)] z-20 w-56",
+                      "rounded-xl border border-neutral-200/80 bg-white/95 px-3 py-2 text-left shadow-lg backdrop-blur-sm",
+                      "opacity-0 transition-opacity duration-150",
+                      "group-hover/guide:opacity-100 group-focus-visible/guide:opacity-100",
+                      tooltipAlign,
+                    )}
+                  >
+                    <span className="flex items-baseline justify-between gap-2">
+                      <span className="text-[11px] font-semibold text-neutral-800">
+                        {guide.title}
+                      </span>
+                      <span className="text-[10px] font-medium uppercase tracking-[0.12em] text-neutral-400">
+                        {guide.label}
+                      </span>
                     </span>
-                    <span className="text-[10px] font-medium uppercase tracking-[0.12em] text-neutral-400">
-                      {guide.label}
+                    <span className="mt-1 block text-[11px] font-light leading-snug text-neutral-500">
+                      {guide.description}
                     </span>
                   </span>
-                  <span className="mt-1 block text-[11px] font-light leading-snug text-neutral-500">
-                    {guide.description}
-                  </span>
-                </span>
-              </button>
-            ))}
+                </button>
+              );
+            })}
           </div>
         </div>
       </div>
