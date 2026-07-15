@@ -3,9 +3,12 @@ import { createAdminClient } from "@walls/supabase/admin";
 import { type AdDataScope, adScopeFields } from "@/lib/ad-scope";
 import { META_PROVIDER } from "@/lib/connections";
 import {
+  fetchMetaDeliveryEstimate,
   fetchMetaGraphCollection,
   fetchMetaInsights,
+  fetchMetaLifetimeTotals,
   getMetaDateRange,
+  type MetaDeliveryEstimate,
   type MetaInsightRow,
 } from "@/lib/meta-graph";
 
@@ -294,6 +297,76 @@ async function updateEntityLearning(entityId: string, learning: LearningFields) 
   if (error) throw error;
 }
 
+type AudienceEstimateFields = {
+  estimatedAudienceLower: number | null;
+  estimatedAudienceUpper: number | null;
+  audienceEstimateReady: boolean | null;
+};
+
+const EMPTY_AUDIENCE_ESTIMATE: AudienceEstimateFields = {
+  estimatedAudienceLower: null,
+  estimatedAudienceUpper: null,
+  audienceEstimateReady: null,
+};
+
+/** Meta returns -1 when an estimate is unavailable (e.g. cold lookalikes). */
+function parseEstimateCount(value: number | string | undefined | null): number | null {
+  if (value === undefined || value === null || value === "") return null;
+  const parsed = typeof value === "string" ? Number(value) : value;
+  if (!Number.isFinite(parsed) || parsed < 0) return null;
+  return Math.round(parsed);
+}
+
+function parseDeliveryEstimate(estimate: MetaDeliveryEstimate | null): AudienceEstimateFields {
+  if (!estimate) return EMPTY_AUDIENCE_ESTIMATE;
+
+  const lower = parseEstimateCount(estimate.estimate_mau_lower_bound);
+  const upper = parseEstimateCount(estimate.estimate_mau_upper_bound);
+  const legacyMau = parseEstimateCount(estimate.estimate_mau);
+
+  return {
+    estimatedAudienceLower: lower ?? legacyMau,
+    estimatedAudienceUpper: upper ?? legacyMau,
+    audienceEstimateReady:
+      typeof estimate.estimate_ready === "boolean" ? estimate.estimate_ready : null,
+  };
+}
+
+async function updateEntityAudienceEstimate(
+  entityId: string,
+  estimate: AudienceEstimateFields,
+) {
+  const admin = createAdminClient();
+  const { error } = await admin
+    .from("ad_entities")
+    .update({
+      estimated_audience_lower: estimate.estimatedAudienceLower,
+      estimated_audience_upper: estimate.estimatedAudienceUpper,
+      audience_estimate_ready: estimate.audienceEstimateReady,
+      updated_at: new Date().toISOString(),
+    })
+    .eq("id", entityId);
+
+  if (error) throw error;
+}
+
+async function updateEntityLifetimeTotals(
+  entityId: string,
+  input: { lifetimeReach: number | null; lifetimeSpendMicros: number | null },
+) {
+  const admin = createAdminClient();
+  const { error } = await admin
+    .from("ad_entities")
+    .update({
+      lifetime_reach: input.lifetimeReach,
+      lifetime_spend_micros: input.lifetimeSpendMicros,
+      updated_at: new Date().toISOString(),
+    })
+    .eq("id", entityId);
+
+  if (error) throw error;
+}
+
 async function upsertDailyMetrics(input: {
   scope: AdDataScope;
   connectionId: string;
@@ -467,6 +540,27 @@ export async function syncMetaConnection(
       }
     }
 
+    // Estimated audience size lives on ad-set targeting (Ads Manager demographics band).
+    // Campaigns don't have their own targeting — only ad sets do. Ads inherit from parent.
+    const adSetAudienceEstimates = new Map<string, AudienceEstimateFields>();
+
+    for (const adSet of adSets) {
+      const adSetEntityId = entityIds.get(adSet.id);
+      if (!adSetEntityId) continue;
+
+      try {
+        const rawEstimate = await fetchMetaDeliveryEstimate(adSet.id, accessToken);
+        const estimate = parseDeliveryEstimate(rawEstimate);
+        adSetAudienceEstimates.set(adSet.id, estimate);
+        await updateEntityAudienceEstimate(adSetEntityId, estimate);
+      } catch (estimateError) {
+        console.error(
+          `Failed to fetch delivery estimate for ad set ${adSet.id}:`,
+          estimateError,
+        );
+      }
+    }
+
     const ads = await fetchMetaGraphCollection<{
       id: string;
       name?: string;
@@ -494,6 +588,20 @@ export async function syncMetaConnection(
         rawPayload: ad,
       });
       entityIds.set(ad.id, adEntityId);
+
+      if (ad.adset_id) {
+        const parentEstimate = adSetAudienceEstimates.get(ad.adset_id);
+        if (parentEstimate) {
+          try {
+            await updateEntityAudienceEstimate(adEntityId, parentEstimate);
+          } catch (estimateError) {
+            console.error(
+              `Failed to copy audience estimate onto ad ${ad.id}:`,
+              estimateError,
+            );
+          }
+        }
+      }
 
       // Capture creative metadata + media assets. Non-fatal: a creative issue
       // must never abort the wider sync.
@@ -604,6 +712,46 @@ export async function syncMetaConnection(
         metrics: parseInsightMetrics(row),
       });
     }
+
+    // Lifetime unique reach + total spend for saturation / potential-spend bars.
+    // Non-fatal: daily metrics already landed; missing lifetime totals shouldn't fail sync.
+    const applyLifetimeTotals = async (
+      level: "account" | "campaign" | "adset" | "ad",
+      resolveEntityId: (row: MetaInsightRow) => string | undefined,
+    ) => {
+      try {
+        const rows = await fetchMetaLifetimeTotals(accountId, accessToken, level);
+        for (const row of rows) {
+          const entityId = resolveEntityId(row);
+          if (!entityId) continue;
+          const reach = row.reach ? parseInt(row.reach, 10) : null;
+          const spendMicros = row.spend != null && row.spend !== ""
+            ? dollarsToMicros(row.spend)
+            : null;
+          await updateEntityLifetimeTotals(entityId, {
+            lifetimeReach:
+              Number.isFinite(reach) && reach !== null && reach >= 0 ? reach : null,
+            lifetimeSpendMicros:
+              spendMicros != null && Number.isFinite(spendMicros) && spendMicros >= 0
+                ? spendMicros
+                : null,
+          });
+        }
+      } catch (lifetimeError) {
+        console.error(`Failed to fetch lifetime totals (${level}):`, lifetimeError);
+      }
+    };
+
+    await applyLifetimeTotals("account", () => accountEntityId);
+    await applyLifetimeTotals("campaign", (row) =>
+      row.campaign_id ? entityIds.get(row.campaign_id) : undefined,
+    );
+    await applyLifetimeTotals("adset", (row) =>
+      row.adset_id ? entityIds.get(row.adset_id) : undefined,
+    );
+    await applyLifetimeTotals("ad", (row) =>
+      row.ad_id ? entityIds.get(row.ad_id) : undefined,
+    );
 
     const now = new Date().toISOString();
     await upsertSyncState(connection.id, scope, {

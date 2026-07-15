@@ -2978,6 +2978,61 @@
               "numericScale": null
             },
             {
+              "name": "estimated_audience_lower",
+              "position": 26,
+              "dataType": "bigint",
+              "udtName": "int8",
+              "nullable": true,
+              "default": null,
+              "maxLength": null,
+              "numericPrecision": 64,
+              "numericScale": 0
+            },
+            {
+              "name": "estimated_audience_upper",
+              "position": 27,
+              "dataType": "bigint",
+              "udtName": "int8",
+              "nullable": true,
+              "default": null,
+              "maxLength": null,
+              "numericPrecision": 64,
+              "numericScale": 0
+            },
+            {
+              "name": "audience_estimate_ready",
+              "position": 28,
+              "dataType": "boolean",
+              "udtName": "bool",
+              "nullable": true,
+              "default": null,
+              "maxLength": null,
+              "numericPrecision": null,
+              "numericScale": null
+            },
+            {
+              "name": "lifetime_reach",
+              "position": 29,
+              "dataType": "bigint",
+              "udtName": "int8",
+              "nullable": true,
+              "default": null,
+              "maxLength": null,
+              "numericPrecision": 64,
+              "numericScale": 0
+            },
+            {
+              "name": "lifetime_spend_micros",
+              "position": 30,
+              "dataType": "bigint",
+              "udtName": "int8",
+              "nullable": true,
+              "default": null,
+              "maxLength": null,
+              "numericPrecision": 64,
+              "numericScale": 0
+            },
+            {
               "name": "account_id",
               "position": 24,
               "dataType": "uuid",

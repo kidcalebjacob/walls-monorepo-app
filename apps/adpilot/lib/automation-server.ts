@@ -48,6 +48,34 @@ export type BudgetAdjustmentRow = {
   providerApplied: boolean;
 };
 
+const ENTITY_AUTOMATION_SELECT =
+  "enabled, profile_id, settings_override, cooldown_hours, min_daily_budget_micros, max_daily_budget_micros, automation_status, last_reviewed_at, last_adjusted_at, last_error";
+
+const PROFILE_SELECT =
+  "id, name, description, is_default, optimization_goal, settings";
+
+type EntityAutomationPatch = {
+  enabled?: boolean;
+  profileId?: string | null;
+  settingsOverride?: Partial<SpendAutomationSettings>;
+  cooldownHours?: number | null;
+  minDailyBudgetMicros?: number | null;
+  maxDailyBudgetMicros?: number | null;
+  automationStatus?: AutomationStatus;
+};
+
+function isEnabledOnlyPatch(patch: EntityAutomationPatch): boolean {
+  return (
+    patch.enabled !== undefined &&
+    patch.profileId === undefined &&
+    patch.settingsOverride === undefined &&
+    patch.cooldownHours === undefined &&
+    patch.minDailyBudgetMicros === undefined &&
+    patch.maxDailyBudgetMicros === undefined &&
+    patch.automationStatus === undefined
+  );
+}
+
 function mapProfile(row: Record<string, unknown>): AutomationProfile {
   return {
     id: row.id as string,
@@ -67,7 +95,7 @@ export async function ensureDefaultAutomationProfile(
   const { data: existing } = await withAdScope(
     supabase
       .from("ad_automation_profiles")
-      .select("id, name, description, is_default, optimization_goal, settings")
+      .select(PROFILE_SELECT)
       .eq("is_default", true),
     scope,
   ).maybeSingle();
@@ -84,7 +112,7 @@ export async function ensureDefaultAutomationProfile(
       optimization_goal: "roas",
       settings: DEFAULT_SPEND_AUTOMATION_SETTINGS,
     })
-    .select("id, name, description, is_default, optimization_goal, settings")
+    .select(PROFILE_SELECT)
     .single();
 
   if (error) throw error;
@@ -99,7 +127,7 @@ export async function listAutomationProfiles(
   const { data, error } = await withAdScope(
     supabase
       .from("ad_automation_profiles")
-      .select("id, name, description, is_default, optimization_goal, settings"),
+      .select(PROFILE_SELECT),
     scope,
   )
     .order("is_default", { ascending: false })
@@ -147,7 +175,7 @@ export async function createAutomationProfile(input: {
       optimization_goal: input.optimizationGoal ?? "roas",
       settings: input.settings ?? DEFAULT_SPEND_AUTOMATION_SETTINGS,
     })
-    .select("id, name, description, is_default, optimization_goal, settings")
+    .select(PROFILE_SELECT)
     .single();
 
   if (error) throw error;
@@ -194,7 +222,7 @@ export async function updateAutomationProfile(input: {
       .eq("id", input.profileId),
     input.scope,
   )
-    .select("id, name, description, is_default, optimization_goal, settings")
+    .select(PROFILE_SELECT)
     .single();
 
   if (error) throw error;
@@ -247,6 +275,34 @@ function mapEntityAutomation(
   };
 }
 
+async function fetchAutomationProfile(
+  scope: AdDataScope,
+  profileId: string,
+): Promise<AutomationProfile | null> {
+  const supabase = await createClient();
+  const { data: profileRow } = await withAdScope(
+    supabase
+      .from("ad_automation_profiles")
+      .select(PROFILE_SELECT)
+      .eq("id", profileId),
+    scope,
+  ).maybeSingle();
+  return profileRow ? mapProfile(profileRow) : null;
+}
+
+async function mapAutomationRow(
+  scope: AdDataScope,
+  row: Record<string, unknown> | null,
+  knownProfile?: AutomationProfile | null,
+): Promise<EntityAutomationState> {
+  const profileId = (row?.profile_id as string | null) ?? null;
+  let profile = knownProfile ?? null;
+  if (profileId && (!profile || profile.id !== profileId)) {
+    profile = await fetchAutomationProfile(scope, profileId);
+  }
+  return mapEntityAutomation(row, profile);
+}
+
 export async function getEntityAutomation(input: {
   scope: AdDataScope;
   entityId: string;
@@ -256,52 +312,77 @@ export async function getEntityAutomation(input: {
   const { data: automation } = await withAdScope(
     supabase
       .from("ad_entity_automation")
-      .select(
-        "enabled, profile_id, settings_override, cooldown_hours, min_daily_budget_micros, max_daily_budget_micros, automation_status, last_reviewed_at, last_adjusted_at, last_error",
-      )
+      .select(ENTITY_AUTOMATION_SELECT)
       .eq("entity_id", input.entityId),
     input.scope,
   ).maybeSingle();
 
-  let profile: AutomationProfile | null = null;
-  if (automation?.profile_id) {
-    const { data: profileRow } = await withAdScope(
-      supabase
-        .from("ad_automation_profiles")
-        .select("id, name, description, is_default, optimization_goal, settings")
-        .eq("id", automation.profile_id),
-      input.scope,
-    ).maybeSingle();
-    if (profileRow) profile = mapProfile(profileRow);
-  }
-
-  return mapEntityAutomation(automation, profile);
+  return mapAutomationRow(input.scope, automation);
 }
 
 export async function upsertEntityAutomation(input: {
   scope: AdDataScope;
   entityId: string;
-  patch: {
-    enabled?: boolean;
-    profileId?: string | null;
-    settingsOverride?: Partial<SpendAutomationSettings>;
-    cooldownHours?: number | null;
-    minDailyBudgetMicros?: number | null;
-    maxDailyBudgetMicros?: number | null;
-    automationStatus?: AutomationStatus;
-  };
+  patch: EntityAutomationPatch;
 }): Promise<EntityAutomationState> {
   const supabase = await createClient();
   const now = new Date().toISOString();
 
-  const { data: entity, error: entityError } = await withAdScope(
-    supabase
-      .from("ad_entities")
-      .select("id, entity_type, account_connection_id")
-      .eq("id", input.entityId),
-    input.scope,
-  ).maybeSingle();
+  // Enable/disable only: one UPDATE when a row already exists — no default-profile
+  // ensure and no full re-read chain.
+  if (isEnabledOnlyPatch(input.patch)) {
+    const nextEnabled = Boolean(input.patch.enabled);
+    const automationStatus: AutomationStatus = nextEnabled
+      ? "active"
+      : "inactive";
 
+    const { data: updated, error: updateError } = await withAdScope(
+      supabase
+        .from("ad_entity_automation")
+        .update({
+          enabled: nextEnabled,
+          automation_status: automationStatus,
+          updated_at: now,
+        })
+        .eq("entity_id", input.entityId),
+      input.scope,
+    )
+      .select(ENTITY_AUTOMATION_SELECT)
+      .maybeSingle();
+
+    if (updateError) throw updateError;
+
+    if (updated) {
+      // Settings/profile unchanged — skip the profile round-trip. Toggle UI merges
+      // with prior effectiveSettings so callers don't see defaulted settings.
+      return mapEntityAutomation(updated, null);
+    }
+
+    // Never enrolled — turning off is a no-op.
+    if (!nextEnabled) {
+      return mapEntityAutomation(null, null);
+    }
+    // First-time enable falls through to the full upsert path.
+  }
+
+  const [entityResult, existingResult] = await Promise.all([
+    withAdScope(
+      supabase
+        .from("ad_entities")
+        .select("id, entity_type, account_connection_id")
+        .eq("id", input.entityId),
+      input.scope,
+    ).maybeSingle(),
+    withAdScope(
+      supabase
+        .from("ad_entity_automation")
+        .select(ENTITY_AUTOMATION_SELECT)
+        .eq("entity_id", input.entityId),
+      input.scope,
+    ).maybeSingle(),
+  ]);
+
+  const { data: entity, error: entityError } = entityResult;
   if (entityError) throw entityError;
   if (!entity) throw new Error("Entity not found");
 
@@ -309,27 +390,30 @@ export async function upsertEntityAutomation(input: {
     throw new Error("Only campaigns and ad sets support budget automation.");
   }
 
-  const defaultProfile = await ensureDefaultAutomationProfile(input.scope);
-
-  const { data: existing } = await withAdScope(
-    supabase
-      .from("ad_entity_automation")
-      .select(
-        "enabled, profile_id, settings_override, cooldown_hours, min_daily_budget_micros, max_daily_budget_micros, automation_status",
-      )
-      .eq("entity_id", input.entityId),
-    input.scope,
-  ).maybeSingle();
+  const { data: existing } = existingResult;
 
   const nextEnabled = input.patch.enabled ?? Boolean(existing?.enabled);
-  const profileId =
-    input.patch.profileId !== undefined
-      ? input.patch.profileId
-      : (existing?.profile_id as string | null) ?? defaultProfile.id;
+  const existingStatus = existing?.automation_status as
+    | AutomationStatus
+    | undefined;
+
+  let profileId: string | null;
+  let knownProfile: AutomationProfile | null = null;
+
+  if (input.patch.profileId !== undefined) {
+    profileId = input.patch.profileId;
+  } else if (existing?.profile_id) {
+    profileId = existing.profile_id as string;
+  } else {
+    knownProfile = await ensureDefaultAutomationProfile(input.scope);
+    profileId = knownProfile.id;
+  }
+
   const settingsOverride = stripCooldownFromOverride(
     input.patch.settingsOverride !== undefined
       ? input.patch.settingsOverride
-      : (existing?.settings_override as Partial<SpendAutomationSettings> | null) ?? {},
+      : (existing?.settings_override as Partial<SpendAutomationSettings> | null) ??
+          {},
   );
   const cooldownHours =
     input.patch.cooldownHours !== undefined
@@ -350,8 +434,9 @@ export async function upsertEntityAutomation(input: {
 
   const automationStatus: AutomationStatus = nextEnabled
     ? input.patch.automationStatus ??
-      (existing?.automation_status as AutomationStatus) ??
-      "active"
+      (existingStatus && existingStatus !== "inactive"
+        ? existingStatus
+        : "active")
     : "inactive";
 
   const row = {
@@ -368,16 +453,23 @@ export async function upsertEntityAutomation(input: {
     updated_at: now,
   };
 
-  const { error } = await supabase
-    .from("ad_entity_automation")
-    .upsert(row, { onConflict: "entity_id" });
+  const profilePromise =
+    profileId && (!knownProfile || knownProfile.id !== profileId)
+      ? fetchAutomationProfile(input.scope, profileId)
+      : Promise.resolve(knownProfile);
 
-  if (error) throw error;
+  const [upsertResult, profile] = await Promise.all([
+    supabase
+      .from("ad_entity_automation")
+      .upsert(row, { onConflict: "entity_id" })
+      .select(ENTITY_AUTOMATION_SELECT)
+      .single(),
+    profilePromise,
+  ]);
 
-  return getEntityAutomation({
-    scope: input.scope,
-    entityId: input.entityId,
-  });
+  if (upsertResult.error) throw upsertResult.error;
+
+  return mapEntityAutomation(upsertResult.data, profile);
 }
 
 export async function listBudgetAdjustments(input: {

@@ -119,7 +119,7 @@ export function CampaignDetailPage() {
           {detail.canAutomate ? (
             <AdPilotEnableToggle
               entityId={detail.id}
-              enabled={detail.automation.enabled}
+              automation={detail.automation}
               onAutomationUpdated={(automation) =>
                 setDetail((prev) => (prev ? { ...prev, automation } : prev))
               }

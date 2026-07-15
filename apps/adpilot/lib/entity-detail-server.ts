@@ -45,6 +45,15 @@ export type EntityDetailMetrics = {
   conversionValueMicros: number;
 };
 
+/** Lifetime unique reach vs Meta estimated audience size (Ads Manager band). */
+export type ReachSaturation = {
+  lifetimeReach: number | null;
+  lifetimeSpendMicros: number | null;
+  estimatedAudienceLower: number | null;
+  estimatedAudienceUpper: number | null;
+  audienceEstimateReady: boolean | null;
+};
+
 export type CampaignAdSetSummary = {
   id: string;
   name: string;
@@ -73,6 +82,7 @@ export type EntityDetailResult = {
   dailyBudgetMicros: number | null;
   canAutomate: boolean;
   metrics: EntityDetailMetrics;
+  reachSaturation: ReachSaturation;
   automation: EntityAutomationState;
   profiles: AutomationProfile[];
   recentAdjustments: BudgetAdjustmentRow[];
@@ -178,6 +188,101 @@ function sortAdSummaries(ads: AdSetAdSummary[]): AdSetAdSummary[] {
   });
 }
 
+function toReachSaturation(entity: {
+  lifetime_reach?: number | null;
+  lifetime_spend_micros?: number | null;
+  estimated_audience_lower?: number | null;
+  estimated_audience_upper?: number | null;
+  audience_estimate_ready?: boolean | null;
+}): ReachSaturation {
+  return {
+    lifetimeReach:
+      entity.lifetime_reach != null && Number.isFinite(Number(entity.lifetime_reach))
+        ? Number(entity.lifetime_reach)
+        : null,
+    lifetimeSpendMicros:
+      entity.lifetime_spend_micros != null &&
+      Number.isFinite(Number(entity.lifetime_spend_micros))
+        ? Number(entity.lifetime_spend_micros)
+        : null,
+    estimatedAudienceLower:
+      entity.estimated_audience_lower != null &&
+      Number.isFinite(Number(entity.estimated_audience_lower))
+        ? Number(entity.estimated_audience_lower)
+        : null,
+    estimatedAudienceUpper:
+      entity.estimated_audience_upper != null &&
+      Number.isFinite(Number(entity.estimated_audience_upper))
+        ? Number(entity.estimated_audience_upper)
+        : null,
+    audienceEstimateReady:
+      typeof entity.audience_estimate_ready === "boolean"
+        ? entity.audience_estimate_ready
+        : null,
+  };
+}
+
+/**
+ * Campaigns don't have Meta targeting estimates. When missing, fall back to the
+ * largest child ad-set audience band so the saturation bar still has a ceiling.
+ */
+function withChildAudienceFallback(
+  base: ReachSaturation,
+  children: Array<{
+    estimated_audience_lower?: number | null;
+    estimated_audience_upper?: number | null;
+    audience_estimate_ready?: boolean | null;
+  }>,
+): ReachSaturation {
+  if (
+    base.estimatedAudienceUpper != null ||
+    base.estimatedAudienceLower != null ||
+    children.length === 0
+  ) {
+    return base;
+  }
+
+  let bestUpper: number | null = null;
+  let bestLower: number | null = null;
+  let anyReady: boolean | null = null;
+
+  for (const child of children) {
+    const upper =
+      child.estimated_audience_upper != null &&
+      Number.isFinite(Number(child.estimated_audience_upper))
+        ? Number(child.estimated_audience_upper)
+        : null;
+    const lower =
+      child.estimated_audience_lower != null &&
+      Number.isFinite(Number(child.estimated_audience_lower))
+        ? Number(child.estimated_audience_lower)
+        : null;
+
+    if (upper == null && lower == null) continue;
+
+    const score = upper ?? lower ?? 0;
+    const bestScore = bestUpper ?? bestLower ?? -1;
+    if (score >= bestScore) {
+      bestUpper = upper;
+      bestLower = lower;
+      anyReady =
+        typeof child.audience_estimate_ready === "boolean"
+          ? child.audience_estimate_ready
+          : anyReady;
+    }
+  }
+
+  return {
+    ...base,
+    estimatedAudienceLower: bestLower,
+    estimatedAudienceUpper: bestUpper,
+    audienceEstimateReady: anyReady,
+  };
+}
+
+const ENTITY_DETAIL_SELECT =
+  "id, entity_type, name, status, objective, parent_id, account_connection_id, daily_budget_micros, lifetime_reach, lifetime_spend_micros, estimated_audience_lower, estimated_audience_upper, audience_estimate_ready";
+
 async function buildEntityDetail(input: {
   scope: AdDataScope;
   entity: {
@@ -189,6 +294,11 @@ async function buildEntityDetail(input: {
     parent_id: string | null;
     account_connection_id: string;
     daily_budget_micros: number | null;
+    lifetime_reach?: number | null;
+    lifetime_spend_micros?: number | null;
+    estimated_audience_lower?: number | null;
+    estimated_audience_upper?: number | null;
+    audience_estimate_ready?: boolean | null;
   };
 }): Promise<EntityDetailResult> {
   const supabase = await createClient();
@@ -283,6 +393,7 @@ async function buildEntityDetail(input: {
       websitePurchases: tracksWebsitePurchases ? aggregated.websitePurchases : null,
       conversionValueMicros: aggregated.conversionValueMicros,
     },
+    reachSaturation: toReachSaturation(entity),
     automation,
     profiles,
     recentAdjustments: adjustments,
@@ -299,9 +410,7 @@ export async function getEntityDetail(input: {
   const { data: entity, error } = await withAdScope(
     supabase
       .from("ad_entities")
-      .select(
-        "id, entity_type, name, status, objective, parent_id, account_connection_id, daily_budget_micros",
-      )
+      .select(ENTITY_DETAIL_SELECT)
       .eq("id", input.entityId),
     input.scope,
   ).maybeSingle();
@@ -324,9 +433,7 @@ export async function getCampaignDetail(input: {
   const { data: entity, error } = await withAdScope(
     supabase
       .from("ad_entities")
-      .select(
-        "id, entity_type, name, status, objective, parent_id, account_connection_id, daily_budget_micros",
-      )
+      .select(ENTITY_DETAIL_SELECT)
       .eq("id", input.campaignId),
     input.scope,
   ).maybeSingle();
@@ -342,7 +449,9 @@ export async function getCampaignDetail(input: {
   const { data: adSetEntities } = await withAdScope(
     supabase
       .from("ad_entities")
-      .select("id, name, status, daily_budget_micros, learning_status")
+      .select(
+        "id, name, status, daily_budget_micros, learning_status, estimated_audience_lower, estimated_audience_upper, audience_estimate_ready",
+      )
       .eq("parent_id", input.campaignId)
       .eq("entity_type", "ad_group")
       .order("name", { ascending: true }),
@@ -420,6 +529,7 @@ export async function getCampaignDetail(input: {
   return {
     ...base,
     entityType: "campaign",
+    reachSaturation: withChildAudienceFallback(base.reachSaturation, adSetList),
     adSets,
   };
 }
@@ -434,9 +544,7 @@ export async function getAdSetDetail(input: {
   const { data: entity, error } = await withAdScope(
     supabase
       .from("ad_entities")
-      .select(
-        "id, entity_type, name, status, objective, parent_id, account_connection_id, daily_budget_micros",
-      )
+      .select(ENTITY_DETAIL_SELECT)
       .eq("id", input.adSetId),
     input.scope,
   ).maybeSingle();

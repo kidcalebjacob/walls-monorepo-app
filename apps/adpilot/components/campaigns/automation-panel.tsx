@@ -2,9 +2,25 @@
 
 import * as React from "react";
 import Link from "next/link";
-import { Check, Loader2, Pencil, Plus, Shield, Trash2, X } from "lucide-react";
+import {
+  Check,
+  ChevronDown,
+  Loader2,
+  Pencil,
+  Plus,
+  Shield,
+  Trash2,
+  X,
+} from "lucide-react";
 
 import { Button } from "@walls/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@walls/ui/dropdown-menu";
 import { Input } from "@walls/ui/input";
 import { LabeledSwitch } from "@walls/ui/switch";
 import { Textarea } from "@walls/ui/textarea";
@@ -14,9 +30,11 @@ import { AdPilotPreviewCard } from "@/components/campaigns/adpilot-preview";
 import {
   DetailSection,
   DetailSubLabel,
-  detailSelectableClass,
 } from "@/components/campaigns/entity-detail-shared";
-import type { BudgetAdjustmentRow } from "@/lib/automation-server";
+import type {
+  AutomationProfile,
+  BudgetAdjustmentRow,
+} from "@/lib/automation-server";
 import {
   resolveInstructionStatus,
   type AgentInstruction,
@@ -28,7 +46,7 @@ import {
   COOLDOWN_OPTIONS,
   OPTIMIZATION_GOAL_OPTIONS,
   optimizationGoalLabel,
-  type AutomationStatus,
+  spendSettingsEqual,
   type OptimizationGoal,
   type SpendAutomationSettings,
 } from "@/lib/spend-automation-settings";
@@ -44,18 +62,6 @@ import {
   secondaryButtonClass,
 } from "@/components/ui/button-styles";
 import { SegmentThumb } from "@/components/settings/segment-thumb";
-
-function automationStatusLabel(status: AutomationStatus): string {
-  const labels: Record<AutomationStatus, string> = {
-    inactive: "Inactive",
-    active: "Active",
-    paused: "Paused",
-    cooldown: "Cooldown",
-    learning: "Learning",
-    error: "Error",
-  };
-  return labels[status];
-}
 
 function microsToDollars(micros: number | null): string {
   if (micros == null || micros <= 0) return "";
@@ -180,6 +186,9 @@ export function EntityAutomationSection({
   );
   const [saving, setSaving] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
+  const [presetMenuOpen, setPresetMenuOpen] = React.useState(false);
+  const [pendingPreset, setPendingPreset] =
+    React.useState<AutomationProfile | null>(null);
   const dirtyRef = React.useRef(false);
   const saveSeqRef = React.useRef(0);
 
@@ -193,12 +202,41 @@ export function EntityAutomationSection({
   }, [detail]);
 
   const selectedProfile = detail.profiles.find((profile) => profile.id === profileId);
+  const isCustomPreset =
+    selectedProfile != null &&
+    !spendSettingsEqual(settings, selectedProfile.settings);
   const optimizationGoal: OptimizationGoal =
     selectedProfile?.optimizationGoal ?? "roas";
 
   const markDirty = () => {
     dirtyRef.current = true;
   };
+
+  const applyPreset = (profile: AutomationProfile) => {
+    markDirty();
+    setProfileId(profile.id);
+    setSettings(profile.settings);
+    setPendingPreset(null);
+    setPresetMenuOpen(false);
+  };
+
+  const requestPresetChange = (profile: AutomationProfile) => {
+    if (isCustomPreset) {
+      setPresetMenuOpen(false);
+      setPendingPreset(profile);
+      return;
+    }
+    applyPreset(profile);
+  };
+
+  React.useEffect(() => {
+    if (!pendingPreset) return;
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setPendingPreset(null);
+    };
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [pendingPreset]);
 
   const updateSetting = <K extends keyof SpendAutomationSettings>(
     key: K,
@@ -260,7 +298,7 @@ export function EntityAutomationSection({
         };
         onAutomationUpdated(payload.automation);
       })();
-    }, 500);
+    }, 200);
 
     return () => {
       cancelled = true;
@@ -290,29 +328,19 @@ export function EntityAutomationSection({
 
       <DetailSection title="AdPilot budget control">
         <div className="space-y-10">
-          {detail.automation.enabled ? (
-            <p className="text-xs font-light text-neutral-500">
-              Status:{" "}
-              <span className="font-medium text-neutral-700">
-                {automationStatusLabel(detail.automation.automationStatus)}
-              </span>
-              {detail.automation.lastAdjustedAt
-                ? ` · Last adjusted ${formatAdjustmentDate(detail.automation.lastAdjustedAt)}`
-                : ""}
-            </p>
-          ) : (
+          {!detail.automation.enabled ? (
             <p className="text-xs font-light text-neutral-500">
               AdPilot is off for this {entityLabel}. Turn it on with the AdPilot
               toggle at the top of the page to let the worker adjust the daily
               budget within the guardrails below.
             </p>
-          )}
+          ) : null}
 
           <div>
             <DetailSubLabel>Automation preset</DetailSubLabel>
             <p className="mt-1 text-xs font-light text-neutral-500">
-              Pick a workspace preset to inherit defaults. Per-{entityLabel} overrides
-              are stored on this {entityLabel} only.
+              Start from a workspace preset. Editing the controls below switches
+              this {entityLabel} to custom while keeping the preset as a base.
             </p>
             {detail.profiles.length === 0 ? (
               <p className="mt-4 text-sm font-light text-neutral-500">
@@ -323,56 +351,179 @@ export function EntityAutomationSection({
                 — or tune the defaults below for this {entityLabel}.
               </p>
             ) : (
-              <div className="mt-4 grid gap-2 sm:grid-cols-2">
-                {detail.profiles.map((profile) => (
+              <DropdownMenu open={presetMenuOpen} onOpenChange={setPresetMenuOpen}>
+                <DropdownMenuTrigger asChild>
                   <button
-                    key={profile.id}
                     type="button"
-                    onClick={() => {
-                      markDirty();
-                      setProfileId(profile.id);
-                      setSettings(profile.settings);
-                    }}
-                    className={detailSelectableClass(
-                      profileId === profile.id,
-                      "px-4 py-3 text-left",
+                    className={cn(
+                      "mt-4 flex w-full max-w-md items-center gap-3 rounded-xl bg-walls-white px-3 py-2.5 text-left transition",
+                      "hover:bg-neutral-50",
+                      "focus:outline-none",
+                      presetMenuOpen && "bg-neutral-50",
                     )}
                   >
-                    {profileId === profile.id ? (
-                      <span className="absolute right-3 top-3 flex h-5 w-5 items-center justify-center rounded-full bg-[#3f4a0e] text-walls-yellow ring-1 ring-[#2c3406]/20">
-                        <Check className="h-3 w-3" strokeWidth={3} />
+                    <span className="min-w-0 flex-1">
+                      <span className="block truncate text-sm font-semibold text-foreground">
+                        {isCustomPreset
+                          ? "Custom"
+                          : (selectedProfile?.name ?? "Choose a preset")}
                       </span>
-                    ) : null}
-                    <p
+                      <span className="mt-0.5 block truncate text-xs text-neutral-500">
+                        {isCustomPreset
+                          ? selectedProfile
+                            ? `Based on ${selectedProfile.name}`
+                            : "Entity overrides"
+                          : selectedProfile
+                            ? `Optimize for ${optimizationGoalLabel(selectedProfile.optimizationGoal)}${
+                                selectedProfile.isDefault ? " · Default" : ""
+                              }`
+                            : "Pick a workspace preset"}
+                      </span>
+                    </span>
+                    <ChevronDown
                       className={cn(
-                        "text-sm",
-                        profileId === profile.id
-                          ? "pr-6 font-semibold text-walls-forest"
-                          : "font-medium text-foreground",
+                        "h-4 w-4 shrink-0 text-neutral-400 transition-transform",
+                        presetMenuOpen && "rotate-180",
                       )}
-                    >
-                      {profile.name}
-                      {profile.isDefault ? (
-                        <span className="ml-2 text-[10px] font-light uppercase tracking-wider text-neutral-400">
-                          Default
-                        </span>
-                      ) : null}
-                    </p>
-                    <p
-                      className={cn(
-                        "mt-1 text-xs font-light",
-                        profileId === profile.id
-                          ? "text-walls-forest/80"
-                          : "text-neutral-500",
-                      )}
-                    >
-                      Optimize for {optimizationGoalLabel(profile.optimizationGoal)}
-                    </p>
+                    />
                   </button>
-                ))}
-              </div>
+                </DropdownMenuTrigger>
+
+                <DropdownMenuContent
+                  align="start"
+                  sideOffset={8}
+                  className="z-50 w-[min(100vw-2rem,28rem)] rounded-2xl border-0 bg-walls-white p-2 shadow-xl"
+                >
+                  <p className="px-2 pb-1 pt-1 text-sm font-medium text-neutral-500">
+                    Choose a preset
+                  </p>
+
+                  <div className="mt-1 space-y-0.5">
+                    {isCustomPreset ? (
+                      <div className="flex w-full items-center gap-3 rounded-xl bg-neutral-100 px-3 py-2.5">
+                        <div className="min-w-0 flex-1">
+                          <p className="truncate text-sm font-semibold text-foreground">
+                            Custom
+                          </p>
+                          <p className="mt-0.5 truncate text-xs text-neutral-500">
+                            {selectedProfile
+                              ? `Based on ${selectedProfile.name}`
+                              : "Entity overrides"}
+                          </p>
+                        </div>
+                        <Check
+                          className="h-4 w-4 shrink-0 text-foreground"
+                          strokeWidth={2.75}
+                        />
+                      </div>
+                    ) : null}
+
+                    {detail.profiles.map((profile) => {
+                      const isExactMatch =
+                        !isCustomPreset && profileId === profile.id;
+                      return (
+                        <DropdownMenuItem
+                          key={profile.id}
+                          onSelect={(event) => {
+                            event.preventDefault();
+                            requestPresetChange(profile);
+                          }}
+                          className={cn(
+                            "cursor-pointer rounded-xl px-3 py-2.5 transition-colors focus:bg-transparent",
+                            isExactMatch ? "bg-neutral-100" : "hover:bg-neutral-50",
+                          )}
+                        >
+                          <div className="flex w-full items-center gap-3">
+                            <div className="min-w-0 flex-1">
+                              <p
+                                className={cn(
+                                  "truncate text-sm text-foreground",
+                                  isExactMatch ? "font-semibold" : "font-medium",
+                                )}
+                              >
+                                {profile.name}
+                              </p>
+                              <p className="mt-0.5 truncate text-xs text-neutral-500">
+                                Optimize for{" "}
+                                {optimizationGoalLabel(profile.optimizationGoal)}
+                                {profile.isDefault ? " · Default" : ""}
+                              </p>
+                            </div>
+                            {isExactMatch ? (
+                              <Check
+                                className="h-4 w-4 shrink-0 text-foreground"
+                                strokeWidth={2.75}
+                              />
+                            ) : null}
+                          </div>
+                        </DropdownMenuItem>
+                      );
+                    })}
+                  </div>
+
+                  <DropdownMenuSeparator className="my-2 bg-neutral-100" />
+                  <DropdownMenuItem
+                    asChild
+                    className="rounded-xl p-0 focus:bg-transparent"
+                  >
+                    <Link
+                      href="/settings"
+                      className="flex cursor-pointer items-center gap-2 rounded-xl px-3 py-2.5 text-sm text-foreground hover:bg-neutral-50"
+                    >
+                      <Plus className="h-4 w-4 shrink-0 text-neutral-400" />
+                      <span className="font-medium">Manage presets</span>
+                    </Link>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             )}
           </div>
+
+          {pendingPreset ? (
+            <div
+              className="fixed inset-0 z-[200] flex items-center justify-center bg-black/40 p-4 backdrop-blur-sm"
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="preset-change-title"
+              onClick={() => setPendingPreset(null)}
+            >
+              <div
+                className="w-full max-w-md rounded-2xl bg-walls-white p-5 shadow-xl"
+                onClick={(event) => event.stopPropagation()}
+              >
+                <h2
+                  id="preset-change-title"
+                  className="text-base font-semibold text-foreground"
+                >
+                  Replace custom settings?
+                </h2>
+                <p className="mt-2 text-sm font-light leading-relaxed text-neutral-500">
+                  Switching to{" "}
+                  <span className="font-medium text-foreground">
+                    {pendingPreset.name}
+                  </span>{" "}
+                  will discard the custom overrides on this {entityLabel} and
+                  replace them with that preset&apos;s settings.
+                </p>
+                <div className="mt-5 flex items-center justify-end gap-2">
+                  <Button
+                    type="button"
+                    onClick={() => setPendingPreset(null)}
+                    className={cn(secondaryButtonClass, "px-4")}
+                  >
+                    Keep custom
+                  </Button>
+                  <Button
+                    type="button"
+                    onClick={() => applyPreset(pendingPreset)}
+                    className={cn(primaryButtonClass, "px-4")}
+                  >
+                    Use preset
+                  </Button>
+                </div>
+              </div>
+            </div>
+          ) : null}
 
           <div>
             <DetailSubLabel>Budget bounds</DetailSubLabel>
@@ -430,13 +581,18 @@ export function EntityAutomationSection({
           </div>
 
           <div>
-            <DetailSubLabel>Entity overrides</DetailSubLabel>
+            <DetailSubLabel>
+              {isCustomPreset ? "Custom overrides" : "Entity overrides"}
+            </DetailSubLabel>
             <p className="mt-1 text-xs font-light text-neutral-500">
               Tuning for{" "}
               {OPTIMIZATION_GOAL_OPTIONS.find(
                 (option) => option.value === optimizationGoal,
               )?.hint.toLowerCase()}
-              . Only changes from the preset are stored on this entity.
+              .{" "}
+              {isCustomPreset
+                ? "These values differ from the preset and are saved only on this entity."
+                : "Only changes from the preset are stored on this entity."}
             </p>
 
             <div className="mt-6 space-y-8">
@@ -592,10 +748,8 @@ export function EntityAutomationSection({
                 Saving…
               </>
             ) : (
-              <>
-                Changes save automatically. Nothing reaches Meta until AdPilot is
-                turned on for this {entityLabel}.
-              </>
+              <>Changes save automatically.</>
+
             )}
           </p>
         </div>
