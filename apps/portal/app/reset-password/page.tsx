@@ -191,7 +191,7 @@ export default function ResetPasswordPage() {
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     disabled={isResetLoading}
-                    className="h-12 bg-neutral-100 backdrop-blur-md shadow-inner border border-neutral-200/50 transition-all duration-300"
+                    className="h-12 bg-walls-white backdrop-blur-md shadow-inner border border-neutral-200/50 transition-all duration-300"
                     onKeyDown={(e) => {
                       if (
                         e.key === "Enter" &&
@@ -209,7 +209,7 @@ export default function ResetPasswordPage() {
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
                     disabled={isResetLoading}
-                    className="h-12 bg-neutral-100 backdrop-blur-md shadow-inner border border-neutral-200/50 transition-all duration-300"
+                    className="h-12 bg-walls-white backdrop-blur-md shadow-inner border border-neutral-200/50 transition-all duration-300"
                     onKeyDown={(e) => {
                       if (
                         e.key === "Enter" &&
@@ -249,7 +249,7 @@ export default function ResetPasswordPage() {
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     disabled={isRequestLoading}
-                    className="h-12 bg-neutral-100 backdrop-blur-md shadow-inner border border-neutral-200/50 transition-all duration-300"
+                    className="h-12 bg-walls-white backdrop-blur-md shadow-inner border border-neutral-200/50 transition-all duration-300"
                     onKeyDown={(e) => {
                       if (e.key === "Enter" && !isRequestLoading && email.trim()) {
                         handleRequestReset();

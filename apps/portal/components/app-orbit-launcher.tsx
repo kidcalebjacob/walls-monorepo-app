@@ -40,7 +40,7 @@ function Avatar({
 
   return (
     <div
-      className="relative shrink-0 overflow-hidden rounded-full bg-neutral-100 shadow-[0_12px_40px_-16px_rgba(0,0,0,0.35)] ring-1 ring-black/[0.06]"
+      className="relative shrink-0 overflow-hidden rounded-full bg-walls-white shadow-[0_12px_40px_-16px_rgba(0,0,0,0.35)] ring-1 ring-black/[0.06]"
       style={{ width: px, height: px }}
     >
       <div
@@ -82,7 +82,7 @@ function AppTile({
       className="group flex w-[4.75rem] shrink-0 snap-center flex-col items-center gap-2 outline-none focus-visible:ring-2 focus-visible:ring-black/10 focus-visible:ring-offset-2 sm:w-[5.25rem]"
       aria-label={`Open ${app.name}`}
     >
-      <div className="relative flex h-14 w-14 items-center justify-center overflow-hidden rounded-[1.15rem] bg-gradient-to-br from-white to-neutral-100 shadow-[0_2px_8px_-2px_rgba(0,0,0,0.12)] ring-1 ring-black/[0.04] transition-all duration-300 ease-out group-hover:-translate-y-1 group-hover:shadow-[0_14px_28px_-12px_rgba(0,0,0,0.28)] group-active:translate-y-0 group-active:scale-[0.97] sm:h-16 sm:w-16 sm:rounded-[1.25rem]">
+      <div className="relative flex h-14 w-14 items-center justify-center overflow-hidden rounded-[1.15rem] bg-gradient-to-br from-walls-white to-walls-white shadow-[0_2px_8px_-2px_rgba(0,0,0,0.12)] ring-1 ring-black/[0.04] transition-all duration-300 ease-out group-hover:-translate-y-1 group-hover:shadow-[0_14px_28px_-12px_rgba(0,0,0,0.28)] group-active:translate-y-0 group-active:scale-[0.97] sm:h-16 sm:w-16 sm:rounded-[1.25rem]">
         <span
           aria-hidden
           className="pointer-events-none absolute inset-x-0 top-0 h-1/2 bg-gradient-to-b from-white/80 to-transparent"
