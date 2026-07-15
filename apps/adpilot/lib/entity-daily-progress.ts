@@ -33,6 +33,7 @@ export type EntityDailyProgressPoint = {
   clicks: number;
   conversionValueMicros: number;
   websitePurchases: number;
+  reach: number;
   frequency: number | null;
 };
 
@@ -148,8 +149,12 @@ function getMetricValue(totals: DayTotals, key: ObjectiveProgressMetricKey): num
   switch (key) {
     case "spend":
       return spend;
+    case "earnings":
+      return totals.conversionValueMicros / 1_000_000;
     case "impressions":
       return totals.impressions;
+    case "reach":
+      return totals.reach;
     case "clicks":
       return totals.clicks;
     case "ctr":
@@ -167,8 +172,10 @@ function formatMetricValue(
 ): string {
   switch (key) {
     case "spend":
+    case "earnings":
       return formatCurrencyFromMicros(Math.round(value * 1_000_000));
     case "impressions":
+    case "reach":
     case "clicks":
       return formatCompactNumber(value);
     case "ctr":
@@ -208,7 +215,7 @@ function summarizePeriod(
       clicks: acc.clicks + day.clicks,
       conversionValueMicros: acc.conversionValueMicros + day.conversionValueMicros,
       websitePurchases: acc.websitePurchases + day.websitePurchases,
-      reach: acc.reach,
+      reach: acc.reach + day.reach,
       frequencySum: acc.frequencySum,
       frequencyCount: acc.frequencyCount,
     }),
@@ -226,10 +233,13 @@ function summarizePeriod(
 
   const primaryValue = getMetricValue(totals, primary.key);
   const secondaryValue = secondary ? getMetricValue(totals, secondary.key) : null;
-  const profitMicros =
-    primary.key === "roas"
-      ? totals.conversionValueMicros - totals.spendMicros
-      : null;
+  const tracksEarnings =
+    primary.key === "earnings" ||
+    secondary?.key === "earnings" ||
+    primary.key === "roas";
+  const profitMicros = tracksEarnings
+    ? totals.conversionValueMicros - totals.spendMicros
+    : null;
 
   return {
     primaryLabel: `Period ${primary.key === "roas" || primary.key === "ctr" ? "avg" : "total"} ${primary.label}`,
@@ -279,6 +289,7 @@ export function buildEntityDailyProgress(
       clicks: totals.clicks,
       conversionValueMicros: totals.conversionValueMicros,
       websitePurchases: totals.websitePurchases,
+      reach: totals.reach,
       frequency: getFrequencyValue(totals),
     };
   });
@@ -302,8 +313,10 @@ export function formatProgressAxisValue(
 ): string {
   switch (key) {
     case "spend":
+    case "earnings":
       return value >= 1000 ? `$${Math.round(value / 1000)}k` : `$${Math.round(value)}`;
     case "impressions":
+    case "reach":
     case "clicks":
       return formatCompactNumber(value);
     case "ctr":

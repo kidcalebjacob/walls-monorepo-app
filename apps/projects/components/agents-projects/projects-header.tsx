@@ -2,7 +2,7 @@
 
 import { usePathname } from "next/navigation";
 import { useAuth } from "@walls/auth";
-import UserProfileButton from "@walls/ui/user-profile-button";
+import { useActiveAccount } from "@/components/active-account-context";
 import {
   ACCESSIBLE_PROJECT_SELECT,
   loadAccessibleProjects,
@@ -55,6 +55,7 @@ export function ProjectsHeader({
   onStatusFilterChange,
 }: ProjectsHeaderProps) {
   const { user } = useAuth();
+  const { activeAccountId, loading: accountLoading } = useActiveAccount();
   const pathname = usePathname();
   const isBoard = pathname.startsWith("/agents/projects/board");
   const isTimeline = pathname.startsWith("/agents/projects/timeline");
@@ -78,7 +79,7 @@ export function ProjectsHeader({
   const showProjectFilter = !!onProjectFilterChange;
 
   useEffect(() => {
-    if (!showProjectFilter || !user?.id) {
+    if (!showProjectFilter || !user?.id || !activeAccountId || accountLoading) {
       setAccessibleProjects([]);
       setLoadingAccessibleProjects(false);
       return;
@@ -89,6 +90,7 @@ export function ProjectsHeader({
     const run = async () => {
       try {
         const data = await loadAccessibleProjects(user.id, {
+          accountId: activeAccountId,
           select: ACCESSIBLE_PROJECT_SELECT.summary,
         });
         if (!cancelled) setAccessibleProjects(data);
@@ -103,7 +105,7 @@ export function ProjectsHeader({
     return () => {
       cancelled = true;
     };
-  }, [showProjectFilter, user?.id]);
+  }, [showProjectFilter, user?.id, activeAccountId, accountLoading]);
 
   const filterProjects = useMemo(() => {
     const source =
@@ -214,13 +216,11 @@ export function ProjectsHeader({
                 </div>
               )}
             </div>
-          ) : (
+          ) : isBoard || isTimeline || isList ? (
             <span className="text-sm md:text-base font-light uppercase tracking-wider text-neutral-800">
-              {isBoard
-                ? BOARD_TASK_SCOPE_CONFIG.mine.menuLabel
-                : pageLabel}
+              {isBoard ? BOARD_TASK_SCOPE_CONFIG.mine.menuLabel : pageLabel}
             </span>
-          )}
+          ) : null}
 
           {showProjectFilter && (
             <>
@@ -387,7 +387,7 @@ export function ProjectsHeader({
         </div>
       </div>
 
-      {/* Right: new dropdown + user */}
+      {/* Right: new dropdown */}
       <div className="flex items-center gap-2 flex-shrink-0">
         {(onNewProject || onNewTask) && (
           <DropdownMenu>
@@ -398,7 +398,7 @@ export function ProjectsHeader({
                 className="w-10 h-10 p-0 text-slate-600 hover:bg-transparent flex items-center justify-center shadow-none relative group flex-shrink-0 focus-visible:ring-0 focus-visible:ring-offset-0 focus:outline-none"
               >
                 <div className="relative">
-                  <div className="relative z-10 p-3 rounded-full transition-all duration-300 ease-in-out group-hover:bg-gray-50 group-hover:border group-hover:border-neutral-200 group-hover:shadow-[inset_0_4px_8px_rgba(0,0,0,0.15)] group-hover:scale-95">
+                  <div className="relative z-10 p-3 rounded-full transition-all duration-300 ease-in-out group-hover:bg-walls-white group-hover:border group-hover:border-neutral-200 group-hover:shadow-[inset_0_4px_8px_rgba(0,0,0,0.15)] group-hover:scale-95">
                     <Plus className="h-[18px] w-[18px] stroke-[1.5] text-neutral-500" />
                   </div>
                 </div>
@@ -424,8 +424,6 @@ export function ProjectsHeader({
             </DropdownMenuContent>
           </DropdownMenu>
         )}
-
-        <UserProfileButton />
       </div>
       </div>
     </div>

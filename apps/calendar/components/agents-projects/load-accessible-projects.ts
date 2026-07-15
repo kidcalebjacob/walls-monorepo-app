@@ -2,14 +2,14 @@ import { createClient } from "@walls/supabase/client";
 import type { Project } from "./types";
 
 const DEFAULT_SELECT =
-  "id, name, slug, description, status, start_date, due_date, completed_at, owner_id, priority, color, metadata, created_at, updated_at";
+  "id, name, slug, description, status, start_date, due_date, completed_at, owner_id, account_id, priority, color, metadata, created_at, updated_at";
 
 /** Column sets for `loadAccessibleProjects` — use these instead of arbitrary strings. */
 export const ACCESSIBLE_PROJECT_SELECT = {
   default: DEFAULT_SELECT,
-  summary: "id, name, color, status, slug, owner_id",
+  summary: "id, name, color, status, slug, owner_id, account_id",
   timeline:
-    "id, name, color, status, description, due_date, start_date, priority, owner_id, completed_at, metadata, created_at, updated_at, slug",
+    "id, name, color, status, description, due_date, start_date, priority, owner_id, account_id, completed_at, metadata, created_at, updated_at, slug",
 } as const;
 
 export type AccessibleProjectSelect =
@@ -20,10 +20,14 @@ function toProjectRows(data: unknown): Project[] {
   return data as Project[];
 }
 
-/** Projects the user owns or is listed on in `project_members`. */
+/**
+ * Projects the user owns or is listed on in `project_members`.
+ * Optionally scoped to a single WALLS account; when omitted, returns
+ * accessible projects across all of the user's accounts (RLS still applies).
+ */
 export async function loadAccessibleProjects(
   userId: string,
-  options?: { select?: AccessibleProjectSelect }
+  options?: { accountId?: string; select?: AccessibleProjectSelect },
 ): Promise<Project[]> {
   const supabase = createClient();
 
@@ -40,11 +44,17 @@ export async function loadAccessibleProjects(
       ? `owner_id.eq.${userId},id.in.(${memberProjectIds.join(",")})`
       : `owner_id.eq.${userId}`;
 
-  const { data, error } = await supabase
+  let query = supabase
     .from("projects")
     .select(options?.select ?? DEFAULT_SELECT)
     .or(accessFilter)
     .order("name");
+
+  if (options?.accountId) {
+    query = query.eq("account_id", options.accountId);
+  }
+
+  const { data, error } = await query;
 
   if (error) throw error;
   return toProjectRows(data);

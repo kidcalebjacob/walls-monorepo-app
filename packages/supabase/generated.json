@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-07-14T16:13:59.924Z",
+  "generatedAt": "2026-07-15T14:23:06.176Z",
   "source": "packages/supabase/scripts/dump-schema.mjs",
   "schemasIncluded": [
     "public",
@@ -11,7 +11,7 @@
     "views": 1,
     "materializedViews": 6,
     "enums": 26,
-    "columns": 2191
+    "columns": 2197
   },
   "schemas": {
     "public": {
@@ -2978,6 +2978,28 @@
               "numericScale": null
             },
             {
+              "name": "account_id",
+              "position": 24,
+              "dataType": "uuid",
+              "udtName": "uuid",
+              "nullable": false,
+              "default": null,
+              "maxLength": null,
+              "numericPrecision": null,
+              "numericScale": null
+            },
+            {
+              "name": "account_connection_id",
+              "position": 25,
+              "dataType": "uuid",
+              "udtName": "uuid",
+              "nullable": false,
+              "default": null,
+              "maxLength": null,
+              "numericPrecision": null,
+              "numericScale": null
+            },
+            {
               "name": "estimated_audience_lower",
               "position": 26,
               "dataType": "bigint",
@@ -3031,28 +3053,6 @@
               "maxLength": null,
               "numericPrecision": 64,
               "numericScale": 0
-            },
-            {
-              "name": "account_id",
-              "position": 24,
-              "dataType": "uuid",
-              "udtName": "uuid",
-              "nullable": false,
-              "default": null,
-              "maxLength": null,
-              "numericPrecision": null,
-              "numericScale": null
-            },
-            {
-              "name": "account_connection_id",
-              "position": 25,
-              "dataType": "uuid",
-              "udtName": "uuid",
-              "nullable": false,
-              "default": null,
-              "maxLength": null,
-              "numericPrecision": null,
-              "numericScale": null
             }
           ],
           "primaryKey": [
@@ -24415,10 +24415,43 @@
             }
           ],
           "rls": {
-            "enabled": false,
+            "enabled": true,
             "forced": false
           },
-          "policies": []
+          "policies": [
+            {
+              "name": "project_members_delete_accessible",
+              "permissive": "PERMISSIVE",
+              "roles": "{authenticated}",
+              "command": "DELETE",
+              "using": "is_project_accessible(project_id)",
+              "withCheck": null
+            },
+            {
+              "name": "project_members_insert_accessible",
+              "permissive": "PERMISSIVE",
+              "roles": "{authenticated}",
+              "command": "INSERT",
+              "using": null,
+              "withCheck": "is_project_accessible(project_id)"
+            },
+            {
+              "name": "project_members_select_accessible",
+              "permissive": "PERMISSIVE",
+              "roles": "{authenticated}",
+              "command": "SELECT",
+              "using": "is_project_accessible(project_id)",
+              "withCheck": null
+            },
+            {
+              "name": "project_members_update_accessible",
+              "permissive": "PERMISSIVE",
+              "roles": "{authenticated}",
+              "command": "UPDATE",
+              "using": "is_project_accessible(project_id)",
+              "withCheck": "is_project_accessible(project_id)"
+            }
+          ]
         },
         "project_tasks": {
           "type": "BASE TABLE",
@@ -24756,10 +24789,43 @@
             }
           ],
           "rls": {
-            "enabled": false,
+            "enabled": true,
             "forced": false
           },
-          "policies": []
+          "policies": [
+            {
+              "name": "project_tasks_delete_accessible",
+              "permissive": "PERMISSIVE",
+              "roles": "{authenticated}",
+              "command": "DELETE",
+              "using": "is_project_accessible(project_id)",
+              "withCheck": null
+            },
+            {
+              "name": "project_tasks_insert_accessible",
+              "permissive": "PERMISSIVE",
+              "roles": "{authenticated}",
+              "command": "INSERT",
+              "using": null,
+              "withCheck": "is_project_accessible(project_id)"
+            },
+            {
+              "name": "project_tasks_select_accessible",
+              "permissive": "PERMISSIVE",
+              "roles": "{authenticated}",
+              "command": "SELECT",
+              "using": "is_project_accessible(project_id)",
+              "withCheck": null
+            },
+            {
+              "name": "project_tasks_update_accessible",
+              "permissive": "PERMISSIVE",
+              "roles": "{authenticated}",
+              "command": "UPDATE",
+              "using": "is_project_accessible(project_id)",
+              "withCheck": "is_project_accessible(project_id)"
+            }
+          ]
         },
         "projects": {
           "type": "BASE TABLE",
@@ -24917,12 +24983,38 @@
               "maxLength": null,
               "numericPrecision": null,
               "numericScale": null
+            },
+            {
+              "name": "account_id",
+              "position": 16,
+              "dataType": "uuid",
+              "udtName": "uuid",
+              "nullable": false,
+              "default": null,
+              "maxLength": null,
+              "numericPrecision": null,
+              "numericScale": null
             }
           ],
           "primaryKey": [
             "id"
           ],
           "foreignKeys": [
+            {
+              "name": "projects_account_id_fkey",
+              "columns": [
+                "account_id"
+              ],
+              "references": {
+                "schema": "public",
+                "table": "accounts",
+                "columns": [
+                  "id"
+                ]
+              },
+              "onUpdate": "NO ACTION",
+              "onDelete": "CASCADE"
+            },
             {
               "name": "projects_owner_id_fkey",
               "columns": [
@@ -24941,8 +25033,9 @@
           ],
           "uniqueConstraints": [
             {
-              "name": "projects_slug_key",
+              "name": "projects_account_id_slug_key",
               "columns": [
+                "account_id",
                 "slug"
               ]
             }
@@ -24961,19 +25054,56 @@
               "definition": "CREATE INDEX idx_projects_status ON public.projects USING btree (status)"
             },
             {
-              "name": "projects_pkey",
-              "definition": "CREATE UNIQUE INDEX projects_pkey ON public.projects USING btree (id)"
+              "name": "projects_account_id_idx",
+              "definition": "CREATE INDEX projects_account_id_idx ON public.projects USING btree (account_id)"
             },
             {
-              "name": "projects_slug_key",
-              "definition": "CREATE UNIQUE INDEX projects_slug_key ON public.projects USING btree (slug)"
+              "name": "projects_account_id_slug_key",
+              "definition": "CREATE UNIQUE INDEX projects_account_id_slug_key ON public.projects USING btree (account_id, slug)"
+            },
+            {
+              "name": "projects_pkey",
+              "definition": "CREATE UNIQUE INDEX projects_pkey ON public.projects USING btree (id)"
             }
           ],
           "rls": {
-            "enabled": false,
+            "enabled": true,
             "forced": false
           },
-          "policies": []
+          "policies": [
+            {
+              "name": "projects_delete_accessible",
+              "permissive": "PERMISSIVE",
+              "roles": "{authenticated}",
+              "command": "DELETE",
+              "using": "(is_project_account_member(account_id) AND (owner_id = auth.uid()))",
+              "withCheck": null
+            },
+            {
+              "name": "projects_insert_member",
+              "permissive": "PERMISSIVE",
+              "roles": "{authenticated}",
+              "command": "INSERT",
+              "using": null,
+              "withCheck": "(is_project_account_member(account_id) AND (owner_id = auth.uid()))"
+            },
+            {
+              "name": "projects_select_accessible",
+              "permissive": "PERMISSIVE",
+              "roles": "{authenticated}",
+              "command": "SELECT",
+              "using": "(is_project_account_member(account_id) AND ((owner_id = auth.uid()) OR (EXISTS ( SELECT 1\n   FROM project_members pm\n  WHERE ((pm.project_id = projects.id) AND (pm.user_id = auth.uid()))))))",
+              "withCheck": null
+            },
+            {
+              "name": "projects_update_accessible",
+              "permissive": "PERMISSIVE",
+              "roles": "{authenticated}",
+              "command": "UPDATE",
+              "using": "(is_project_account_member(account_id) AND ((owner_id = auth.uid()) OR (EXISTS ( SELECT 1\n   FROM project_members pm\n  WHERE ((pm.project_id = projects.id) AND (pm.user_id = auth.uid()))))))",
+              "withCheck": "is_project_account_member(account_id)"
+            }
+          ]
         },
         "related_profiles": {
           "type": "BASE TABLE",

@@ -33,6 +33,7 @@ import {
   Search,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useActiveAccount } from "@/components/active-account-context";
 import { ProjectsHeader } from "../projects-header";
 import {
   Project,
@@ -181,7 +182,7 @@ function renderMarkdownPreview(
 
 /* ─── Plus icon button (matches ProjectsHeader — no bg at rest, inset ring on hover) ─ */
 const KANBAN_PLUS_HOVER_RING =
-  "relative z-10 flex items-center justify-center rounded-full transition-all duration-300 ease-in-out group-hover:bg-gray-50 group-hover:border group-hover:border-neutral-200 group-hover:shadow-[inset_0_4px_8px_rgba(0,0,0,0.15)] group-hover:scale-95";
+  "relative z-10 flex items-center justify-center rounded-full transition-all duration-300 ease-in-out group-hover:bg-walls-white group-hover:border group-hover:border-neutral-200 group-hover:shadow-[inset_0_4px_8px_rgba(0,0,0,0.15)] group-hover:scale-95";
 
 function KanbanPlusButton({
   onClick,
@@ -719,6 +720,7 @@ function AgentsProjectsKanbanContent({
   analyticsData: _analyticsData,
 }: AgentsProjectsKanbanProps) {
   const { user } = useAuth();
+  const { activeAccountId, loading: accountLoading } = useActiveAccount();
   const router = useRouter();
   const searchParams = useSearchParams();
   const [projects, setProjects] = useState<Project[]>([]);
@@ -813,7 +815,7 @@ function AgentsProjectsKanbanContent({
 
   /* Load data */
   const loadData = useCallback(async () => {
-    if (!user) {
+    if (!user || !activeAccountId || accountLoading) {
       setTasks([]);
       setProjects([]);
       setLoading(false);
@@ -825,6 +827,7 @@ function AgentsProjectsKanbanContent({
 
       const loadedProjects = (
         await loadAccessibleProjects(user.id, {
+          accountId: activeAccountId,
           select: ACCESSIBLE_PROJECT_SELECT.summary,
         })
       ).filter((p) => TASK_BOARD_PROJECT_STATUSES.includes(p.status));
@@ -909,7 +912,7 @@ function AgentsProjectsKanbanContent({
     } finally {
       setLoading(false);
     }
-  }, [user, refreshTrigger, taskScopeFilter, projectFilter]);
+  }, [user, activeAccountId, accountLoading, refreshTrigger, taskScopeFilter, projectFilter]);
 
   useEffect(() => { loadData(); }, [loadData]);
 

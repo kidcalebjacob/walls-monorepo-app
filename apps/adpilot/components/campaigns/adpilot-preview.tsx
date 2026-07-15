@@ -345,7 +345,7 @@ export function AdPilotPreviewCard({
     <DetailSection
       title="Preview AdPilot decision"
       open={open}
-      onOpenChange={setOpen}
+      headerToggle={false}
       trailing={
         <AdPilotGenerateButton
           loading={loading}

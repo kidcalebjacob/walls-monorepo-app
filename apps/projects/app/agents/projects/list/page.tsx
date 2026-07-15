@@ -2,7 +2,7 @@ import AgentsProjectList from "@/components/agents-projects/projectList/agents-p
 
 export default function ProjectsListPage() {
   return (
-    <div className="h-full min-h-0 overflow-hidden overscroll-none bg-white">
+    <div className="h-full min-h-0 overflow-hidden overscroll-none bg-walls-white">
       <AgentsProjectList analyticsData={null} />
     </div>
   );

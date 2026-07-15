@@ -17,6 +17,7 @@ import {
   Search,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useActiveAccount } from "@/components/active-account-context";
 import { ProjectsHeader } from "../projects-header";
 import {
   Project,
@@ -195,7 +196,7 @@ function ColumnHeaders({
   );
 
   return (
-    <div className="sticky top-0 z-10 flex items-center gap-8 border-b border-neutral-100 bg-gray-50 px-5 py-2">
+    <div className="sticky top-0 z-10 flex items-center gap-8 border-b border-neutral-100 bg-walls-white px-5 py-2">
       <div className="w-1 flex-shrink-0" />
       <div className="flex-1 min-w-0">{headerBtn("name", "Name")}</div>
       <div className="mr-36 hidden w-40 shrink-0 pl-1 sm:flex">{headerBtn("progress", "Progress")}</div>
@@ -583,6 +584,7 @@ function AgentsProjectsListContent({
   analyticsData: _analyticsData,
 }: AgentsProjectsListProps) {
   const { user, isLoading: authLoading } = useAuth();
+  const { activeAccountId, loading: accountLoading } = useActiveAccount();
   const [projects, setProjects] = useState<ProjectWithStats[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
@@ -602,8 +604,8 @@ function AgentsProjectsListContent({
   }, [search]);
 
   const loadProjects = useCallback(async () => {
-    if (authLoading) return;
-    if (!user) {
+    if (authLoading || accountLoading) return;
+    if (!user || !activeAccountId) {
       setProjects([]);
       setLoading(false);
       return;
@@ -626,6 +628,7 @@ function AgentsProjectsListContent({
       let query = supabase
         .from("projects")
         .select("*")
+        .eq("account_id", activeAccountId)
         .or(accessFilter)
         .order("created_at", { ascending: false });
       if (debouncedSearch) query = query.ilike("name", `%${debouncedSearch}%`);
@@ -663,12 +666,12 @@ function AgentsProjectsListContent({
     } finally {
       setLoading(false);
     }
-  }, [user, authLoading, debouncedSearch, statusFilter, refreshTrigger]);
+  }, [user, authLoading, accountLoading, activeAccountId, debouncedSearch, statusFilter, refreshTrigger]);
 
   useEffect(() => {
-    if (authLoading) return;
+    if (authLoading || accountLoading) return;
     loadProjects();
-  }, [loadProjects, authLoading]);
+  }, [loadProjects, authLoading, accountLoading]);
 
   const refresh = () => setRefreshTrigger((r) => r + 1);
 

@@ -40,6 +40,7 @@ import {
   UserSearchUser,
   mapDbUserToUserSearchUser,
 } from "@/components/ui/searches/userSearch/user-search";
+import { useActiveAccount } from "@/components/active-account-context";
 import {
   notifyProjectMembersAdded,
   resolveActorDisplayName,
@@ -49,7 +50,7 @@ import {
 const popupButtonOuterClass =
   "w-10 h-10 p-0 text-slate-600 hover:bg-transparent flex items-center justify-center shadow-none relative group flex-shrink-0 disabled:opacity-50 disabled:cursor-not-allowed";
 const popupButtonInnerClass =
-  "relative z-10 p-3 rounded-full transition-all duration-300 ease-in-out group-hover:bg-gray-50 group-hover:border group-hover:border-neutral-200 group-hover:shadow-[inset_0_4px_8px_rgba(0,0,0,0.15)] group-hover:scale-95";
+  "relative z-10 p-3 rounded-full transition-all duration-300 ease-in-out group-hover:bg-walls-white group-hover:border group-hover:border-neutral-200 group-hover:shadow-[inset_0_4px_8px_rgba(0,0,0,0.15)] group-hover:scale-95";
 const fieldLabelClass =
   "text-[11px] font-normal uppercase tracking-[0.16em] text-neutral-500";
 const fieldValueClass = "truncate text-[15px] font-light text-neutral-900";
@@ -121,6 +122,7 @@ export function CreateProjectsPopup({
   existing,
 }: CreateProjectsPopupProps) {
   const { user: authUser } = useAuth();
+  const { activeAccountId } = useActiveAccount();
   const [form, setForm] = useState<ProjectFormState>(EMPTY_FORM);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -256,6 +258,10 @@ export function CreateProjectsPopup({
       setError("Project name is required.");
       return;
     }
+    if (!existing && !activeAccountId) {
+      setError("Select an account before creating a project.");
+      return;
+    }
     setSaving(true);
     setError(null);
     try {
@@ -265,9 +271,16 @@ export function CreateProjectsPopup({
       const projectName = form.name.trim();
       let slug = nameToSlug(projectName);
       let slugCounter = 1;
+      const accountIdForSlug = existing?.account_id ?? activeAccountId;
 
       while (true) {
-        let query = supabase.from("projects").select("id").eq("slug", slug);
+        let query = supabase
+          .from("projects")
+          .select("id")
+          .eq("slug", slug);
+        if (accountIdForSlug) {
+          query = query.eq("account_id", accountIdForSlug);
+        }
         if (existing) {
           query = query.neq("id", existing.id);
         }
@@ -335,6 +348,7 @@ export function CreateProjectsPopup({
             payload.owner_id = userRow.id;
           }
         }
+        payload.account_id = activeAccountId;
         const { data: newProject, error: err } = await supabase
           .from("projects")
           .insert(payload)
@@ -582,6 +596,7 @@ export function CreateProjectsPopup({
               >
                 <UserSearch
                   className="min-h-0 flex-1"
+                  accountId={existing?.account_id ?? activeAccountId}
                   values={selectedMembers}
                   onToggle={(userId) => {
                     if (userId === projectOwnerId) return;

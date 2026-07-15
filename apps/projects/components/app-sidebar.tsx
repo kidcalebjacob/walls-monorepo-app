@@ -35,7 +35,7 @@ export function AppSidebar({ headerVisible = true }: { headerVisible?: boolean }
   return (
     <div
       className={cn(
-        "fixed left-0 z-40 hidden bg-transparent md:block",
+        "fixed left-0 z-40 hidden bg-walls-white md:block",
         "transition-all duration-300 ease-in-out",
         headerVisible ? "top-16 h-[calc(100vh-4rem)]" : "top-0 h-screen",
         isExpanded ? "w-40" : "w-16",

@@ -15,9 +15,9 @@ import {
   Clock,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useActiveAccount } from "@/components/active-account-context";
 import { loadAccessibleProjects } from "./load-accessible-projects";
 import { isTaskVisibleToUser } from "./task-visibility";
-import { ProjectsHeader } from "./projects-header";
 import {
   Project,
   ProjectWithStats,
@@ -169,13 +169,14 @@ interface AgentsProjectsProps {
 
 function AgentsProjectsContent({ analyticsData: _analyticsData }: AgentsProjectsProps) {
   const { user, isLoading: authLoading } = useAuth();
+  const { activeAccountId, loading: accountLoading } = useActiveAccount();
   const [projects, setProjects] = useState<ProjectWithStats[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
 
   const loadProjects = useCallback(async () => {
-    if (authLoading) return;
-    if (!user) {
+    if (authLoading || accountLoading) return;
+    if (!user || !activeAccountId) {
       setProjects([]);
       setLoading(false);
       return;
@@ -183,7 +184,9 @@ function AgentsProjectsContent({ analyticsData: _analyticsData }: AgentsProjects
     setLoading(true);
     try {
       const supabase = getSupabaseClient();
-      const rows = (await loadAccessibleProjects(user.id)).sort(
+      const rows = (
+        await loadAccessibleProjects(user.id, { accountId: activeAccountId })
+      ).sort(
         (a, b) =>
           new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
       );
@@ -219,14 +222,14 @@ function AgentsProjectsContent({ analyticsData: _analyticsData }: AgentsProjects
     } finally {
       setLoading(false);
     }
-  }, [user, authLoading, refreshTrigger]);
+  }, [user, authLoading, accountLoading, activeAccountId, refreshTrigger]);
 
   useEffect(() => {
-    if (authLoading) return;
+    if (authLoading || accountLoading) return;
     loadProjects();
-  }, [loadProjects, authLoading]);
+  }, [loadProjects, authLoading, accountLoading]);
 
-  const showLoading = authLoading || loading;
+  const showLoading = authLoading || accountLoading || loading;
 
   // ── Derived metrics ──
   const total = projects.length;
@@ -304,8 +307,6 @@ function AgentsProjectsContent({ analyticsData: _analyticsData }: AgentsProjects
     <div className="flex h-screen overflow-hidden">
       <div className="flex-1 w-full flex flex-col min-h-0">
         <div className="flex-1 overflow-y-auto overscroll-none pl-8 pr-4 md:pr-6">
-          <ProjectsHeader />
-
           {showLoading ? (
             <ProjectsOverviewSkeleton />
           ) : total === 0 ? (
