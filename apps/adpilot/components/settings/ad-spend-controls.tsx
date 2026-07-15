@@ -37,15 +37,15 @@ import { SliderField } from "@/components/ui/slider-field";
 import { RoasFloorField } from "@/components/ui/roas-floor-field";
 
 import {
+  glassSegmentTrackClass,
+  glassToggleCardActiveClass,
+  glassToggleCardBaseClass,
+  glassToggleCardInactiveClass,
+  glassToggleChipActiveClass,
+  glassToggleChipBaseClass,
+  glassToggleChipInactiveClass,
   primaryButtonClass,
   secondaryButtonClass,
-  segmentTrackClass,
-  toggleCardActiveClass,
-  toggleCardBaseClass,
-  toggleCardInactiveClass,
-  toggleChipActiveClass,
-  toggleChipBaseClass,
-  toggleChipInactiveClass,
 } from "@/components/ui/button-styles";
 import { SectionLabel } from "./section-label";
 import { SegmentThumb } from "./segment-thumb";
@@ -274,28 +274,36 @@ export function AdSpendControls() {
         ) : null}
 
         <div className="flex flex-wrap items-center gap-2">
-          <div className={segmentTrackClass}>
-            {profiles.map((profile) => (
-              <button
-                key={profile.id}
-                type="button"
-                onClick={() => selectProfile(profile)}
-                className={cn(
-                  toggleChipBaseClass,
-                  selectedId === profile.id
-                    ? toggleChipActiveClass
-                    : toggleChipInactiveClass,
-                )}
-              >
-                {selectedId === profile.id ? (
-                  <SegmentThumb layoutId="preset-thumb" />
-                ) : null}
-                <span className="relative z-10">
-                  {profile.name}
-                  {profile.isDefault ? " · Default" : ""}
-                </span>
-              </button>
-            ))}
+          <div
+            className={glassSegmentTrackClass}
+            role="group"
+            aria-label="Automation presets"
+          >
+            {profiles.map((profile) => {
+              const active = selectedId === profile.id;
+              return (
+                <button
+                  key={profile.id}
+                  type="button"
+                  aria-pressed={active}
+                  onClick={() => selectProfile(profile)}
+                  className={cn(
+                    glassToggleChipBaseClass,
+                    active
+                      ? glassToggleChipActiveClass
+                      : glassToggleChipInactiveClass,
+                  )}
+                >
+                  {active ? (
+                    <SegmentThumb layoutId="preset-thumb" variant="glass" />
+                  ) : null}
+                  <span className="relative z-10">
+                    {profile.name}
+                    {profile.isDefault ? " · Default" : ""}
+                  </span>
+                </button>
+              );
+            })}
           </div>
           <Button
             type="button"
@@ -350,12 +358,14 @@ export function AdSpendControls() {
                     type="button"
                     onClick={() => updateForm("optimizationGoal", option.value)}
                     className={cn(
-                      toggleCardBaseClass,
-                      selected ? toggleCardActiveClass : toggleCardInactiveClass,
+                      glassToggleCardBaseClass,
+                      selected
+                        ? glassToggleCardActiveClass
+                        : glassToggleCardInactiveClass,
                     )}
                   >
                     {selected ? (
-                      <span className="absolute right-3 top-3 flex h-5 w-5 items-center justify-center rounded-full bg-[#3f4a0e] text-walls-yellow ring-1 ring-[#2c3406]/20">
+                      <span className="absolute right-3 top-3 flex h-5 w-5 items-center justify-center rounded-full border border-white/70 bg-white/70 text-neutral-700 shadow-[inset_0_1px_0_rgba(255,255,255,0.95)] backdrop-blur-md">
                         <Check className="h-3 w-3" strokeWidth={3} />
                       </span>
                     ) : null}
@@ -364,8 +374,8 @@ export function AdSpendControls() {
                         className={cn(
                           "flex h-9 w-9 shrink-0 items-center justify-center rounded-xl transition-colors",
                           selected
-                            ? "bg-[#3f4a0e] text-walls-yellow"
-                            : "bg-neutral-100 text-neutral-500",
+                            ? "border border-white/70 bg-white/70 text-neutral-700 shadow-[inset_0_1px_0_rgba(255,255,255,0.95)] backdrop-blur-md"
+                            : "bg-neutral-100 text-neutral-400",
                         )}
                       >
                         <Icon className="h-4 w-4" strokeWidth={1.75} />
@@ -373,10 +383,10 @@ export function AdSpendControls() {
                       <div className="min-w-0">
                         <p
                           className={cn(
-                            "text-sm",
+                            "text-sm font-medium",
                             selected
-                              ? "pr-6 font-semibold text-walls-forest"
-                              : "font-medium text-foreground",
+                              ? "pr-6 text-neutral-700"
+                              : "text-neutral-400",
                           )}
                         >
                           {option.label}
@@ -384,7 +394,7 @@ export function AdSpendControls() {
                         <p
                           className={cn(
                             "mt-1 text-xs font-light leading-5",
-                            selected ? "text-walls-forest/80" : "text-neutral-500",
+                            selected ? "text-neutral-500" : "text-neutral-400",
                           )}
                         >
                           {option.hint}
@@ -578,25 +588,33 @@ export function AdSpendControls() {
               Minimum wait before AdPilot can increase or decrease the daily budget
               again on the same entity.
             </p>
-            <div className={cn("mt-3", segmentTrackClass)}>
-              {COOLDOWN_OPTIONS.map((option) => (
-                <button
-                  key={option.value}
-                  type="button"
-                  onClick={() => updateSetting("cooldownHours", option.value)}
-                  className={cn(
-                    toggleChipBaseClass,
-                    form.settings.cooldownHours === option.value
-                      ? toggleChipActiveClass
-                      : toggleChipInactiveClass,
-                  )}
-                >
-                  {form.settings.cooldownHours === option.value ? (
-                    <SegmentThumb layoutId="cooldown-thumb" />
-                  ) : null}
-                  <span className="relative z-10">{option.label}</span>
-                </button>
-              ))}
+            <div
+              className={cn("mt-3", glassSegmentTrackClass)}
+              role="group"
+              aria-label="Cooldown between budget changes"
+            >
+              {COOLDOWN_OPTIONS.map((option) => {
+                const active = form.settings.cooldownHours === option.value;
+                return (
+                  <button
+                    key={option.value}
+                    type="button"
+                    aria-pressed={active}
+                    onClick={() => updateSetting("cooldownHours", option.value)}
+                    className={cn(
+                      glassToggleChipBaseClass,
+                      active
+                        ? glassToggleChipActiveClass
+                        : glassToggleChipInactiveClass,
+                    )}
+                  >
+                    {active ? (
+                      <SegmentThumb layoutId="cooldown-thumb" variant="glass" />
+                    ) : null}
+                    <span className="relative z-10">{option.label}</span>
+                  </button>
+                );
+              })}
             </div>
           </div>
         </div>

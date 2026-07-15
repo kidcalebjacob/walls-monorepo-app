@@ -2,9 +2,25 @@
 
 import Image from "next/image";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { Building2, Check, Loader2, Plus, RotateCcw, Trash2 } from "lucide-react";
+import {
+  Building2,
+  Check,
+  ChevronDown,
+  Loader2,
+  Plus,
+  RotateCcw,
+  Star,
+  Trash2,
+} from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
 
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@walls/ui/dropdown-menu";
+import { cn } from "@/lib/utils";
 import { wallsToast } from "@/components/ui/walls-toast";
 import { Button } from "@/components/ui/button";
 import { Input as BorderlessInput } from "@/components/ui/borderless-input";
@@ -16,10 +32,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { SquareImageCrop } from "@/components/ui/square-image-crop";
 import { Toaster } from "@/components/ui/toaster";
 import { useUploadOrganizationIcon } from "@/hooks/useMutations";
-import {
-  slugifyOrganizationName,
-  type OrganizationRecord,
-} from "@/lib/organizations-shared";
+import type { OrganizationRecord } from "@/lib/organizations-shared";
 import { OrganizationMembers } from "@/components/settings/organization-members";
 
 const fieldClass =
@@ -38,33 +51,157 @@ function SectionDivider({ title }: { title: string }) {
   );
 }
 
-type SlugCheckStatus = "idle" | "checking" | "available" | "taken" | "invalid";
-
-function SlugFieldHint({ status }: { status: SlugCheckStatus }) {
-  if (status === "idle" || status === "checking") {
-    return null;
-  }
-
-  if (status === "available") {
+function OrganizationSwitcherAvatar({
+  organization,
+}: {
+  organization: OrganizationRecord;
+}) {
+  if (organization.iconUrl) {
     return (
-      <p className="mt-1 text-xs font-light text-emerald-600">
-        This slug is available
-      </p>
-    );
-  }
-
-  if (status === "taken") {
-    return (
-      <p className="mt-1 text-xs font-light text-red-600">
-        This slug is already taken
-      </p>
+      // eslint-disable-next-line @next/next/no-img-element -- arbitrary remote org icons
+      <img
+        src={organization.iconUrl}
+        alt=""
+        className="h-10 w-10 shrink-0 rounded-lg object-cover"
+      />
     );
   }
 
   return (
-    <p className="mt-1 text-xs font-light text-red-600">
-      Slug must be at least 2 characters (letters and numbers only)
-    </p>
+    <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-violet-100 text-violet-700">
+      <Building2 className="h-5 w-5" />
+    </span>
+  );
+}
+
+function OrganizationSwitcher({
+  organizations,
+  selectedId,
+  onSelect,
+  onSetDefault,
+  settingDefaultId,
+}: {
+  organizations: OrganizationRecord[];
+  selectedId: string | null;
+  onSelect: (organizationId: string) => void;
+  onSetDefault: (organizationId: string) => void;
+  settingDefaultId: string | null;
+}) {
+  const [open, setOpen] = useState(false);
+  const activeOrganization =
+    organizations.find((organization) => organization.id === selectedId) ??
+    organizations[0];
+
+  if (!activeOrganization) return null;
+
+  return (
+    <DropdownMenu open={open} onOpenChange={setOpen}>
+      <DropdownMenuTrigger asChild>
+        <button
+          type="button"
+          className={cn(
+            "flex min-w-0 max-w-[min(100vw-8rem,280px)] items-center gap-3 rounded-xl bg-walls-white px-3 py-2.5 text-left transition",
+            "hover:bg-neutral-50",
+            "focus:outline-none",
+            open && "bg-neutral-50",
+          )}
+        >
+          <OrganizationSwitcherAvatar organization={activeOrganization} />
+          <span className="min-w-0 flex-1">
+            <span className="block truncate text-sm font-semibold text-foreground">
+              {activeOrganization.name}
+            </span>
+            <span className="mt-0.5 block text-xs capitalize text-neutral-500">
+              {activeOrganization.role}
+              {activeOrganization.isDefault ? " · Default" : ""}
+            </span>
+          </span>
+          <ChevronDown
+            className={cn(
+              "h-4 w-4 shrink-0 text-neutral-400 transition-transform",
+              open && "rotate-180",
+            )}
+          />
+        </button>
+      </DropdownMenuTrigger>
+
+      <DropdownMenuContent
+        align="start"
+        sideOffset={8}
+        className="z-[110] w-[min(100vw-2rem,320px)] rounded-2xl border-0 bg-walls-white p-2 shadow-xl"
+      >
+        <p className="px-2 pb-1 pt-1 text-sm font-medium text-neutral-500">
+          Choose an organization
+        </p>
+
+        <div className="mt-1 space-y-0.5">
+          {organizations.map((organization) => {
+            const isActive = organization.id === activeOrganization.id;
+            const isSettingThis = settingDefaultId === organization.id;
+            return (
+              <DropdownMenuItem
+                key={organization.id}
+                onSelect={() => {
+                  onSelect(organization.id);
+                  setOpen(false);
+                }}
+                className={cn(
+                  "cursor-pointer rounded-xl p-2 transition-colors focus:bg-transparent",
+                  isActive ? "bg-neutral-100" : "hover:bg-neutral-50",
+                )}
+              >
+                <div className="flex w-full items-center gap-3">
+                  <OrganizationSwitcherAvatar organization={organization} />
+                  <div className="min-w-0 flex-1">
+                    <p
+                      className={cn(
+                        "truncate text-sm text-foreground",
+                        isActive ? "font-semibold" : "font-medium",
+                      )}
+                    >
+                      {organization.name}
+                    </p>
+                    <span className="mt-0.5 block text-xs capitalize text-neutral-500">
+                      {organization.role}
+                      {organization.isDefault ? " · Default" : ""}
+                    </span>
+                  </div>
+                  {organization.isDefault ? (
+                    <Star
+                      className="h-4 w-4 shrink-0 fill-[var(--walls-sky)] text-[var(--walls-sky)]"
+                      strokeWidth={2}
+                    />
+                  ) : (
+                    <button
+                      type="button"
+                      disabled={isSettingThis}
+                      title="Set as default"
+                      aria-label={`Set ${organization.name} as default`}
+                      className="rounded-md p-1 text-neutral-400 transition-colors hover:bg-neutral-100 hover:text-foreground disabled:opacity-50"
+                      onClick={(event) => {
+                        event.preventDefault();
+                        event.stopPropagation();
+                        onSetDefault(organization.id);
+                      }}
+                      onPointerDown={(event) => {
+                        event.preventDefault();
+                        event.stopPropagation();
+                      }}
+                    >
+                      {isSettingThis ? (
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                      ) : (
+                        <Star className="h-4 w-4" strokeWidth={2} />
+                      )}
+                    </button>
+                  )}
+                </div>
+              </DropdownMenuItem>
+            );
+          })}
+        </div>
+      </DropdownMenuContent>
+    </DropdownMenu>
   );
 }
 
@@ -188,20 +325,15 @@ export default function OrganizationSettingsPage() {
   const [iconPreviewUrl, setIconPreviewUrl] = useState<string | null>(null);
   const [isHoveringSave, setIsHoveringSave] = useState(false);
   const [isHoveringCancel, setIsHoveringCancel] = useState(false);
-  const [createSlugTouched, setCreateSlugTouched] = useState(false);
-  const [editSlugTouched, setEditSlugTouched] = useState(false);
-  const [createSlugStatus, setCreateSlugStatus] =
-    useState<SlugCheckStatus>("idle");
-  const [editSlugStatus, setEditSlugStatus] = useState<SlugCheckStatus>("idle");
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [settingDefaultId, setSettingDefaultId] = useState<string | null>(null);
 
   const { mutate: uploadOrganizationIcon, isUploading: isUploadingIcon } =
     useUploadOrganizationIcon(selectedId);
 
   const [form, setForm] = useState({
     name: "",
-    slug: "",
     iconUrl: "",
     website: "",
     description: "",
@@ -217,7 +349,6 @@ export default function OrganizationSettingsPage() {
 
   const [createForm, setCreateForm] = useState({
     name: "",
-    slug: "",
     website: "",
   });
 
@@ -287,92 +418,12 @@ export default function OrganizationSettingsPage() {
 
   useEffect(() => {
     setIconPreviewUrl(null);
-    setEditSlugTouched(false);
-    setEditSlugStatus("idle");
   }, [selectedOrganization?.id]);
-
-  useEffect(() => {
-    if (!showCreateForm) {
-      setCreateSlugTouched(false);
-      setCreateSlugStatus("idle");
-    }
-  }, [showCreateForm]);
-
-  useEffect(() => {
-    const slug = createForm.slug.trim();
-    if (!slug) {
-      setCreateSlugStatus("idle");
-      return;
-    }
-
-    const timer = window.setTimeout(async () => {
-      setCreateSlugStatus("checking");
-      try {
-        const response = await fetch(
-          `/api/organizations/check-slug?slug=${encodeURIComponent(slug)}`,
-          { cache: "no-store" },
-        );
-        if (!response.ok) {
-          setCreateSlugStatus("invalid");
-          return;
-        }
-        const payload = (await response.json()) as {
-          available?: boolean;
-          reason?: string | null;
-        };
-        if (payload.reason === "invalid") {
-          setCreateSlugStatus("invalid");
-        } else {
-          setCreateSlugStatus(payload.available ? "available" : "taken");
-        }
-      } catch {
-        setCreateSlugStatus("idle");
-      }
-    }, 350);
-
-    return () => window.clearTimeout(timer);
-  }, [createForm.slug]);
-
-  useEffect(() => {
-    const slug = form.slug.trim();
-    if (!slug || !selectedId) {
-      setEditSlugStatus("idle");
-      return;
-    }
-
-    const timer = window.setTimeout(async () => {
-      setEditSlugStatus("checking");
-      try {
-        const response = await fetch(
-          `/api/organizations/check-slug?slug=${encodeURIComponent(slug)}&excludeOrganizationId=${encodeURIComponent(selectedId)}`,
-          { cache: "no-store" },
-        );
-        if (!response.ok) {
-          setEditSlugStatus("invalid");
-          return;
-        }
-        const payload = (await response.json()) as {
-          available?: boolean;
-          reason?: string | null;
-        };
-        if (payload.reason === "invalid") {
-          setEditSlugStatus("invalid");
-        } else {
-          setEditSlugStatus(payload.available ? "available" : "taken");
-        }
-      } catch {
-        setEditSlugStatus("idle");
-      }
-    }, 350);
-
-    return () => window.clearTimeout(timer);
-  }, [form.slug, selectedId]);
 
   useEffect(() => {
     if (!selectedOrganization) {
       setForm({
         name: "",
-        slug: "",
         iconUrl: "",
         website: "",
         description: "",
@@ -390,7 +441,6 @@ export default function OrganizationSettingsPage() {
 
     setForm({
       name: selectedOrganization.name,
-      slug: selectedOrganization.slug,
       iconUrl: selectedOrganization.iconUrl ?? "",
       website: selectedOrganization.website ?? "",
       description: selectedOrganization.description ?? "",
@@ -408,11 +458,6 @@ export default function OrganizationSettingsPage() {
   async function handleSave() {
     if (!selectedId || !canEdit) return;
 
-    if (isEditSlugBlocking) {
-      wallsToast.error("Invalid slug", "Choose a different organization slug");
-      return;
-    }
-
     setSaving(true);
     try {
       const response = await fetch(`/api/organizations/${selectedId}`, {
@@ -420,7 +465,6 @@ export default function OrganizationSettingsPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           name: form.name.trim(),
-          slug: form.slug.trim(),
           iconUrl: form.iconUrl.trim() || null,
           website: form.website.trim() || null,
           description: form.description.trim() || null,
@@ -466,7 +510,6 @@ export default function OrganizationSettingsPage() {
 
     setForm({
       name: selectedOrganization.name,
-      slug: selectedOrganization.slug,
       iconUrl: selectedOrganization.iconUrl ?? "",
       website: selectedOrganization.website ?? "",
       description: selectedOrganization.description ?? "",
@@ -480,8 +523,6 @@ export default function OrganizationSettingsPage() {
       countryCode: selectedOrganization.countryCode ?? "",
     });
     setIconPreviewUrl(null);
-    setEditSlugTouched(false);
-    setEditSlugStatus("idle");
     wallsToast.success("Changes reverted", "All changes have been discarded");
   }
 
@@ -520,9 +561,46 @@ export default function OrganizationSettingsPage() {
     }
   }
 
+  async function handleSetDefault(organizationId?: string) {
+    const targetId = organizationId ?? selectedId;
+    if (!targetId) return;
+
+    const target = organizations.find((organization) => organization.id === targetId);
+    if (!target || target.isDefault) return;
+
+    setSettingDefaultId(targetId);
+    try {
+      const response = await fetch(
+        `/api/organizations/${targetId}/set-default`,
+        { method: "POST" },
+      );
+
+      if (!response.ok) {
+        const payload = (await response.json()) as { error?: string };
+        wallsToast.error(
+          "Error",
+          payload.error || "Failed to set default organization",
+        );
+        return;
+      }
+
+      setOrganizations((current) =>
+        current.map((organization) => ({
+          ...organization,
+          isDefault: organization.id === targetId,
+        })),
+      );
+      wallsToast.success(
+        "Default updated",
+        `${target.name} is now your default`,
+      );
+    } finally {
+      setSettingDefaultId(null);
+    }
+  }
+
   const isFormChanged = selectedOrganization
     ? form.name !== selectedOrganization.name ||
-      form.slug !== selectedOrganization.slug ||
       form.website !== (selectedOrganization.website ?? "") ||
       form.description !== (selectedOrganization.description ?? "") ||
       form.email !== (selectedOrganization.email ?? "") ||
@@ -535,19 +613,9 @@ export default function OrganizationSettingsPage() {
       form.countryCode !== (selectedOrganization.countryCode ?? "")
     : false;
 
-  const isEditSlugBlocking =
-    editSlugStatus === "taken" || editSlugStatus === "invalid";
-  const isCreateSlugBlocking =
-    createSlugStatus === "taken" || createSlugStatus === "invalid";
-
   async function handleCreate() {
-    if (!createForm.name.trim() || !createForm.slug.trim()) {
-      wallsToast.error("Missing fields", "Organization name and slug are required");
-      return;
-    }
-
-    if (isCreateSlugBlocking) {
-      wallsToast.error("Invalid slug", "Choose a different organization slug");
+    if (!createForm.name.trim()) {
+      wallsToast.error("Missing fields", "Organization name is required");
       return;
     }
 
@@ -558,7 +626,6 @@ export default function OrganizationSettingsPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           name: createForm.name.trim(),
-          slug: createForm.slug.trim(),
           website: createForm.website.trim() || null,
         }),
       });
@@ -577,7 +644,7 @@ export default function OrganizationSettingsPage() {
         setOrganizations((current) => [...current, payload.organization!]);
         setSelectedId(payload.organization.id);
         setShowCreateForm(false);
-        setCreateForm({ name: "", slug: "", website: "" });
+        setCreateForm({ name: "", website: "" });
         wallsToast.success("Created", "Organization created successfully");
       }
     } finally {
@@ -587,7 +654,7 @@ export default function OrganizationSettingsPage() {
 
   if (loading) {
     return (
-      <div className="flex h-full flex-col overflow-y-auto overscroll-none bg-gray-50">
+      <div className="flex h-full flex-col overflow-y-auto overscroll-none bg-walls-white">
         <div className="mx-auto w-full max-w-5xl px-8 pb-8">
           <Skeleton className="mb-8 mt-8 h-10 w-64" />
           <Skeleton className="mb-4 h-[120px] w-[120px] rounded-2xl" />
@@ -603,7 +670,7 @@ export default function OrganizationSettingsPage() {
     editable ? fieldClass : readonlyFieldClass;
 
   return (
-    <div className="flex h-full flex-col overflow-y-auto overscroll-none bg-gray-50">
+    <div className="flex h-full flex-col overflow-y-auto overscroll-none bg-walls-white">
       <div className="mx-auto w-full max-w-5xl px-8 pb-8">
         <Toaster />
 
@@ -629,21 +696,16 @@ export default function OrganizationSettingsPage() {
         </div>
 
         {organizations.length > 1 ? (
-          <div className="mb-8 flex flex-wrap gap-2">
-            {organizations.map((organization) => (
-              <button
-                key={organization.id}
-                type="button"
-                onClick={() => setSelectedId(organization.id)}
-                className={`rounded-full border px-4 py-2 text-sm transition-colors ${
-                  selectedId === organization.id
-                    ? "border-walls-blue bg-walls-blue/10 text-walls-blue"
-                    : "border-neutral-200 bg-white text-neutral-700 hover:bg-neutral-50"
-                }`}
-              >
-                {organization.name}
-              </button>
-            ))}
+          <div className="mb-8">
+            <OrganizationSwitcher
+              organizations={organizations}
+              selectedId={selectedId}
+              onSelect={setSelectedId}
+              onSetDefault={(organizationId) => {
+                void handleSetDefault(organizationId);
+              }}
+              settingDefaultId={settingDefaultId}
+            />
           </div>
         ) : null}
 
@@ -659,46 +721,25 @@ export default function OrganizationSettingsPage() {
                     setCreateForm((current) => ({
                       ...current,
                       name: event.target.value,
-                      slug: createSlugTouched
-                        ? current.slug
-                        : slugifyOrganizationName(event.target.value),
                     }))
                   }
                   className={fieldClass}
                   placeholder="Organization name"
                 />
               </div>
-              <div className="flex gap-4">
-                <div className="flex-1">
-                  <label className={labelClass}>Slug</label>
-                  <BorderlessInput
-                    value={createForm.slug}
-                    onChange={(event) => {
-                      setCreateSlugTouched(true);
-                      setCreateForm((current) => ({
-                        ...current,
-                        slug: slugifyOrganizationName(event.target.value),
-                      }));
-                    }}
-                    className={fieldClass}
-                    placeholder="organization-slug"
-                  />
-                  <SlugFieldHint status={createSlugStatus} />
-                </div>
-                <div className="flex-1">
-                  <label className={labelClass}>Website</label>
-                  <BorderlessInput
-                    value={createForm.website}
-                    onChange={(event) =>
-                      setCreateForm((current) => ({
-                        ...current,
-                        website: event.target.value,
-                      }))
-                    }
-                    className={fieldClass}
-                    placeholder="https://example.com"
-                  />
-                </div>
+              <div>
+                <label className={labelClass}>Website</label>
+                <BorderlessInput
+                  value={createForm.website}
+                  onChange={(event) =>
+                    setCreateForm((current) => ({
+                      ...current,
+                      website: event.target.value,
+                    }))
+                  }
+                  className={fieldClass}
+                  placeholder="https://example.com"
+                />
               </div>
               <p className="text-xs font-light text-neutral-400">
                 You can upload an organization icon after it is created.
@@ -715,7 +756,7 @@ export default function OrganizationSettingsPage() {
               </Button>
               <Button
                 type="button"
-                disabled={creating || isCreateSlugBlocking}
+                disabled={creating}
                 className="rounded-none border border-neutral-200/50 bg-walls-yellow px-8 py-6 font-normal text-black hover:bg-walls-yellow"
                 onClick={() => void handleCreate()}
               >
@@ -753,8 +794,30 @@ export default function OrganizationSettingsPage() {
                 />
                 <p className="mt-3 max-w-[120px] text-center text-[10px] font-light uppercase tracking-wide text-neutral-400">
                   {selectedOrganization.role}
-                  {selectedOrganization.isDefault ? " · Default" : ""}
                 </p>
+                {!selectedOrganization.isDefault ? (
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    disabled={settingDefaultId === selectedOrganization.id}
+                    onClick={() => void handleSetDefault()}
+                    className="mt-3 h-auto w-[120px] rounded-none border border-neutral-200/50 bg-background px-2 py-2 text-[10px] font-normal uppercase tracking-wide text-foreground hover:bg-background hover:shadow-[inset_0_1px_2px_rgba(0,0,0,0.1)] disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    {settingDefaultId === selectedOrganization.id ? (
+                      <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                    ) : (
+                      <span className="inline-flex items-center gap-1">
+                        <Star className="h-3 w-3" />
+                        Set default
+                      </span>
+                    )}
+                  </Button>
+                ) : (
+                  <p className="mt-3 inline-flex w-[120px] items-center justify-center gap-1 text-[10px] font-medium uppercase tracking-wide text-[var(--walls-sky)]">
+                    <Star className="h-3 w-3 fill-current" />
+                    Default
+                  </p>
+                )}
               </div>
 
               <div className="flex-1 space-y-4">
@@ -767,48 +830,26 @@ export default function OrganizationSettingsPage() {
                       setForm((current) => ({
                         ...current,
                         name: event.target.value,
-                        slug: editSlugTouched
-                          ? current.slug
-                          : slugifyOrganizationName(event.target.value),
                       }))
                     }
                     className={inputClass(canEdit)}
                     placeholder="Organization name"
                   />
                 </div>
-                <div className="flex gap-4">
-                  <div className="flex-1">
-                    <label className={labelClass}>Slug</label>
-                    <BorderlessInput
-                      value={form.slug}
-                      readOnly={!canEdit}
-                      onChange={(event) => {
-                        setEditSlugTouched(true);
-                        setForm((current) => ({
-                          ...current,
-                          slug: slugifyOrganizationName(event.target.value),
-                        }));
-                      }}
-                      className={inputClass(canEdit)}
-                      placeholder="organization-slug"
-                    />
-                    {canEdit ? <SlugFieldHint status={editSlugStatus} /> : null}
-                  </div>
-                  <div className="flex-1">
-                    <label className={labelClass}>Website</label>
-                    <BorderlessInput
-                      value={form.website}
-                      readOnly={!canEdit}
-                      onChange={(event) =>
-                        setForm((current) => ({
-                          ...current,
-                          website: event.target.value,
-                        }))
-                      }
-                      className={inputClass(canEdit)}
-                      placeholder="https://example.com"
-                    />
-                  </div>
+                <div>
+                  <label className={labelClass}>Website</label>
+                  <BorderlessInput
+                    value={form.website}
+                    readOnly={!canEdit}
+                    onChange={(event) =>
+                      setForm((current) => ({
+                        ...current,
+                        website: event.target.value,
+                      }))
+                    }
+                    className={inputClass(canEdit)}
+                    placeholder="https://example.com"
+                  />
                 </div>
               </div>
             </div>
@@ -973,7 +1014,7 @@ export default function OrganizationSettingsPage() {
               <div className="flex justify-start gap-3 pb-8 pt-4">
                 <Button
                   type="button"
-                  disabled={!isFormChanged || saving || isEditSlugBlocking}
+                  disabled={!isFormChanged || saving}
                   variant="ghost"
                   onMouseEnter={() => setIsHoveringSave(true)}
                   onMouseLeave={() => setIsHoveringSave(false)}

@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-07-13T17:57:48.297Z",
+  "generatedAt": "2026-07-14T16:13:59.924Z",
   "source": "packages/supabase/scripts/dump-schema.mjs",
   "schemasIncluded": [
     "public",
@@ -7,11 +7,11 @@
     "storage"
   ],
   "summary": {
-    "tables": 205,
+    "tables": 207,
     "views": 1,
     "materializedViews": 6,
     "enums": 26,
-    "columns": 2176
+    "columns": 2191
   },
   "schemas": {
     "public": {
@@ -188,6 +188,122 @@
             {
               "name": "access_keys_pkey",
               "definition": "CREATE UNIQUE INDEX access_keys_pkey ON public.access_keys USING btree (id)"
+            }
+          ],
+          "rls": {
+            "enabled": false,
+            "forced": false
+          },
+          "policies": []
+        },
+        "account_app_access": {
+          "type": "BASE TABLE",
+          "columns": [
+            {
+              "name": "id",
+              "position": 1,
+              "dataType": "uuid",
+              "udtName": "uuid",
+              "nullable": false,
+              "default": "gen_random_uuid()",
+              "maxLength": null,
+              "numericPrecision": null,
+              "numericScale": null
+            },
+            {
+              "name": "account_id",
+              "position": 2,
+              "dataType": "uuid",
+              "udtName": "uuid",
+              "nullable": false,
+              "default": null,
+              "maxLength": null,
+              "numericPrecision": null,
+              "numericScale": null
+            },
+            {
+              "name": "app_id",
+              "position": 3,
+              "dataType": "uuid",
+              "udtName": "uuid",
+              "nullable": false,
+              "default": null,
+              "maxLength": null,
+              "numericPrecision": null,
+              "numericScale": null
+            },
+            {
+              "name": "created_at",
+              "position": 4,
+              "dataType": "timestamp with time zone",
+              "udtName": "timestamptz",
+              "nullable": false,
+              "default": "now()",
+              "maxLength": null,
+              "numericPrecision": null,
+              "numericScale": null
+            }
+          ],
+          "primaryKey": [
+            "id"
+          ],
+          "foreignKeys": [
+            {
+              "name": "account_app_access_account_id_fkey",
+              "columns": [
+                "account_id"
+              ],
+              "references": {
+                "schema": "public",
+                "table": "accounts",
+                "columns": [
+                  "id"
+                ]
+              },
+              "onUpdate": "NO ACTION",
+              "onDelete": "CASCADE"
+            },
+            {
+              "name": "account_app_access_app_id_fkey",
+              "columns": [
+                "app_id"
+              ],
+              "references": {
+                "schema": "public",
+                "table": "apps",
+                "columns": [
+                  "id"
+                ]
+              },
+              "onUpdate": "NO ACTION",
+              "onDelete": "CASCADE"
+            }
+          ],
+          "uniqueConstraints": [
+            {
+              "name": "account_app_access_unique",
+              "columns": [
+                "account_id",
+                "app_id"
+              ]
+            }
+          ],
+          "indexes": [
+            {
+              "name": "account_app_access_account_id_idx",
+              "definition": "CREATE INDEX account_app_access_account_id_idx ON public.account_app_access USING btree (account_id)"
+            },
+            {
+              "name": "account_app_access_app_id_idx",
+              "definition": "CREATE INDEX account_app_access_app_id_idx ON public.account_app_access USING btree (app_id)"
+            },
+            {
+              "name": "account_app_access_pkey",
+              "definition": "CREATE UNIQUE INDEX account_app_access_pkey ON public.account_app_access USING btree (id)"
+            },
+            {
+              "name": "account_app_access_unique",
+              "definition": "CREATE UNIQUE INDEX account_app_access_unique ON public.account_app_access USING btree (account_id, app_id)"
             }
           ],
           "rls": {
@@ -402,6 +518,10 @@
             {
               "name": "account_connections_pkey",
               "definition": "CREATE UNIQUE INDEX account_connections_pkey ON public.account_connections USING btree (id)"
+            },
+            {
+              "name": "account_connections_provider_idx",
+              "definition": "CREATE INDEX account_connections_provider_idx ON public.account_connections USING btree (provider)"
             }
           ],
           "rls": {
@@ -972,6 +1092,254 @@
             },
             {
               "name": "ad_account_settings_update_member",
+              "permissive": "PERMISSIVE",
+              "roles": "{authenticated}",
+              "command": "UPDATE",
+              "using": "is_ad_account_member(account_id)",
+              "withCheck": "is_ad_account_member(account_id)"
+            }
+          ]
+        },
+        "ad_agent_instructions": {
+          "type": "BASE TABLE",
+          "columns": [
+            {
+              "name": "id",
+              "position": 1,
+              "dataType": "uuid",
+              "udtName": "uuid",
+              "nullable": false,
+              "default": "gen_random_uuid()",
+              "maxLength": null,
+              "numericPrecision": null,
+              "numericScale": null
+            },
+            {
+              "name": "created_at",
+              "position": 2,
+              "dataType": "timestamp with time zone",
+              "udtName": "timestamptz",
+              "nullable": false,
+              "default": "now()",
+              "maxLength": null,
+              "numericPrecision": null,
+              "numericScale": null
+            },
+            {
+              "name": "updated_at",
+              "position": 3,
+              "dataType": "timestamp with time zone",
+              "udtName": "timestamptz",
+              "nullable": true,
+              "default": null,
+              "maxLength": null,
+              "numericPrecision": null,
+              "numericScale": null
+            },
+            {
+              "name": "account_id",
+              "position": 4,
+              "dataType": "uuid",
+              "udtName": "uuid",
+              "nullable": false,
+              "default": null,
+              "maxLength": null,
+              "numericPrecision": null,
+              "numericScale": null
+            },
+            {
+              "name": "account_connection_id",
+              "position": 5,
+              "dataType": "uuid",
+              "udtName": "uuid",
+              "nullable": false,
+              "default": null,
+              "maxLength": null,
+              "numericPrecision": null,
+              "numericScale": null
+            },
+            {
+              "name": "entity_id",
+              "position": 6,
+              "dataType": "uuid",
+              "udtName": "uuid",
+              "nullable": false,
+              "default": null,
+              "maxLength": null,
+              "numericPrecision": null,
+              "numericScale": null
+            },
+            {
+              "name": "instructions",
+              "position": 7,
+              "dataType": "text",
+              "udtName": "text",
+              "nullable": false,
+              "default": null,
+              "maxLength": null,
+              "numericPrecision": null,
+              "numericScale": null
+            },
+            {
+              "name": "starts_at",
+              "position": 8,
+              "dataType": "timestamp with time zone",
+              "udtName": "timestamptz",
+              "nullable": true,
+              "default": null,
+              "maxLength": null,
+              "numericPrecision": null,
+              "numericScale": null
+            },
+            {
+              "name": "ends_at",
+              "position": 9,
+              "dataType": "timestamp with time zone",
+              "udtName": "timestamptz",
+              "nullable": true,
+              "default": null,
+              "maxLength": null,
+              "numericPrecision": null,
+              "numericScale": null
+            },
+            {
+              "name": "is_active",
+              "position": 10,
+              "dataType": "boolean",
+              "udtName": "bool",
+              "nullable": false,
+              "default": "true",
+              "maxLength": null,
+              "numericPrecision": null,
+              "numericScale": null
+            },
+            {
+              "name": "created_by_user_id",
+              "position": 11,
+              "dataType": "uuid",
+              "udtName": "uuid",
+              "nullable": true,
+              "default": null,
+              "maxLength": null,
+              "numericPrecision": null,
+              "numericScale": null
+            }
+          ],
+          "primaryKey": [
+            "id"
+          ],
+          "foreignKeys": [
+            {
+              "name": "ad_agent_instructions_account_connection_id_fkey",
+              "columns": [
+                "account_connection_id"
+              ],
+              "references": {
+                "schema": "public",
+                "table": "account_connections",
+                "columns": [
+                  "id"
+                ]
+              },
+              "onUpdate": "NO ACTION",
+              "onDelete": "CASCADE"
+            },
+            {
+              "name": "ad_agent_instructions_account_id_fkey",
+              "columns": [
+                "account_id"
+              ],
+              "references": {
+                "schema": "public",
+                "table": "accounts",
+                "columns": [
+                  "id"
+                ]
+              },
+              "onUpdate": "NO ACTION",
+              "onDelete": "CASCADE"
+            },
+            {
+              "name": "ad_agent_instructions_created_by_user_id_fkey",
+              "columns": [
+                "created_by_user_id"
+              ],
+              "references": {
+                "schema": "public",
+                "table": "users",
+                "columns": [
+                  "id"
+                ]
+              },
+              "onUpdate": "NO ACTION",
+              "onDelete": "SET NULL"
+            },
+            {
+              "name": "ad_agent_instructions_entity_id_fkey",
+              "columns": [
+                "entity_id"
+              ],
+              "references": {
+                "schema": "public",
+                "table": "ad_entities",
+                "columns": [
+                  "id"
+                ]
+              },
+              "onUpdate": "NO ACTION",
+              "onDelete": "CASCADE"
+            }
+          ],
+          "uniqueConstraints": [],
+          "indexes": [
+            {
+              "name": "ad_agent_instructions_account_idx",
+              "definition": "CREATE INDEX ad_agent_instructions_account_idx ON public.ad_agent_instructions USING btree (account_id)"
+            },
+            {
+              "name": "ad_agent_instructions_entity_idx",
+              "definition": "CREATE INDEX ad_agent_instructions_entity_idx ON public.ad_agent_instructions USING btree (entity_id)"
+            },
+            {
+              "name": "ad_agent_instructions_pkey",
+              "definition": "CREATE UNIQUE INDEX ad_agent_instructions_pkey ON public.ad_agent_instructions USING btree (id)"
+            },
+            {
+              "name": "ad_agent_instructions_window_idx",
+              "definition": "CREATE INDEX ad_agent_instructions_window_idx ON public.ad_agent_instructions USING btree (entity_id, starts_at, ends_at) WHERE (is_active = true)"
+            }
+          ],
+          "rls": {
+            "enabled": true,
+            "forced": false
+          },
+          "policies": [
+            {
+              "name": "ad_agent_instructions_delete_member",
+              "permissive": "PERMISSIVE",
+              "roles": "{authenticated}",
+              "command": "DELETE",
+              "using": "is_ad_account_member(account_id)",
+              "withCheck": null
+            },
+            {
+              "name": "ad_agent_instructions_insert_member",
+              "permissive": "PERMISSIVE",
+              "roles": "{authenticated}",
+              "command": "INSERT",
+              "using": null,
+              "withCheck": "is_ad_account_member(account_id)"
+            },
+            {
+              "name": "ad_agent_instructions_select_member",
+              "permissive": "PERMISSIVE",
+              "roles": "{authenticated}",
+              "command": "SELECT",
+              "using": "is_ad_account_member(account_id)",
+              "withCheck": null
+            },
+            {
+              "name": "ad_agent_instructions_update_member",
               "permissive": "PERMISSIVE",
               "roles": "{authenticated}",
               "command": "UPDATE",
@@ -2608,6 +2976,61 @@
               "maxLength": null,
               "numericPrecision": null,
               "numericScale": null
+            },
+            {
+              "name": "estimated_audience_lower",
+              "position": 26,
+              "dataType": "bigint",
+              "udtName": "int8",
+              "nullable": true,
+              "default": null,
+              "maxLength": null,
+              "numericPrecision": 64,
+              "numericScale": 0
+            },
+            {
+              "name": "estimated_audience_upper",
+              "position": 27,
+              "dataType": "bigint",
+              "udtName": "int8",
+              "nullable": true,
+              "default": null,
+              "maxLength": null,
+              "numericPrecision": 64,
+              "numericScale": 0
+            },
+            {
+              "name": "audience_estimate_ready",
+              "position": 28,
+              "dataType": "boolean",
+              "udtName": "bool",
+              "nullable": true,
+              "default": null,
+              "maxLength": null,
+              "numericPrecision": null,
+              "numericScale": null
+            },
+            {
+              "name": "lifetime_reach",
+              "position": 29,
+              "dataType": "bigint",
+              "udtName": "int8",
+              "nullable": true,
+              "default": null,
+              "maxLength": null,
+              "numericPrecision": 64,
+              "numericScale": 0
+            },
+            {
+              "name": "lifetime_spend_micros",
+              "position": 30,
+              "dataType": "bigint",
+              "udtName": "int8",
+              "nullable": true,
+              "default": null,
+              "maxLength": null,
+              "numericPrecision": 64,
+              "numericScale": 0
             },
             {
               "name": "account_id",

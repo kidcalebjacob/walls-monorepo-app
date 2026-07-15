@@ -72,7 +72,7 @@ async function fetchUserProfile(
 ): Promise<UserProfile> {
   const supabase = getSupabaseClient();
 
-  const [userResult, accessResult] = await Promise.all([
+  const [userResult, accessResult, membershipResult] = await Promise.all([
     supabase
       .from("users")
       .select(
@@ -85,11 +85,28 @@ async function fetchUserProfile(
       .select("app_id, order_index, apps(id, slug, name, icon_url, url_redirect)")
       .eq("user_id", userId)
       .order("order_index", { ascending: true }),
+    supabase.from("account_users").select("account_id").eq("user_id", userId),
   ]);
 
   const supabaseUserData = userResult.data;
   const userError = userResult.error;
   const accessRows = accessResult.data ?? [];
+  const accountIds = (membershipResult.data ?? [])
+    .map((row) => row.account_id)
+    .filter((id): id is string => !!id);
+
+  let accountAccessRows: {
+    app_id: string;
+    apps: unknown;
+  }[] = [];
+
+  if (accountIds.length > 0) {
+    const { data } = await supabase
+      .from("account_app_access")
+      .select("app_id, apps(id, slug, name, icon_url, url_redirect)")
+      .in("account_id", accountIds);
+    accountAccessRows = data ?? [];
+  }
 
   let userFullName = "";
   let avatarUrl: string | null = null;
@@ -125,12 +142,14 @@ async function fetchUserProfile(
     userType = "Agent";
   }
 
-  const appList: UserProfileApp[] = [];
-  accessRows.forEach((row: {
-    app_id: string;
-    apps: unknown;
-  }) => {
-    const app = row.apps;
+  const pushApp = (
+    appList: UserProfileApp[],
+    seen: Set<string>,
+    appId: string,
+    apps: unknown,
+  ) => {
+    if (seen.has(appId)) return;
+    const app = apps;
     if (!app || typeof app !== "object") return;
     const a = Array.isArray(app) ? app[0] : app;
     if (
@@ -153,13 +172,25 @@ async function fetchUserProfile(
           : `https://assets.wallsentertainment.com/walls-app-icons/${slug}.svg`;
       const pathPart = urlRedirect.replace(/^\/*/, "");
       const path = `${platformBase}/${pathPart}`;
+      seen.add(appId);
       appList.push({
-        app_id: row.app_id,
+        app_id: appId,
         name,
         icon: iconUrl,
         path,
       });
     }
+  };
+
+  const appList: UserProfileApp[] = [];
+  const seenAppIds = new Set<string>();
+
+  // Personal grants keep launcher order; account grants fill in afterward.
+  accessRows.forEach((row: { app_id: string; apps: unknown }) => {
+    pushApp(appList, seenAppIds, row.app_id, row.apps);
+  });
+  accountAccessRows.forEach((row) => {
+    pushApp(appList, seenAppIds, row.app_id, row.apps);
   });
 
   const initials = computeInitials(userFullName, email);

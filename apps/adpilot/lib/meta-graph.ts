@@ -280,6 +280,57 @@ export async function fetchMetaInsights(
   );
 }
 
+/**
+ * Lifetime totals over the entity's full available history.
+ * Omits time_increment so Meta returns one aggregated row per entity
+ * (unique reach + total spend for date_preset=maximum).
+ */
+export async function fetchMetaLifetimeTotals(
+  accountId: string,
+  accessToken: string,
+  level: MetaInsightLevel,
+): Promise<MetaInsightRow[]> {
+  const idFields =
+    level === "account"
+      ? "reach,spend"
+      : level === "campaign"
+        ? "campaign_id,reach,spend"
+        : level === "adset"
+          ? "adset_id,reach,spend"
+          : "ad_id,reach,spend";
+
+  return fetchMetaGraphCollection<MetaInsightRow>(
+    `${accountId}/insights`,
+    accessToken,
+    {
+      fields: idFields,
+      level,
+      date_preset: "maximum",
+      use_unified_attribution_setting: "true",
+    },
+  );
+}
+
+/** Meta Ads Manager "Estimated audience size" band for an ad set's targeting. */
+export type MetaDeliveryEstimate = {
+  estimate_mau_lower_bound?: number | string;
+  estimate_mau_upper_bound?: number | string;
+  /** Legacy field some Graph versions still return instead of the bound pair. */
+  estimate_mau?: number | string;
+  estimate_ready?: boolean;
+};
+
+export async function fetchMetaDeliveryEstimate(
+  adSetId: string,
+  accessToken: string,
+): Promise<MetaDeliveryEstimate | null> {
+  const rows = await fetchMetaGraphCollection<MetaDeliveryEstimate>(
+    `${adSetId}/delivery_estimate`,
+    accessToken,
+  );
+  return rows[0] ?? null;
+}
+
 function microsToMetaBudgetCents(micros: number): string {
   return String(Math.round(micros / 10_000));
 }

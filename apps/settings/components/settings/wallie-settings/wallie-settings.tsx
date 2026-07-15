@@ -157,7 +157,7 @@ function OptionGroup<T extends string | boolean>({
                 className={cn(
                   "relative z-10 rounded-2xl px-3 py-3 transition-all duration-300 ease-in-out",
                   "border border-transparent",
-                  "group-hover:bg-gray-50 group-hover:border group-hover:border-neutral-200 group-hover:shadow-[inset_0_4px_8px_rgba(0,0,0,0.15)] group-hover:scale-[0.99]",
+                  "group-hover:bg-walls-white group-hover:border group-hover:border-neutral-200 group-hover:shadow-[inset_0_4px_8px_rgba(0,0,0,0.15)] group-hover:scale-[0.99]",
                   isSelected
                     ? [
                         "border-[rgba(110,173,192,0.45)] bg-white/40",
@@ -336,7 +336,7 @@ export default function WallieSettingsPage() {
   // ── Render ─────────────────────────────────────────────────────────────────
 
   return (
-    <div className="flex flex-col h-full overflow-y-auto overscroll-none bg-gray-50">
+    <div className="flex flex-col h-full overflow-y-auto overscroll-none bg-walls-white">
       <div className="w-full">
         <div className="max-w-5xl mx-auto px-8 pb-24">
 
@@ -363,7 +363,7 @@ export default function WallieSettingsPage() {
                     className={cn(
                       "relative z-10 rounded-2xl px-4 py-4 transition-all duration-300 ease-in-out",
                       "border border-transparent",
-                      "group-hover:bg-gray-50 group-hover:border group-hover:border-neutral-200 group-hover:shadow-[inset_0_4px_8px_rgba(0,0,0,0.15)] group-hover:scale-[0.99]",
+                      "group-hover:bg-walls-white group-hover:border group-hover:border-neutral-200 group-hover:shadow-[inset_0_4px_8px_rgba(0,0,0,0.15)] group-hover:scale-[0.99]",
                       isActive
                         ? [
                             "border-[rgba(110,173,192,0.45)] bg-white/40",

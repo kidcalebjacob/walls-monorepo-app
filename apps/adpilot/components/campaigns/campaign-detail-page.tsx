@@ -66,7 +66,7 @@ export function CampaignDetailPage() {
 
   if (error || !detail) {
     return (
-      <div className="px-6 pt-16 md:px-10 md:pt-20">
+      <div className="mx-auto w-full max-w-7xl px-6 pt-16 md:px-10 md:pt-20">
         <button
           type="button"
           onClick={() => router.push("/campaigns")}
@@ -81,7 +81,7 @@ export function CampaignDetailPage() {
   }
 
   return (
-    <div className="px-6 pt-8 pb-10 md:px-10 md:pt-10">
+    <div className="mx-auto w-full max-w-7xl px-6 pt-8 pb-10 md:px-10 md:pt-10">
       <DetailBreadcrumbs
         items={[
           { label: "Campaigns", href: "/campaigns" },
@@ -119,7 +119,7 @@ export function CampaignDetailPage() {
           {detail.canAutomate ? (
             <AdPilotEnableToggle
               entityId={detail.id}
-              enabled={detail.automation.enabled}
+              automation={detail.automation}
               onAutomationUpdated={(automation) =>
                 setDetail((prev) => (prev ? { ...prev, automation } : prev))
               }

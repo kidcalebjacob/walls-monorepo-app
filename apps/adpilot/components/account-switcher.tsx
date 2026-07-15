@@ -3,6 +3,7 @@
 import * as React from "react";
 import { Building2, Check, ChevronDown, Plus, User } from "lucide-react";
 
+import { useAuth } from "@walls/auth";
 import { cn } from "@walls/utils";
 import {
   DropdownMenu,
@@ -217,15 +218,22 @@ function AccountAvatar({
   account: AdpilotAccount;
   size?: "md" | "sm";
 }) {
+  const { profile } = useAuth();
   const tone = accountIconTone(account);
   const boxClass =
     size === "md" ? "h-10 w-10 rounded-lg" : "h-8 w-8 rounded-md";
 
-  if (account.iconUrl) {
+  // Personal accounts don't get organization icon uploads — fall back to the
+  // signed-in user's avatar so the header shows their photo instead of initials.
+  const imageUrl =
+    account.iconUrl ??
+    (account.accountType === "personal" ? (profile?.avatarUrl ?? null) : null);
+
+  if (imageUrl) {
     return (
       // eslint-disable-next-line @next/next/no-img-element -- arbitrary remote account icons
       <img
-        src={account.iconUrl}
+        src={imageUrl}
         alt=""
         className={cn(boxClass, "shrink-0 object-cover")}
       />

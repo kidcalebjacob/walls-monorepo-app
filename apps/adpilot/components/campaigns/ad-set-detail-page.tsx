@@ -56,7 +56,7 @@ export function AdSetDetailPage() {
 
   if (error || !detail) {
     return (
-      <div className="px-6 pt-16 md:px-10 md:pt-20">
+      <div className="mx-auto w-full max-w-7xl px-6 pt-16 md:px-10 md:pt-20">
         <button
           type="button"
           onClick={() => router.push(`/campaigns/${campaignId}`)}
@@ -73,7 +73,7 @@ export function AdSetDetailPage() {
   const campaignName = detail.parentName ?? "Campaign";
 
   return (
-    <div className="px-6 pt-8 pb-10 md:px-10 md:pt-10">
+    <div className="mx-auto w-full max-w-7xl px-6 pt-8 pb-10 md:px-10 md:pt-10">
       <DetailBreadcrumbs
         items={[
           { label: "Campaigns", href: "/campaigns" },
@@ -95,21 +95,17 @@ export function AdSetDetailPage() {
             <h1 className="mt-2 text-4xl font-black tracking-tight text-neutral-900">
               {detail.name}
             </h1>
-            <div className="mt-2 flex flex-wrap items-center gap-3 text-sm font-light text-neutral-500">
-              <span>Campaign: {campaignName}</span>
-              {detail.status ? <span>Status: {detail.status}</span> : null}
-              {detail.dailyBudgetMicros != null && detail.dailyBudgetMicros > 0 ? (
-                <span>
-                  Daily budget: {formatCurrencyFromMicros(detail.dailyBudgetMicros)}
-                </span>
-              ) : null}
-            </div>
+            {detail.dailyBudgetMicros != null && detail.dailyBudgetMicros > 0 ? (
+              <p className="mt-2 text-sm font-light text-neutral-500">
+                Daily budget: {formatCurrencyFromMicros(detail.dailyBudgetMicros)}
+              </p>
+            ) : null}
           </div>
 
           {detail.canAutomate ? (
             <AdPilotEnableToggle
               entityId={detail.id}
-              enabled={detail.automation.enabled}
+              automation={detail.automation}
               onAutomationUpdated={(automation) =>
                 setDetail((prev) => (prev ? { ...prev, automation } : prev))
               }
@@ -119,24 +115,29 @@ export function AdSetDetailPage() {
       </motion.div>
 
       <div className="mb-8">
-        <EntityMetricsGrid metrics={detail.metrics} />
+        <EntityMetricsGrid
+          metrics={detail.metrics}
+          reachSaturation={detail.reachSaturation}
+        />
       </div>
 
-      <AdSetCreativesSection
-        ads={detail.ads}
-        objectiveBucket={detail.objectiveBucket}
-      />
+      <div className="space-y-12">
+        <AdSetCreativesSection
+          ads={detail.ads}
+          objectiveBucket={detail.objectiveBucket}
+        />
 
-      <EntityAutomationSection
-        entityId={detail.id}
-        entityLabel="ad set"
-        detail={detail}
-        onAutomationUpdated={(automation) =>
-          setDetail((prev) => (prev ? { ...prev, automation } : prev))
-        }
-      />
+        <EntityAutomationSection
+          entityId={detail.id}
+          entityLabel="ad set"
+          detail={detail}
+          onAutomationUpdated={(automation) =>
+            setDetail((prev) => (prev ? { ...prev, automation } : prev))
+          }
+        />
 
-      <EntityDailyProgressSection progress={detail.dailyProgress} />
+        <EntityDailyProgressSection progress={detail.dailyProgress} />
+      </div>
     </div>
   );
 }

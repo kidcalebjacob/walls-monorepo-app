@@ -2,9 +2,25 @@
 
 import * as React from "react";
 import Link from "next/link";
-import { Check, Loader2, Pencil, Plus, Shield, Trash2, X } from "lucide-react";
+import {
+  Check,
+  ChevronDown,
+  Loader2,
+  Pencil,
+  Plus,
+  Shield,
+  Trash2,
+  X,
+} from "lucide-react";
 
 import { Button } from "@walls/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@walls/ui/dropdown-menu";
 import { Input } from "@walls/ui/input";
 import { LabeledSwitch } from "@walls/ui/switch";
 import { Textarea } from "@walls/ui/textarea";
@@ -14,9 +30,11 @@ import { AdPilotPreviewCard } from "@/components/campaigns/adpilot-preview";
 import {
   DetailSection,
   DetailSubLabel,
-  detailSelectableClass,
 } from "@/components/campaigns/entity-detail-shared";
-import type { BudgetAdjustmentRow } from "@/lib/automation-server";
+import type {
+  AutomationProfile,
+  BudgetAdjustmentRow,
+} from "@/lib/automation-server";
 import {
   resolveInstructionStatus,
   type AgentInstruction,
@@ -28,7 +46,7 @@ import {
   COOLDOWN_OPTIONS,
   OPTIMIZATION_GOAL_OPTIONS,
   optimizationGoalLabel,
-  type AutomationStatus,
+  spendSettingsEqual,
   type OptimizationGoal,
   type SpendAutomationSettings,
 } from "@/lib/spend-automation-settings";
@@ -36,26 +54,14 @@ import {
 import { SliderField } from "@/components/ui/slider-field";
 import { RoasFloorField } from "@/components/ui/roas-floor-field";
 import {
+  glassSegmentTrackClass,
+  glassToggleChipActiveClass,
+  glassToggleChipBaseClass,
+  glassToggleChipInactiveClass,
   primaryButtonClass,
   secondaryButtonClass,
-  segmentTrackClass,
-  toggleChipActiveClass,
-  toggleChipBaseClass,
-  toggleChipInactiveClass,
 } from "@/components/ui/button-styles";
 import { SegmentThumb } from "@/components/settings/segment-thumb";
-
-function automationStatusLabel(status: AutomationStatus): string {
-  const labels: Record<AutomationStatus, string> = {
-    inactive: "Inactive",
-    active: "Active",
-    paused: "Paused",
-    cooldown: "Cooldown",
-    learning: "Learning",
-    error: "Error",
-  };
-  return labels[status];
-}
 
 function microsToDollars(micros: number | null): string {
   if (micros == null || micros <= 0) return "";
@@ -166,7 +172,6 @@ export function EntityAutomationSection({
   onAutomationUpdated,
 }: EntityAutomationSectionProps) {
   const [adjustments, setAdjustments] = React.useState(detail.recentAdjustments);
-  const [enabled, setEnabled] = React.useState(detail.automation.enabled);
   const [profileId, setProfileId] = React.useState<string | null>(() =>
     resolveInitialProfileId(detail),
   );
@@ -180,12 +185,16 @@ export function EntityAutomationSection({
     detail.automation.effectiveSettings,
   );
   const [saving, setSaving] = React.useState(false);
-  const [saved, setSaved] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
+  const [presetMenuOpen, setPresetMenuOpen] = React.useState(false);
+  const [pendingPreset, setPendingPreset] =
+    React.useState<AutomationProfile | null>(null);
+  const dirtyRef = React.useRef(false);
+  const saveSeqRef = React.useRef(0);
 
   React.useEffect(() => {
     setAdjustments(detail.recentAdjustments);
-    setEnabled(detail.automation.enabled);
+    if (dirtyRef.current) return;
     setProfileId(resolveInitialProfileId(detail));
     setMinBudget(microsToDollars(detail.automation.minDailyBudgetMicros));
     setMaxBudget(microsToDollars(detail.automation.maxDailyBudgetMicros));
@@ -193,63 +202,119 @@ export function EntityAutomationSection({
   }, [detail]);
 
   const selectedProfile = detail.profiles.find((profile) => profile.id === profileId);
+  const isCustomPreset =
+    selectedProfile != null &&
+    !spendSettingsEqual(settings, selectedProfile.settings);
   const optimizationGoal: OptimizationGoal =
     selectedProfile?.optimizationGoal ?? "roas";
+
+  const markDirty = () => {
+    dirtyRef.current = true;
+  };
+
+  const applyPreset = (profile: AutomationProfile) => {
+    markDirty();
+    setProfileId(profile.id);
+    setSettings(profile.settings);
+    setPendingPreset(null);
+    setPresetMenuOpen(false);
+  };
+
+  const requestPresetChange = (profile: AutomationProfile) => {
+    if (isCustomPreset) {
+      setPresetMenuOpen(false);
+      setPendingPreset(profile);
+      return;
+    }
+    applyPreset(profile);
+  };
+
+  React.useEffect(() => {
+    if (!pendingPreset) return;
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setPendingPreset(null);
+    };
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [pendingPreset]);
 
   const updateSetting = <K extends keyof SpendAutomationSettings>(
     key: K,
     value: SpendAutomationSettings[K],
   ) => {
+    markDirty();
     setSettings((prev) => ({ ...prev, [key]: value }));
-    setSaved(false);
   };
 
-  const handleSave = async () => {
-    setSaving(true);
-    setSaved(false);
-    setError(null);
+  React.useEffect(() => {
+    if (!dirtyRef.current) return;
 
-    const baseSettings =
-      detail.profiles.find((profile) => profile.id === profileId)?.settings ??
-      detail.automation.effectiveSettings;
+    let cancelled = false;
+    const timeout = window.setTimeout(() => {
+      dirtyRef.current = false;
+      const seq = ++saveSeqRef.current;
+      void (async () => {
+        setSaving(true);
+        setError(null);
 
-    const settingsOverride = Object.fromEntries(
-      (Object.keys(settings) as Array<keyof SpendAutomationSettings>)
-        .filter(
-          (key) =>
-            key !== "cooldownHours" && settings[key] !== baseSettings[key],
-        )
-        .map((key) => [key, settings[key]]),
-    ) as Partial<SpendAutomationSettings>;
+        const baseSettings =
+          detail.profiles.find((profile) => profile.id === profileId)?.settings ??
+          detail.automation.effectiveSettings;
 
-    const response = await fetch(`/api/campaigns/${entityId}/automation`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        enabled,
-        profileId,
-        cooldownHours: settings.cooldownHours,
-        minDailyBudgetMicros: dollarsToMicros(minBudget),
-        maxDailyBudgetMicros: dollarsToMicros(maxBudget),
-        settingsOverride,
-      }),
-    });
+        const settingsOverride = Object.fromEntries(
+          (Object.keys(settings) as Array<keyof SpendAutomationSettings>)
+            .filter(
+              (key) =>
+                key !== "cooldownHours" && settings[key] !== baseSettings[key],
+            )
+            .map((key) => [key, settings[key]]),
+        ) as Partial<SpendAutomationSettings>;
 
-    setSaving(false);
+        const response = await fetch(`/api/campaigns/${entityId}/automation`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            profileId,
+            cooldownHours: settings.cooldownHours,
+            minDailyBudgetMicros: dollarsToMicros(minBudget),
+            maxDailyBudgetMicros: dollarsToMicros(maxBudget),
+            settingsOverride,
+          }),
+        });
 
-    if (!response.ok) {
-      const payload = (await response.json()) as { error?: string };
-      setError(payload.error ?? "Failed to save automation settings.");
-      return;
-    }
+        if (cancelled || seq !== saveSeqRef.current) return;
 
-    const payload = (await response.json()) as {
-      automation: EntityDetailResult["automation"];
+        setSaving(false);
+
+        if (!response.ok) {
+          dirtyRef.current = true;
+          const payload = (await response.json()) as { error?: string };
+          setError(payload.error ?? "Failed to save automation settings.");
+          return;
+        }
+
+        const payload = (await response.json()) as {
+          automation: EntityDetailResult["automation"];
+        };
+        onAutomationUpdated(payload.automation);
+      })();
+    }, 200);
+
+    return () => {
+      cancelled = true;
+      window.clearTimeout(timeout);
     };
-    onAutomationUpdated(payload.automation);
-    setSaved(true);
-    window.setTimeout(() => setSaved(false), 2200);
-  };
+  }, [
+    detail.automation.effectiveSettings,
+    detail.profiles,
+    entityId,
+    maxBudget,
+    minBudget,
+    onAutomationUpdated,
+    profileId,
+    settings,
+  ]);
+
 
   if (!detail.canAutomate) return null;
 
@@ -263,29 +328,19 @@ export function EntityAutomationSection({
 
       <DetailSection title="AdPilot budget control">
         <div className="space-y-10">
-          {detail.automation.enabled ? (
-            <p className="text-xs font-light text-neutral-500">
-              Status:{" "}
-              <span className="font-medium text-neutral-700">
-                {automationStatusLabel(detail.automation.automationStatus)}
-              </span>
-              {detail.automation.lastAdjustedAt
-                ? ` · Last adjusted ${formatAdjustmentDate(detail.automation.lastAdjustedAt)}`
-                : ""}
-            </p>
-          ) : (
+          {!detail.automation.enabled ? (
             <p className="text-xs font-light text-neutral-500">
               AdPilot is off for this {entityLabel}. Turn it on with the AdPilot
               toggle at the top of the page to let the worker adjust the daily
               budget within the guardrails below.
             </p>
-          )}
+          ) : null}
 
           <div>
             <DetailSubLabel>Automation preset</DetailSubLabel>
             <p className="mt-1 text-xs font-light text-neutral-500">
-              Pick a workspace preset to inherit defaults. Per-{entityLabel} overrides
-              are stored on this {entityLabel} only.
+              Start from a workspace preset. Editing the controls below switches
+              this {entityLabel} to custom while keeping the preset as a base.
             </p>
             {detail.profiles.length === 0 ? (
               <p className="mt-4 text-sm font-light text-neutral-500">
@@ -293,59 +348,182 @@ export function EntityAutomationSection({
                 <Link href="/settings" className="text-[var(--walls-sky)] hover:underline">
                   Create one in Settings
                 </Link>{" "}
-                — or save here to use built-in defaults for this {entityLabel}.
+                — or tune the defaults below for this {entityLabel}.
               </p>
             ) : (
-              <div className="mt-4 grid gap-2 sm:grid-cols-2">
-                {detail.profiles.map((profile) => (
+              <DropdownMenu open={presetMenuOpen} onOpenChange={setPresetMenuOpen}>
+                <DropdownMenuTrigger asChild>
                   <button
-                    key={profile.id}
                     type="button"
-                    onClick={() => {
-                      setProfileId(profile.id);
-                      setSettings(profile.settings);
-                      setSaved(false);
-                    }}
-                    className={detailSelectableClass(
-                      profileId === profile.id,
-                      "px-4 py-3 text-left",
+                    className={cn(
+                      "mt-4 flex w-full max-w-md items-center gap-3 rounded-xl bg-walls-white px-3 py-2.5 text-left transition",
+                      "hover:bg-neutral-50",
+                      "focus:outline-none",
+                      presetMenuOpen && "bg-neutral-50",
                     )}
                   >
-                    {profileId === profile.id ? (
-                      <span className="absolute right-3 top-3 flex h-5 w-5 items-center justify-center rounded-full bg-[#3f4a0e] text-walls-yellow ring-1 ring-[#2c3406]/20">
-                        <Check className="h-3 w-3" strokeWidth={3} />
+                    <span className="min-w-0 flex-1">
+                      <span className="block truncate text-sm font-semibold text-foreground">
+                        {isCustomPreset
+                          ? "Custom"
+                          : (selectedProfile?.name ?? "Choose a preset")}
                       </span>
-                    ) : null}
-                    <p
+                      <span className="mt-0.5 block truncate text-xs text-neutral-500">
+                        {isCustomPreset
+                          ? selectedProfile
+                            ? `Based on ${selectedProfile.name}`
+                            : "Entity overrides"
+                          : selectedProfile
+                            ? `Optimize for ${optimizationGoalLabel(selectedProfile.optimizationGoal)}${
+                                selectedProfile.isDefault ? " · Default" : ""
+                              }`
+                            : "Pick a workspace preset"}
+                      </span>
+                    </span>
+                    <ChevronDown
                       className={cn(
-                        "text-sm",
-                        profileId === profile.id
-                          ? "pr-6 font-semibold text-walls-forest"
-                          : "font-medium text-foreground",
+                        "h-4 w-4 shrink-0 text-neutral-400 transition-transform",
+                        presetMenuOpen && "rotate-180",
                       )}
-                    >
-                      {profile.name}
-                      {profile.isDefault ? (
-                        <span className="ml-2 text-[10px] font-light uppercase tracking-wider text-neutral-400">
-                          Default
-                        </span>
-                      ) : null}
-                    </p>
-                    <p
-                      className={cn(
-                        "mt-1 text-xs font-light",
-                        profileId === profile.id
-                          ? "text-walls-forest/80"
-                          : "text-neutral-500",
-                      )}
-                    >
-                      Optimize for {optimizationGoalLabel(profile.optimizationGoal)}
-                    </p>
+                    />
                   </button>
-                ))}
-              </div>
+                </DropdownMenuTrigger>
+
+                <DropdownMenuContent
+                  align="start"
+                  sideOffset={8}
+                  className="z-50 w-[min(100vw-2rem,28rem)] rounded-2xl border-0 bg-walls-white p-2 shadow-xl"
+                >
+                  <p className="px-2 pb-1 pt-1 text-sm font-medium text-neutral-500">
+                    Choose a preset
+                  </p>
+
+                  <div className="mt-1 space-y-0.5">
+                    {isCustomPreset ? (
+                      <div className="flex w-full items-center gap-3 rounded-xl bg-neutral-100 px-3 py-2.5">
+                        <div className="min-w-0 flex-1">
+                          <p className="truncate text-sm font-semibold text-foreground">
+                            Custom
+                          </p>
+                          <p className="mt-0.5 truncate text-xs text-neutral-500">
+                            {selectedProfile
+                              ? `Based on ${selectedProfile.name}`
+                              : "Entity overrides"}
+                          </p>
+                        </div>
+                        <Check
+                          className="h-4 w-4 shrink-0 text-foreground"
+                          strokeWidth={2.75}
+                        />
+                      </div>
+                    ) : null}
+
+                    {detail.profiles.map((profile) => {
+                      const isExactMatch =
+                        !isCustomPreset && profileId === profile.id;
+                      return (
+                        <DropdownMenuItem
+                          key={profile.id}
+                          onSelect={(event) => {
+                            event.preventDefault();
+                            requestPresetChange(profile);
+                          }}
+                          className={cn(
+                            "cursor-pointer rounded-xl px-3 py-2.5 transition-colors focus:bg-transparent",
+                            isExactMatch ? "bg-neutral-100" : "hover:bg-neutral-50",
+                          )}
+                        >
+                          <div className="flex w-full items-center gap-3">
+                            <div className="min-w-0 flex-1">
+                              <p
+                                className={cn(
+                                  "truncate text-sm text-foreground",
+                                  isExactMatch ? "font-semibold" : "font-medium",
+                                )}
+                              >
+                                {profile.name}
+                              </p>
+                              <p className="mt-0.5 truncate text-xs text-neutral-500">
+                                Optimize for{" "}
+                                {optimizationGoalLabel(profile.optimizationGoal)}
+                                {profile.isDefault ? " · Default" : ""}
+                              </p>
+                            </div>
+                            {isExactMatch ? (
+                              <Check
+                                className="h-4 w-4 shrink-0 text-foreground"
+                                strokeWidth={2.75}
+                              />
+                            ) : null}
+                          </div>
+                        </DropdownMenuItem>
+                      );
+                    })}
+                  </div>
+
+                  <DropdownMenuSeparator className="my-2 bg-neutral-100" />
+                  <DropdownMenuItem
+                    asChild
+                    className="rounded-xl p-0 focus:bg-transparent"
+                  >
+                    <Link
+                      href="/settings"
+                      className="flex cursor-pointer items-center gap-2 rounded-xl px-3 py-2.5 text-sm text-foreground hover:bg-neutral-50"
+                    >
+                      <Plus className="h-4 w-4 shrink-0 text-neutral-400" />
+                      <span className="font-medium">Manage presets</span>
+                    </Link>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             )}
           </div>
+
+          {pendingPreset ? (
+            <div
+              className="fixed inset-0 z-[200] flex items-center justify-center bg-black/40 p-4 backdrop-blur-sm"
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="preset-change-title"
+              onClick={() => setPendingPreset(null)}
+            >
+              <div
+                className="w-full max-w-md rounded-2xl bg-walls-white p-5 shadow-xl"
+                onClick={(event) => event.stopPropagation()}
+              >
+                <h2
+                  id="preset-change-title"
+                  className="text-base font-semibold text-foreground"
+                >
+                  Replace custom settings?
+                </h2>
+                <p className="mt-2 text-sm font-light leading-relaxed text-neutral-500">
+                  Switching to{" "}
+                  <span className="font-medium text-foreground">
+                    {pendingPreset.name}
+                  </span>{" "}
+                  will discard the custom overrides on this {entityLabel} and
+                  replace them with that preset&apos;s settings.
+                </p>
+                <div className="mt-5 flex items-center justify-end gap-2">
+                  <Button
+                    type="button"
+                    onClick={() => setPendingPreset(null)}
+                    className={cn(secondaryButtonClass, "px-4")}
+                  >
+                    Keep custom
+                  </Button>
+                  <Button
+                    type="button"
+                    onClick={() => applyPreset(pendingPreset)}
+                    className={cn(primaryButtonClass, "px-4")}
+                  >
+                    Use preset
+                  </Button>
+                </div>
+              </div>
+            </div>
+          ) : null}
 
           <div>
             <DetailSubLabel>Budget bounds</DetailSubLabel>
@@ -364,8 +542,8 @@ export function EntityAutomationSection({
                   placeholder="No minimum"
                   value={minBudget}
                   onChange={(e) => {
+                    markDirty();
                     setMinBudget(e.target.value);
-                    setSaved(false);
                   }}
                   className="rounded-full border-neutral-200 bg-walls-white font-light"
                 />
@@ -381,8 +559,8 @@ export function EntityAutomationSection({
                   placeholder="No maximum"
                   value={maxBudget}
                   onChange={(e) => {
+                    markDirty();
                     setMaxBudget(e.target.value);
-                    setSaved(false);
                   }}
                   className="rounded-full border-neutral-200 bg-walls-white font-light"
                 />
@@ -394,8 +572,8 @@ export function EntityAutomationSection({
                   variant="detail"
                   settings={settings}
                   onChange={(patch) => {
+                    markDirty();
                     setSettings((prev) => ({ ...prev, ...patch }));
-                    setSaved(false);
                   }}
                 />
               </div>
@@ -403,13 +581,18 @@ export function EntityAutomationSection({
           </div>
 
           <div>
-            <DetailSubLabel>Entity overrides</DetailSubLabel>
+            <DetailSubLabel>
+              {isCustomPreset ? "Custom overrides" : "Entity overrides"}
+            </DetailSubLabel>
             <p className="mt-1 text-xs font-light text-neutral-500">
               Tuning for{" "}
               {OPTIMIZATION_GOAL_OPTIONS.find(
                 (option) => option.value === optimizationGoal,
               )?.hint.toLowerCase()}
-              . Only changes from the preset are stored on this entity.
+              .{" "}
+              {isCustomPreset
+                ? "These values differ from the preset and are saved only on this entity."
+                : "Only changes from the preset are stored on this entity."}
             </p>
 
             <div className="mt-6 space-y-8">
@@ -459,25 +642,38 @@ export function EntityAutomationSection({
                   Minimum wait before AdPilot can increase or decrease the daily
                   budget again on this {entityLabel}.
                 </p>
-                <div className={cn("mt-3", segmentTrackClass)}>
-                  {COOLDOWN_OPTIONS.map((option) => (
-                    <button
-                      key={option.value}
-                      type="button"
-                      onClick={() => updateSetting("cooldownHours", option.value)}
-                      className={cn(
-                        toggleChipBaseClass,
-                        settings.cooldownHours === option.value
-                          ? toggleChipActiveClass
-                          : toggleChipInactiveClass,
-                      )}
-                    >
-                      {settings.cooldownHours === option.value ? (
-                        <SegmentThumb layoutId="entity-cooldown-thumb" />
-                      ) : null}
-                      <span className="relative z-10">{option.label}</span>
-                    </button>
-                  ))}
+                <div
+                  className={cn("mt-3", glassSegmentTrackClass)}
+                  role="group"
+                  aria-label="Cooldown between budget changes"
+                >
+                  {COOLDOWN_OPTIONS.map((option) => {
+                    const active = settings.cooldownHours === option.value;
+                    return (
+                      <button
+                        key={option.value}
+                        type="button"
+                        aria-pressed={active}
+                        onClick={() =>
+                          updateSetting("cooldownHours", option.value)
+                        }
+                        className={cn(
+                          glassToggleChipBaseClass,
+                          active
+                            ? glassToggleChipActiveClass
+                            : glassToggleChipInactiveClass,
+                        )}
+                      >
+                        {active ? (
+                          <SegmentThumb
+                            layoutId="entity-cooldown-thumb"
+                            variant="glass"
+                          />
+                        ) : null}
+                        <span className="relative z-10">{option.label}</span>
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
 
@@ -544,36 +740,23 @@ export function EntityAutomationSection({
             </div>
           </div>
 
-          <div className="flex flex-wrap items-center justify-between gap-3">
-            <p className="flex items-center gap-2 text-xs font-light text-neutral-500">
-              <Shield className="h-3.5 w-3.5" />
-              Saves to this {entityLabel}&apos;s enrollment record. Budget changes
-              from preview apply directly to Meta.
-            </p>
-            <Button
-              type="button"
-              disabled={saving}
-              onClick={() => void handleSave()}
-              className={cn(primaryButtonClass, "inline-flex items-center gap-2")}
-            >
-              {saving ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Saving…
-                </>
-              ) : saved ? (
-                "Settings saved"
-              ) : (
-                "Save AdPilot settings"
-              )}
-            </Button>
-          </div>
+          <p className="flex items-center gap-2 text-xs font-light text-neutral-500">
+            <Shield className="h-3.5 w-3.5" />
+            {saving ? (
+              <>
+                <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                Saving…
+              </>
+            ) : (
+              <>Changes save automatically.</>
+
+            )}
+          </p>
         </div>
       </DetailSection>
 
       <AdPilotPreviewCard
         entityId={entityId}
-        entityLabel={entityLabel}
         onApplied={(adjustment) =>
           setAdjustments((current) => [adjustment, ...current].slice(0, 10))
         }
@@ -585,10 +768,7 @@ export function EntityAutomationSection({
         initialInstructions={detail.agentInstructions}
       />
 
-      <DetailSection
-        title="Budget history"
-        description="Recent daily budget adjustments for this entity."
-      >
+      <DetailSection title="Budget history">
         <AdjustmentsList rows={adjustments} />
       </DetailSection>
     </div>
@@ -609,29 +789,34 @@ const EMPTY_INSTRUCTION_FORM: InstructionFormState = {
 
 function instructionStatusMeta(status: AgentInstructionStatus): {
   label: string;
-  className: string;
+  dotClass: string;
+  textClass: string;
 } {
   switch (status) {
     case "active":
       return {
-        label: "Active",
-        className: "bg-emerald-50 text-emerald-700",
+        label: "Live",
+        dotClass: "bg-walls-yellow",
+        textClass: "text-neutral-700",
       };
     case "scheduled":
       return {
         label: "Scheduled",
-        className: "bg-sky-50 text-sky-700",
+        dotClass: "bg-walls-sky",
+        textClass: "text-neutral-500",
       };
     case "expired":
       return {
-        label: "Expired",
-        className: "bg-neutral-100 text-neutral-500",
+        label: "Ended",
+        dotClass: "bg-neutral-300",
+        textClass: "text-neutral-400",
       };
     case "disabled":
     default:
       return {
         label: "Off",
-        className: "bg-neutral-100 text-neutral-500",
+        dotClass: "bg-neutral-300",
+        textClass: "text-neutral-400",
       };
   }
 }
@@ -674,7 +859,6 @@ function AgentInstructionsSection({
     <DetailSection
       title="Agent instructions"
       description="Natural-language guidance the AdPilot agent reads when deciding how to move spend. Add as many as you like, each with its own schedule."
-      defaultOpen={false}
       collapsedBadgeCount={activeCount}
     >
       <AgentInstructionsManager
@@ -844,31 +1028,47 @@ function AgentInstructionsManager({
         <div className="space-y-3">
           {items.map((instruction) => {
             const meta = instructionStatusMeta(instruction.status);
+            const isActive = instruction.status === "active";
             return (
               <div
                 key={instruction.id}
                 className={cn(
-                  "rounded-2xl border px-4 py-3.5",
-                  instruction.status === "active"
-                    ? "border-emerald-100 bg-emerald-50/30"
-                    : "border-neutral-200 bg-walls-white",
+                  "group rounded-2xl border border-dotted bg-transparent px-4 py-3.5",
+                  isActive
+                    ? "border-neutral-400/70"
+                    : instruction.status === "scheduled"
+                      ? "border-neutral-300"
+                      : "border-neutral-200",
+                  !isActive &&
+                    instruction.status !== "scheduled" &&
+                    "opacity-70",
                 )}
               >
                 <div className="flex items-start justify-between gap-3">
-                  <div className="flex items-center gap-2">
+                  <div className="flex min-w-0 flex-wrap items-center gap-x-2.5 gap-y-1">
                     <span
                       className={cn(
-                        "rounded-full px-2.5 py-0.5 text-[10px] font-medium uppercase tracking-wide",
-                        meta.className,
+                        "inline-flex items-center gap-1.5 text-[11px] font-medium tracking-tight",
+                        meta.textClass,
                       )}
                     >
+                      <span
+                        className={cn(
+                          "h-1.5 w-1.5 shrink-0 rounded-full",
+                          meta.dotClass,
+                        )}
+                        aria-hidden
+                      />
                       {meta.label}
+                    </span>
+                    <span className="text-neutral-300" aria-hidden>
+                      ·
                     </span>
                     <span className="text-xs font-light text-neutral-500">
                       {instructionWindowLabel(instruction)}
                     </span>
                   </div>
-                  <div className="flex shrink-0 items-center gap-1.5">
+                  <div className="flex shrink-0 items-center gap-1.5 opacity-0 transition-opacity duration-150 group-hover:opacity-100 group-focus-within:opacity-100">
                     <button
                       type="button"
                       disabled={busy}
@@ -916,7 +1116,7 @@ function AgentInstructionsManager({
       ) : null}
 
       {showForm ? (
-        <div className="space-y-4 rounded-2xl border border-neutral-200 bg-walls-white px-4 py-4">
+        <div className="space-y-4 rounded-2xl border border-dotted border-neutral-300 bg-transparent px-4 py-4">
           <div className="flex items-center justify-between">
             <p className="text-sm font-medium text-neutral-800">
               {editingId ? "Edit instruction" : "New instruction"}

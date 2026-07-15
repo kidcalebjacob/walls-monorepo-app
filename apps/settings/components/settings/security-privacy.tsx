@@ -365,7 +365,7 @@ export default function SecurityPrivacyPage() {
   };
 
   return (
-    <div className="flex flex-col h-full overflow-y-auto overscroll-none bg-gray-50">
+    <div className="flex flex-col h-full overflow-y-auto overscroll-none bg-walls-white">
       <div className="w-full">
         <div className="max-w-5xl mx-auto px-8 pb-8">
           <div className="mb-8 pt-8">
@@ -440,7 +440,7 @@ export default function SecurityPrivacyPage() {
                       "rounded-[44px] border border-dashed border-neutral-300/80 bg-transparent",
                       "px-8 py-9 transition-all duration-200 ease-out sm:px-10 sm:py-10",
                       "hover:bg-neutral-100/70 hover:backdrop-blur-md hover:border-neutral-300/70 hover:shadow-[inset_0_10px_24px_rgba(0,0,0,0.10)]",
-                      "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--walls-sky)]/35 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-50",
+                      "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--walls-sky)]/35 focus-visible:ring-offset-2 focus-visible:ring-offset-walls-white",
                       (mfaEnrollLoading || mfaUnenrollLoading) && "pointer-events-none opacity-75"
                     )}
                   >

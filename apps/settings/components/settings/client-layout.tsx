@@ -15,11 +15,11 @@ export const ClientLayout: FC<ClientLayoutProps> = ({ children }) => {
 
   return (
     <SidebarContext.Provider value={{ isCollapsed, setIsCollapsed }}>
-      <div className="relative flex h-full flex-col bg-gray-50 overflow-hidden">
+      <div className="relative flex h-full flex-col bg-walls-white overflow-hidden">
         <SettingsProfileBar />
         <div className="flex min-h-0 flex-1 flex-col md:flex-row overflow-hidden pt-20 md:pt-0">
           <AgentSidebar />
-          <main className="flex-1 min-h-0 overflow-y-auto overscroll-none bg-gray-50">
+          <main className="flex-1 min-h-0 overflow-y-auto overscroll-none bg-walls-white">
             {children}
           </main>
         </div>

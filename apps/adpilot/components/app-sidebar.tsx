@@ -5,9 +5,7 @@ import { Button } from "@walls/ui/button";
 import { cn } from "@walls/utils";
 import { AnimatePresence, motion } from "framer-motion";
 import {
-  BarChart3,
   ChevronLeft,
-  Image as ImageIcon,
   LayoutDashboard,
   Lock,
   Settings,
@@ -21,8 +19,6 @@ import { useAppSidebar } from "./app-sidebar-context";
 const navItems = [
   { href: "/", label: "Dashboard", icon: LayoutDashboard },
   { href: "/campaigns", label: "Campaigns", icon: Target },
-  { href: "/creatives", label: "Creatives", icon: ImageIcon },
-  { href: "/reports", label: "Reports", icon: BarChart3 },
   { href: "/settings", label: "Settings", icon: Settings },
 ] as const;
 
@@ -46,7 +42,7 @@ export function AppSidebar({ headerVisible = true }: { headerVisible?: boolean }
       onMouseLeave={() => setIsHoverExpanded(false)}
     >
       <div className="relative flex h-full flex-col overflow-y-auto pr-6 -mr-6">
-        <div className="space-y-4 p-2 pt-32">
+        <div className="space-y-4 p-2 pt-44">
             <Button
               variant="ghost"
               size="icon"

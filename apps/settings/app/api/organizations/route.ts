@@ -24,14 +24,13 @@ export async function POST(request: Request) {
 
   const body = (await request.json()) as {
     name?: string;
-    slug?: string;
     iconUrl?: string | null;
     website?: string | null;
   };
 
-  if (!body.name?.trim() || !body.slug?.trim()) {
+  if (!body.name?.trim()) {
     return NextResponse.json(
-      { error: "Name and slug are required" },
+      { error: "Name is required" },
       { status: 400 },
     );
   }
@@ -39,7 +38,6 @@ export async function POST(request: Request) {
   const result = await createOrganizationForUser({
     userId,
     name: body.name.trim(),
-    slug: body.slug.trim(),
     iconUrl: body.iconUrl ?? null,
     website: body.website ?? null,
   });

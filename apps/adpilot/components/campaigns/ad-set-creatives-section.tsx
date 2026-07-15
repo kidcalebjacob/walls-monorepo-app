@@ -8,6 +8,7 @@ import {
   AdThumbnail,
   DetailSection,
 } from "@/components/campaigns/entity-detail-shared";
+import { AnimatedMetricValue } from "@/components/dashboard/animated-metric-value";
 import type { AdSetAdSummary } from "@/lib/entity-detail-server";
 import { formatCpaFromMicros } from "@/lib/entity-daily-progress";
 import {
@@ -125,17 +126,13 @@ export function AdSetCreativesSection({
 
   return (
     <>
-      <DetailSection
-        title="Creatives"
-        description="Ads in this ad set — last 30 days, sorted by performance"
-        className="mb-8"
-      >
+      <DetailSection title="Creatives">
         {ads.length === 0 ? (
           <p className="text-sm font-light text-neutral-500">
             No ads synced for this ad set yet.
           </p>
         ) : (
-          <div className="space-y-2">
+          <div className="divide-y divide-neutral-100">
             {ads.map((ad, index) => {
               const primary = primaryMetricForAd(ad, objectiveBucket);
               const secondary = secondaryMetricForAd(ad, objectiveBucket);
@@ -148,7 +145,7 @@ export function AdSetCreativesSection({
                   initial={{ opacity: 0, y: 6 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: index * 0.03 }}
-                  className="flex items-center gap-4 rounded-2xl border border-neutral-200/70 bg-neutral-50/40 px-4 py-3 transition-colors hover:bg-neutral-50"
+                  className="flex items-center gap-4 py-3"
                 >
                   <span className="w-5 flex-shrink-0 text-center text-xs font-medium tabular-nums text-neutral-400">
                     {index + 1}
@@ -184,7 +181,7 @@ export function AdSetCreativesSection({
                       {primary.label}
                     </p>
                     <p className="text-sm font-semibold tabular-nums text-neutral-800">
-                      {primary.value}
+                      <AnimatedMetricValue value={primary.value} />
                     </p>
                   </div>
 
@@ -194,7 +191,7 @@ export function AdSetCreativesSection({
                         {secondary.label}
                       </p>
                       <p className="text-sm font-light tabular-nums text-neutral-600">
-                        {secondary.value}
+                        <AnimatedMetricValue value={secondary.value} />
                       </p>
                     </div>
                   ) : null}
@@ -205,7 +202,7 @@ export function AdSetCreativesSection({
                         {tertiary.label}
                       </p>
                       <p className="text-sm font-light tabular-nums text-neutral-600">
-                        {tertiary.value}
+                        <AnimatedMetricValue value={tertiary.value} />
                       </p>
                     </div>
                   ) : null}
@@ -216,14 +213,14 @@ export function AdSetCreativesSection({
                         {quaternary.label}
                       </p>
                       <p className="text-sm font-light tabular-nums text-neutral-600">
-                        {quaternary.value}
+                        <AnimatedMetricValue value={quaternary.value} />
                       </p>
                     </div>
                   ) : null}
 
                   <div className="shrink-0 text-right sm:hidden">
                     <p className="text-sm font-semibold tabular-nums text-neutral-800">
-                      {primary.value}
+                      <AnimatedMetricValue value={primary.value} />
                     </p>
                   </div>
                 </motion.div>

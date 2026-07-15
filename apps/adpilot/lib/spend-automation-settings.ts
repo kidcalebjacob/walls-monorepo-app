@@ -151,6 +151,17 @@ export function mergeAutomationSettings(
   return { ...base, ...override };
 }
 
+/** True when every spend-automation field matches (used for preset vs custom UI). */
+export function spendSettingsEqual(
+  a: SpendAutomationSettings,
+  b: SpendAutomationSettings,
+): boolean {
+  const keys = Object.keys(
+    DEFAULT_SPEND_AUTOMATION_SETTINGS,
+  ) as Array<keyof SpendAutomationSettings>;
+  return keys.every((key) => a[key] === b[key]);
+}
+
 export function parseAutomationSettings(
   raw: unknown,
 ): SpendAutomationSettings {

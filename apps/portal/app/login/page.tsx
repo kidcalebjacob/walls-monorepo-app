@@ -18,7 +18,13 @@ import { Button } from "@walls/ui/button";
 import { Input } from "@walls/ui/input";
 import { Separator } from "@walls/ui/separator";
 
+import { AppOrbitLauncher } from "@/components/app-orbit-launcher";
 import { useRedirectAfterLogin } from "@/hooks/useRedirectAfterLogin";
+import { useRedirectParam } from "@/hooks/useRedirectParam";
+import {
+  fetchUserLauncherApps,
+  type PortalLauncherApp,
+} from "@/lib/user-apps";
 import { publicSitePath } from "@/lib/urls";
 
 function LoginPageFallback() {
@@ -39,7 +45,10 @@ function LoginPageContent() {
     first_name: string | null;
   } | null>(null);
   const [isLoadingUserData, setIsLoadingUserData] = React.useState(false);
-  const [imageLoaded, setImageLoaded] = React.useState(false);
+  const [launcherApps, setLauncherApps] = React.useState<PortalLauncherApp[]>(
+    [],
+  );
+  const [appsLoading, setAppsLoading] = React.useState(false);
   const [shouldSlideOut, setShouldSlideOut] = React.useState(false);
   const [isDesktop, setIsDesktop] = React.useState(false);
   const [needsMfaVerification, setNeedsMfaVerification] = React.useState(false);
@@ -48,8 +57,10 @@ function LoginPageContent() {
   const [mfaVerifying, setMfaVerifying] = React.useState(false);
   const [mfaInputFocused, setMfaInputFocused] = React.useState(false);
 
+  const redirectParam = useRedirectParam();
   const redirectAfterLogin = useRedirectAfterLogin();
   const redirectAfterLoginRef = React.useRef(redirectAfterLogin);
+  const hasRedirectParam = Boolean(redirectParam);
   const mfaInputRef = React.useRef<HTMLInputElement>(null);
   const mfaFactorIdRef = React.useRef<string | null>(null);
   const mfaFlowActiveRef = React.useRef(false);
@@ -190,12 +201,19 @@ function LoginPageContent() {
 
   React.useEffect(() => {
     if (hasLogged && !isLoadingUserData && userData?.first_name && isDesktop) {
+      // Slide yellow panel out once greeting has played (launcher or redirect).
       const timer = setTimeout(() => {
         setShouldSlideOut(true);
-      }, 2000);
+      }, hasRedirectParam ? 2000 : 2200);
       return () => clearTimeout(timer);
     }
-  }, [hasLogged, isLoadingUserData, userData?.first_name, isDesktop]);
+  }, [
+    hasLogged,
+    isLoadingUserData,
+    userData?.first_name,
+    isDesktop,
+    hasRedirectParam,
+  ]);
 
   const completeLoginSuccess = React.useCallback(
     async (
@@ -214,7 +232,8 @@ function LoginPageContent() {
 
       setHasLogged(true);
       setIsLoadingUserData(true);
-      setImageLoaded(false);
+      setAppsLoading(!hasRedirectParam);
+      setLauncherApps([]);
 
       try {
         const { data: userRow, error: userError } = await supabase
@@ -229,21 +248,30 @@ function LoginPageContent() {
             first_name: userRow.first_name,
           });
         }
+
+        if (!hasRedirectParam) {
+          const apps = await fetchUserLauncherApps(authUser.id);
+          setLauncherApps(apps);
+        }
       } catch (err) {
         console.error("Error fetching user data:", err);
       } finally {
         setIsLoadingUserData(false);
+        setAppsLoading(false);
       }
 
       const currentUrl = new URL(window.location.href);
       currentUrl.searchParams.set("loginRedirect", "true");
       window.history.replaceState({}, "", currentUrl.toString());
 
-      setTimeout(() => {
-        redirectAfterLogin();
-      }, 2000);
+      // Deep-link redirect: brief splash then leave. Otherwise stay on launcher.
+      if (hasRedirectParam) {
+        setTimeout(() => {
+          redirectAfterLogin();
+        }, 2000);
+      }
     },
-    [redirectAfterLogin],
+    [hasRedirectParam, redirectAfterLogin],
   );
 
   const [handleLogin, isLoading] = useLoadingCallback(async () => {
@@ -458,7 +486,9 @@ function LoginPageContent() {
       </div>
 
       <motion.div
-        className="w-full flex items-center justify-center p-8"
+        className={`w-full flex items-center justify-center ${
+          hasLogged ? "p-4 sm:p-8" : "p-8"
+        }`}
         initial={false}
         animate={{
           width: isDesktop ? (shouldSlideOut ? "100%" : "50%") : "100%",
@@ -468,7 +498,11 @@ function LoginPageContent() {
           ease: [0.4, 0, 0.2, 1],
         }}
       >
-        <div className="text-center max-w-md w-full space-y-8">
+        <div
+          className={`w-full text-center ${
+            hasLogged ? "max-w-3xl space-y-0" : "max-w-md space-y-8"
+          }`}
+        >
           {!hasLogged && !needsMfaVerification && (
             <div className="space-y-2 flex items-center justify-center">
               <Image
@@ -584,53 +618,14 @@ function LoginPageContent() {
               </div>
             </div>
           ) : hasLogged ? (
-            <div className="flex flex-col items-center justify-center gap-6 py-8">
-              <div className="relative w-36 h-36 flex-shrink-0">
-                <div
-                  className={`absolute inset-0 rounded-full bg-neutral-100 backdrop-blur-md shadow-inner border border-neutral-200/50 transition-opacity duration-300 ${
-                    isLoadingUserData ||
-                    (userData?.avatar_url && !imageLoaded) ||
-                    !userData?.avatar_url
-                      ? "opacity-100 animate-pulse"
-                      : "opacity-0"
-                  }`}
-                />
-                {userData?.avatar_url && !isLoadingUserData && (
-                  <Image
-                    src={userData.avatar_url}
-                    alt="User avatar"
-                    width={144}
-                    height={144}
-                    className={`absolute inset-0 w-full h-full rounded-full object-cover transition-opacity duration-300 ${
-                      imageLoaded ? "opacity-100" : "opacity-0"
-                    }`}
-                    onLoad={() => setImageLoaded(true)}
-                    onError={() => setImageLoaded(false)}
-                  />
-                )}
-              </div>
-
-              {!isLoadingUserData && userData?.first_name && (
-                <div className="text-center">
-                  <h2 className="text-2xl font-semibold text-gray-900">
-                    <motion.span
-                      initial={{ opacity: 0, y: 10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ duration: 0.4, delay: 0.6 }}
-                    >
-                      Welcome,
-                    </motion.span>{" "}
-                    <motion.span
-                      initial={{ opacity: 0, y: 10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ duration: 0.4, delay: 1.3 }}
-                    >
-                      {userData.first_name}
-                    </motion.span>
-                  </h2>
-                </div>
-              )}
-            </div>
+            <AppOrbitLauncher
+              firstName={userData?.first_name ?? null}
+              avatarUrl={userData?.avatar_url ?? null}
+              isLoadingUserData={isLoadingUserData}
+              apps={launcherApps}
+              appsLoading={appsLoading}
+              redirectMode={hasRedirectParam}
+            />
           ) : (
             <div className="space-y-4 w-full">
               {error && (

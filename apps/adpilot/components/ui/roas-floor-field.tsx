@@ -10,10 +10,10 @@ import { cn } from "@walls/utils";
 
 import { SegmentThumb } from "@/components/settings/segment-thumb";
 import {
-  segmentTrackClass,
-  toggleChipActiveClass,
-  toggleChipBaseClass,
-  toggleChipInactiveClass,
+  glassSegmentTrackClass,
+  glassToggleChipActiveClass,
+  glassToggleChipBaseClass,
+  glassToggleChipInactiveClass,
 } from "@/components/settings/button-styles";
 import { formatRoas } from "@/lib/format-analytics";
 import {
@@ -51,7 +51,11 @@ function ModeToggle({
   layoutId: string;
 }) {
   return (
-    <div className={segmentTrackClass} role="group" aria-label="ROAS floor input mode">
+    <div
+      className={glassSegmentTrackClass}
+      role="group"
+      aria-label="ROAS floor input mode"
+    >
       {MODE_OPTIONS.map((option) => {
         const active = mode === option.value;
         return (
@@ -61,11 +65,15 @@ function ModeToggle({
             aria-pressed={active}
             onClick={() => onChange(option.value)}
             className={cn(
-              toggleChipBaseClass,
-              active ? toggleChipActiveClass : toggleChipInactiveClass,
+              glassToggleChipBaseClass,
+              active
+                ? glassToggleChipActiveClass
+                : glassToggleChipInactiveClass,
             )}
           >
-            {active ? <SegmentThumb layoutId={layoutId} /> : null}
+            {active ? (
+              <SegmentThumb layoutId={layoutId} variant="glass" />
+            ) : null}
             <span className="relative z-10">{option.label}</span>
           </button>
         );
@@ -160,20 +168,20 @@ export function RoasFloorField({
             transition={{ duration: 0.18, ease: "easeOut" }}
             className="space-y-4"
           >
-            <div className="rounded-2xl border border-[#bcd63a]/50 bg-gradient-to-br from-[#f7fce0] to-[#eef8c8] p-4 ring-1 ring-inset ring-[#d2ef3a]/30">
+            <div className="rounded-2xl border border-black/[0.08] bg-neutral-200/40 p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.55)] backdrop-blur-xl">
               <div className="flex items-end justify-between gap-4">
                 <div>
-                  <p className="text-[11px] font-normal uppercase tracking-[0.14em] text-walls-forest/70">
+                  <p className="text-[11px] font-normal uppercase tracking-[0.14em] text-neutral-500">
                     Break-even ROAS
                   </p>
-                  <p className="mt-1 text-3xl font-semibold tracking-tight text-walls-forest">
+                  <p className="mt-1 text-3xl font-medium tracking-tight text-neutral-700">
                     {formatRoas(effectiveRoas)}
                   </p>
-                  <p className="mt-1 text-xs font-light text-walls-forest/75">
+                  <p className="mt-1 text-xs font-light text-neutral-500">
                     1 ÷ {marginPct}% contribution margin
                   </p>
                 </div>
-                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-[#3f4a0e] text-walls-yellow shadow-sm">
+                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-white/70 bg-white/55 text-neutral-700 shadow-[inset_0_1px_0_rgba(255,255,255,0.95),0_1px_2px_rgba(0,0,0,0.04)] backdrop-blur-xl backdrop-saturate-150">
                   <TrendingUp className="h-5 w-5" strokeWidth={1.75} />
                 </div>
               </div>
@@ -237,10 +245,10 @@ export function RoasFloorField({
                         applyPatch({ contributionMarginPct: preset.marginPct })
                       }
                       className={cn(
-                        "rounded-full px-2.5 py-1 text-[11px] tabular-nums transition-all duration-200",
+                        "rounded-full border px-2.5 py-1 text-[11px] tabular-nums transition-all duration-200",
                         active
-                          ? "bg-[#3f4a0e] font-semibold text-walls-yellow shadow-sm"
-                          : "bg-neutral-100 font-medium text-neutral-600 hover:bg-neutral-200/80",
+                          ? "border-white/70 bg-white/55 font-medium text-neutral-700 shadow-[inset_0_1px_0_rgba(255,255,255,0.95),0_1px_2px_rgba(0,0,0,0.04)] backdrop-blur-xl backdrop-saturate-150"
+                          : "border-transparent bg-neutral-100/80 font-medium text-neutral-400",
                       )}
                     >
                       {preset.marginPct}%
