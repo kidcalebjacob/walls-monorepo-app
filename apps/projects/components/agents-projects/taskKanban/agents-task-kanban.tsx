@@ -768,7 +768,7 @@ function AgentsProjectsKanbanContent({
         params.set("scope", value);
       }
       const qs = params.toString();
-      router.replace(`/agents/projects/board${qs ? `?${qs}` : ""}`, { scroll: false });
+      router.replace(`/tasks${qs ? `?${qs}` : ""}`, { scroll: false });
     },
     [router, searchParams, taskScopeOptions]
   );
@@ -783,7 +783,7 @@ function AgentsProjectsKanbanContent({
         params.set("project", value);
       }
       const qs = params.toString();
-      router.replace(`/agents/projects/board${qs ? `?${qs}` : ""}`, { scroll: false });
+      router.replace(`/tasks${qs ? `?${qs}` : ""}`, { scroll: false });
     },
     [router, searchParams]
   );

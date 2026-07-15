@@ -304,34 +304,35 @@ function StatusRings({
   const activePct = total ? Math.round((active / total) * 100) : 0;
   const backlogPct = total ? Math.round((backlog / total) * 100) : 0;
 
+  const track = [{ name: "Track", value: 1 }];
   const outer = [
-    { name: "Done", value: Math.max(done, 0.01), color: "#2D2A4F" },
-    { name: "Rest", value: Math.max(total - done, 0.01), color: "#EEF1F6" },
+    { name: "Done", value: Math.max(done, 0.01), color: "var(--walls-yellow)" },
+    { name: "Rest", value: Math.max(total - done, 0.01), color: "transparent" },
   ];
   const mid = [
-    { name: "Active", value: Math.max(active, 0.01), color: "#F08A5D" },
-    { name: "Rest", value: Math.max(total - active, 0.01), color: "#EEF1F6" },
+    { name: "Active", value: Math.max(active, 0.01), color: "var(--walls-orange)" },
+    { name: "Rest", value: Math.max(total - active, 0.01), color: "transparent" },
   ];
   const inner = [
-    { name: "Backlog", value: Math.max(backlog, 0.01), color: "#8ECAE6" },
-    { name: "Rest", value: Math.max(total - backlog, 0.01), color: "#EEF1F6" },
+    { name: "Backlog", value: Math.max(backlog, 0.01), color: "var(--walls-sky)" },
+    { name: "Rest", value: Math.max(total - backlog, 0.01), color: "transparent" },
   ];
 
   return (
     <div className="flex min-h-[200px] flex-1 flex-col items-center justify-center gap-6 sm:flex-row sm:justify-between sm:gap-4">
       <div className="space-y-4 text-base">
         <div className="flex items-center gap-3">
-          <span className="h-3 w-3 rounded-full bg-[#2D2A4F]" />
+          <span className="h-3 w-3 rounded-full bg-walls-yellow" />
           <span className="font-light text-neutral-500">Done</span>
           <span className="font-semibold tabular-nums text-neutral-900">{donePct}%</span>
         </div>
         <div className="flex items-center gap-3">
-          <span className="h-3 w-3 rounded-full bg-[#F08A5D]" />
+          <span className="h-3 w-3 rounded-full bg-walls-orange" />
           <span className="font-light text-neutral-500">In Progress</span>
           <span className="font-semibold tabular-nums text-neutral-900">{activePct}%</span>
         </div>
         <div className="flex items-center gap-3">
-          <span className="h-3 w-3 rounded-full bg-[#8ECAE6]" />
+          <span className="h-3 w-3 rounded-full bg-walls-sky" />
           <span className="font-light text-neutral-500">Backlog</span>
           <span className="font-semibold tabular-nums text-neutral-900">{backlogPct}%</span>
         </div>
@@ -339,6 +340,19 @@ function StatusRings({
       <div className="relative h-[210px] w-[210px] flex-shrink-0">
         <ResponsiveContainer width="100%" height="100%">
           <PieChart>
+            <Pie
+              data={track}
+              dataKey="value"
+              cx="50%"
+              cy="50%"
+              innerRadius={80}
+              outerRadius={96}
+              startAngle={90}
+              endAngle={-270}
+              stroke="none"
+              fill="#EEF1F6"
+              isAnimationActive={false}
+            />
             <Pie
               data={outer}
               dataKey="value"
@@ -349,11 +363,25 @@ function StatusRings({
               startAngle={90}
               endAngle={-270}
               stroke="none"
+              cornerRadius={8}
             >
               {outer.map((e, i) => (
                 <Cell key={i} fill={e.color} />
               ))}
             </Pie>
+            <Pie
+              data={track}
+              dataKey="value"
+              cx="50%"
+              cy="50%"
+              innerRadius={60}
+              outerRadius={72}
+              startAngle={90}
+              endAngle={-270}
+              stroke="none"
+              fill="#EEF1F6"
+              isAnimationActive={false}
+            />
             <Pie
               data={mid}
               dataKey="value"
@@ -364,11 +392,25 @@ function StatusRings({
               startAngle={90}
               endAngle={-270}
               stroke="none"
+              cornerRadius={6}
             >
               {mid.map((e, i) => (
                 <Cell key={i} fill={e.color} />
               ))}
             </Pie>
+            <Pie
+              data={track}
+              dataKey="value"
+              cx="50%"
+              cy="50%"
+              innerRadius={38}
+              outerRadius={50}
+              startAngle={90}
+              endAngle={-270}
+              stroke="none"
+              fill="#EEF1F6"
+              isAnimationActive={false}
+            />
             <Pie
               data={inner}
               dataKey="value"
@@ -379,6 +421,7 @@ function StatusRings({
               startAngle={90}
               endAngle={-270}
               stroke="none"
+              cornerRadius={6}
             >
               {inner.map((e, i) => (
                 <Cell key={i} fill={e.color} />
@@ -640,9 +683,7 @@ function AgentsProjectsContent({ analyticsData: _analyticsData }: AgentsProjects
 
   const openBoard = (projectId?: string) => {
     router.push(
-      projectId
-        ? `/agents/projects/board?project=${projectId}`
-        : "/agents/projects/board"
+      projectId ? `/tasks?project=${projectId}` : "/tasks"
     );
   };
 
@@ -755,7 +796,7 @@ function AgentsProjectsContent({ analyticsData: _analyticsData }: AgentsProjects
                   <div className="grid grid-cols-1 gap-5 lg:grid-cols-5">
                     <SectionCard
                       title="Today Task"
-                      action={<SeeAllLink href="/agents/projects/board" />}
+                      action={<SeeAllLink href="/tasks" />}
                       className="lg:col-span-3"
                     >
                       {todayTasks.length === 0 ? (
@@ -874,7 +915,7 @@ function AgentsProjectsContent({ analyticsData: _analyticsData }: AgentsProjects
                   <div className="grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-3">
                     <SectionCard
                       title="Rank Performance"
-                      action={<SeeAllLink href="/agents/projects/list" />}
+                      action={<SeeAllLink href="/projects" />}
                     >
                       {rankPerformance.length === 0 ? (
                         <p className="py-10 text-center text-sm font-light text-neutral-400">
@@ -915,14 +956,14 @@ function AgentsProjectsContent({ analyticsData: _analyticsData }: AgentsProjects
 
                     <SectionCard
                       title="Tracker Detail"
-                      action={<SeeAllLink href="/agents/projects/timeline" />}
+                      action={<SeeAllLink href="/timeline" />}
                     >
                       <div className="mb-3 flex items-center gap-4 text-[11px] font-medium text-neutral-500">
                         <span className="inline-flex items-center gap-1.5">
-                          <span className="h-2 w-2 rounded-sm bg-[#F08A5D]" /> Done
+                          <span className="h-2 w-2 rounded-sm bg-walls-yellow" /> Done
                         </span>
                         <span className="inline-flex items-center gap-1.5">
-                          <span className="h-2 w-2 rounded-sm bg-[#8ECAE6]" /> Active
+                          <span className="h-2 w-2 rounded-sm bg-walls-sky" /> Active
                         </span>
                       </div>
                       <div className="h-[200px] w-full">
@@ -960,14 +1001,14 @@ function AgentsProjectsContent({ analyticsData: _analyticsData }: AgentsProjects
                             <Bar
                               dataKey="done"
                               name="Done"
-                              fill="#F08A5D"
+                              fill="var(--walls-yellow)"
                               radius={[8, 8, 8, 8]}
                               maxBarSize={18}
                             />
                             <Bar
                               dataKey="open"
                               name="Active"
-                              fill="#8ECAE6"
+                              fill="var(--walls-sky)"
                               radius={[8, 8, 8, 8]}
                               maxBarSize={18}
                             />
@@ -978,7 +1019,7 @@ function AgentsProjectsContent({ analyticsData: _analyticsData }: AgentsProjects
 
                     <SectionCard
                       title="Needs Attention"
-                      action={<SeeAllLink href="/agents/projects/board" />}
+                      action={<SeeAllLink href="/tasks" />}
                       className="md:col-span-2 xl:col-span-1"
                     >
                       {attentionFeed.length === 0 ? (

@@ -57,9 +57,9 @@ export function ProjectsHeader({
   const { user } = useAuth();
   const { activeAccountId, loading: accountLoading } = useActiveAccount();
   const pathname = usePathname();
-  const isBoard = pathname.startsWith("/agents/projects/board");
-  const isTimeline = pathname.startsWith("/agents/projects/timeline");
-  const isList = pathname.startsWith("/agents/projects/list");
+  const isBoard = pathname.startsWith("/tasks");
+  const isTimeline = pathname.startsWith("/timeline");
+  const isList = pathname.startsWith("/projects");
 
   const pageLabel = isBoard ? "Tasks" : isTimeline ? "Timeline" : isList ? "Projects" : "Overview";
 

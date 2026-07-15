@@ -19,9 +19,9 @@ import { useAppSidebar } from "./app-sidebar-context";
 
 const navItems = [
   { href: "/agents/projects", label: "Overview", icon: LayoutDashboard },
-  { href: "/agents/projects/board", label: "Tasks", icon: FolderKanban },
-  { href: "/agents/projects/timeline", label: "Timeline", icon: GanttChartSquare },
-  { href: "/agents/projects/list", label: "Projects", icon: LayoutList },
+  { href: "/tasks", label: "Tasks", icon: FolderKanban },
+  { href: "/timeline", label: "Timeline", icon: GanttChartSquare },
+  { href: "/projects", label: "Projects", icon: LayoutList },
 ] as const;
 
 export function AppSidebar({ headerVisible = true }: { headerVisible?: boolean }) {

@@ -341,7 +341,7 @@ function ProjectRow({ project, index, onEdit }: ProjectRowProps) {
         onClick={(e) => e.stopPropagation()}
       >
         <button
-          onClick={() => router.push(`/agents/projects/board?project=${project.id}`)}
+          onClick={() => router.push(`/tasks?project=${project.id}`)}
           className="flex items-center gap-1 px-2.5 h-7 rounded-lg text-xs font-medium hover:bg-neutral-200 text-neutral-500 hover:text-neutral-800 transition-colors whitespace-nowrap"
           title="View tasks"
         >
