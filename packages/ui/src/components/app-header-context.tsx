@@ -30,6 +30,8 @@ function useAutoHideOnScroll(enabled: boolean, selector: string): boolean {
 
     let scrollContainer: HTMLElement | null = null;
     let lastScrollTop = 0;
+    let lastScrollTarget: EventTarget | null = null;
+    let pendingTarget: HTMLElement | null = null;
     let rafId = 0;
     // Mirror of the hidden state usable inside the listener without stale
     // closures, plus a timestamp guarding the show/hide transition.
@@ -45,13 +47,29 @@ function useAutoHideOnScroll(enabled: boolean, selector: string): boolean {
       setScrollHidden(next);
     };
 
-    const onScroll = () => {
+    const onScroll = (event: Event) => {
       if (!scrollContainer) return;
+      const target = event.target;
+      if (!(target instanceof HTMLElement)) return;
+      // Ignore tiny overflow regions (menus, editors) — only page-sized
+      // scrollers should drive the chrome header.
+      if (target.clientHeight < 120) return;
 
+      pendingTarget = target;
       cancelAnimationFrame(rafId);
       rafId = requestAnimationFrame(() => {
-        const el = scrollContainer!;
+        const el = pendingTarget;
+        if (!el) return;
         const scrollTop = el.scrollTop;
+
+        // Different nested scrollers (list vs column) — re-baseline instead of
+        // treating the jump as user intent.
+        if (el !== lastScrollTarget) {
+          lastScrollTarget = el;
+          lastScrollTop = scrollTop;
+          if (scrollTop <= 8) setHidden(false);
+          return;
+        }
 
         // During the header transition the container is resizing, which moves
         // scrollTop on its own. Track position but don't act on it.
@@ -83,7 +101,13 @@ function useAutoHideOnScroll(enabled: boolean, selector: string): boolean {
       if (!scrollContainer) return false;
 
       lastScrollTop = scrollContainer.scrollTop;
-      scrollContainer.addEventListener("scroll", onScroll, { passive: true });
+      lastScrollTarget = scrollContainer;
+      // Capture so nested page scrollers (Projects list/board/overview) still
+      // drive the header — scroll events do not bubble.
+      scrollContainer.addEventListener("scroll", onScroll, {
+        passive: true,
+        capture: true,
+      });
       return true;
     };
 
@@ -97,7 +121,9 @@ function useAutoHideOnScroll(enabled: boolean, selector: string): boolean {
     return () => {
       if (retryTimer) clearTimeout(retryTimer);
       cancelAnimationFrame(rafId);
-      scrollContainer?.removeEventListener("scroll", onScroll);
+      scrollContainer?.removeEventListener("scroll", onScroll, {
+        capture: true,
+      });
     };
   }, [enabled, selector]);
 

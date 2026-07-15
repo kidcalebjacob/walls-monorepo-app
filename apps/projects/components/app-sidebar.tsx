@@ -19,9 +19,9 @@ import { useAppSidebar } from "./app-sidebar-context";
 
 const navItems = [
   { href: "/agents/projects", label: "Overview", icon: LayoutDashboard },
-  { href: "/agents/projects/board", label: "Tasks", icon: FolderKanban },
-  { href: "/agents/projects/timeline", label: "Timeline", icon: GanttChartSquare },
-  { href: "/agents/projects/list", label: "Projects", icon: LayoutList },
+  { href: "/tasks", label: "Tasks", icon: FolderKanban },
+  { href: "/timeline", label: "Timeline", icon: GanttChartSquare },
+  { href: "/projects", label: "Projects", icon: LayoutList },
 ] as const;
 
 export function AppSidebar({ headerVisible = true }: { headerVisible?: boolean }) {
@@ -35,7 +35,7 @@ export function AppSidebar({ headerVisible = true }: { headerVisible?: boolean }
   return (
     <div
       className={cn(
-        "fixed left-0 z-40 hidden bg-transparent md:block",
+        "fixed left-0 z-40 hidden bg-walls-white md:block",
         "transition-all duration-300 ease-in-out",
         headerVisible ? "top-16 h-[calc(100vh-4rem)]" : "top-0 h-screen",
         isExpanded ? "w-40" : "w-16",

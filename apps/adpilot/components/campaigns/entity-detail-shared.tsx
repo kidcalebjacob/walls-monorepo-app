@@ -50,6 +50,7 @@ export function DetailSection({
   open: openControlled,
   onOpenChange,
   trailing,
+  headerToggle = true,
   collapsedBadgeCount,
 }: {
   title: string;
@@ -63,9 +64,14 @@ export function DetailSection({
   onOpenChange?: (open: boolean) => void;
   /**
    * Replaces the default +/- collapse control on the far right.
-   * Title + rule still toggle the section open/closed.
+   * Title + rule still toggle the section open/closed when `headerToggle` is true.
    */
   trailing?: React.ReactNode;
+  /**
+   * When false, the title/rule row does not toggle open/closed (e.g. expand only
+   * via a trailing action like Generate). Content visibility still follows `open`.
+   */
+  headerToggle?: boolean;
   /** Glowing status dot left of the title when > 0 (e.g. active instruction count). */
   collapsedBadgeCount?: number;
 }) {
@@ -93,7 +99,7 @@ export function DetailSection({
           <span className="relative inline-flex h-2 w-2 rounded-full bg-[var(--walls-sky)] shadow-[0_0_8px_var(--walls-sky)]" />
         </span>
       ) : null}
-      <span className="text-2xl font-black tracking-tight text-black transition-opacity duration-300 group-hover:opacity-70 sm:text-3xl">
+      <span className="text-2xl font-black tracking-tight text-black sm:text-3xl">
         {title}
       </span>
     </span>
@@ -108,22 +114,29 @@ export function DetailSection({
             isOpen ? "mb-4" : "mb-0",
           )}
         >
-          <button
-            type="button"
-            onClick={() => setOpen(!isOpen)}
-            aria-expanded={isOpen}
-            className="group flex min-w-0 flex-1 items-center"
-          >
-            {titleBlock}
-            <div className="h-px flex-1 border-t border-black/80 transition-opacity duration-300 group-hover:opacity-60" />
-            {!trailing ? (
-              isOpen ? (
-                <Minus className="ml-4 h-4 w-4 shrink-0 text-neutral-600 transition-opacity duration-300 group-hover:opacity-70" />
-              ) : (
-                <Plus className="ml-4 h-4 w-4 shrink-0 text-neutral-600 transition-opacity duration-300 group-hover:opacity-70" />
-              )
-            ) : null}
-          </button>
+          {headerToggle ? (
+            <button
+              type="button"
+              onClick={() => setOpen(!isOpen)}
+              aria-expanded={isOpen}
+              className="flex min-w-0 flex-1 items-center"
+            >
+              {titleBlock}
+              <div className="h-px flex-1 border-t border-black/80" />
+              {!trailing ? (
+                isOpen ? (
+                  <Minus className="ml-4 h-4 w-4 shrink-0 text-neutral-600" />
+                ) : (
+                  <Plus className="ml-4 h-4 w-4 shrink-0 text-neutral-600" />
+                )
+              ) : null}
+            </button>
+          ) : (
+            <div className="flex min-w-0 flex-1 items-center">
+              {titleBlock}
+              <div className="h-px flex-1 border-t border-black/80" />
+            </div>
+          )}
           {trailing ? (
             <div className="ml-4 shrink-0">{trailing}</div>
           ) : null}

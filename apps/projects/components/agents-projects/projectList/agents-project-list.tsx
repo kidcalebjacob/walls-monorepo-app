@@ -17,6 +17,7 @@ import {
   Search,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useActiveAccount } from "@/components/active-account-context";
 import { ProjectsHeader } from "../projects-header";
 import {
   Project,
@@ -195,7 +196,7 @@ function ColumnHeaders({
   );
 
   return (
-    <div className="sticky top-0 z-10 flex items-center gap-8 border-b border-neutral-100 bg-gray-50 px-5 py-2">
+    <div className="sticky top-0 z-10 flex items-center gap-8 border-b border-neutral-100 bg-walls-white px-5 py-2">
       <div className="w-1 flex-shrink-0" />
       <div className="flex-1 min-w-0">{headerBtn("name", "Name")}</div>
       <div className="mr-36 hidden w-40 shrink-0 pl-1 sm:flex">{headerBtn("progress", "Progress")}</div>
@@ -340,7 +341,7 @@ function ProjectRow({ project, index, onEdit }: ProjectRowProps) {
         onClick={(e) => e.stopPropagation()}
       >
         <button
-          onClick={() => router.push(`/agents/projects/board?project=${project.id}`)}
+          onClick={() => router.push(`/tasks?project=${project.id}`)}
           className="flex items-center gap-1 px-2.5 h-7 rounded-lg text-xs font-medium hover:bg-neutral-200 text-neutral-500 hover:text-neutral-800 transition-colors whitespace-nowrap"
           title="View tasks"
         >
@@ -583,6 +584,7 @@ function AgentsProjectsListContent({
   analyticsData: _analyticsData,
 }: AgentsProjectsListProps) {
   const { user, isLoading: authLoading } = useAuth();
+  const { activeAccountId, loading: accountLoading } = useActiveAccount();
   const [projects, setProjects] = useState<ProjectWithStats[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
@@ -602,8 +604,8 @@ function AgentsProjectsListContent({
   }, [search]);
 
   const loadProjects = useCallback(async () => {
-    if (authLoading) return;
-    if (!user) {
+    if (authLoading || accountLoading) return;
+    if (!user || !activeAccountId) {
       setProjects([]);
       setLoading(false);
       return;
@@ -626,6 +628,7 @@ function AgentsProjectsListContent({
       let query = supabase
         .from("projects")
         .select("*")
+        .eq("account_id", activeAccountId)
         .or(accessFilter)
         .order("created_at", { ascending: false });
       if (debouncedSearch) query = query.ilike("name", `%${debouncedSearch}%`);
@@ -663,12 +666,12 @@ function AgentsProjectsListContent({
     } finally {
       setLoading(false);
     }
-  }, [user, authLoading, debouncedSearch, statusFilter, refreshTrigger]);
+  }, [user, authLoading, accountLoading, activeAccountId, debouncedSearch, statusFilter, refreshTrigger]);
 
   useEffect(() => {
-    if (authLoading) return;
+    if (authLoading || accountLoading) return;
     loadProjects();
-  }, [loadProjects, authLoading]);
+  }, [loadProjects, authLoading, accountLoading]);
 
   const refresh = () => setRefreshTrigger((r) => r + 1);
 
@@ -731,7 +734,7 @@ function AgentsProjectsListContent({
 
   return (
     <>
-      <div className="flex h-screen overflow-hidden">
+      <div className="flex h-full overflow-hidden">
         <div className="flex-1 w-full flex flex-col min-h-0">
           <div className="flex flex-1 flex-col min-h-0 overflow-hidden pl-8 pr-4 md:pr-6">
             <div className="relative z-50 flex-shrink-0">

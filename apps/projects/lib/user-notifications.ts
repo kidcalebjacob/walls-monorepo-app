@@ -35,7 +35,7 @@ export async function insertUserNotifications(
 }
 
 export function projectBoardUrl(projectId: string): string {
-  return `/agents/projects/board?project=${projectId}`;
+  return `/tasks?project=${projectId}`;
 }
 
 /** Scouter notifications open the index, not a specific profile sheet. */

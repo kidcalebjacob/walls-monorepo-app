@@ -24,6 +24,7 @@ import {
   ChevronDown,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useActiveAccount } from "@/components/active-account-context";
 import { ProjectsHeader } from "../projects-header";
 import {
   ACCESSIBLE_PROJECT_SELECT,
@@ -790,6 +791,7 @@ function AgentsProjectsTimelineContent({
   analyticsData: _analyticsData,
 }: AgentsProjectsTimelineProps) {
   const { user } = useAuth();
+  const { activeAccountId, loading: accountLoading } = useActiveAccount();
   const [projects, setProjects] = useState<Project[]>([]);
   const [tasks, setTasks] = useState<ProjectTask[]>([]);
   const [loading, setLoading] = useState(true);
@@ -822,7 +824,7 @@ function AgentsProjectsTimelineContent({
 
   /* Load data */
   const loadData = useCallback(async () => {
-    if (!user) {
+    if (!user || !activeAccountId || accountLoading) {
       setTasks([]);
       setProjects([]);
       setLoading(false);
@@ -833,6 +835,7 @@ function AgentsProjectsTimelineContent({
       const supabase = getSupabaseClient();
 
       const loadedProjects = await loadAccessibleProjects(user.id, {
+        accountId: activeAccountId,
         select: ACCESSIBLE_PROJECT_SELECT.timeline,
       });
       setProjects(loadedProjects);
@@ -874,7 +877,7 @@ function AgentsProjectsTimelineContent({
     } finally {
       setLoading(false);
     }
-  }, [user]);
+  }, [user, activeAccountId, accountLoading]);
 
   useEffect(() => {
     loadData();

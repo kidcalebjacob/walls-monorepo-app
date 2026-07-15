@@ -44,7 +44,6 @@ import type { EntityDetailResult } from "@/lib/entity-detail-server";
 import { formatCurrencyFromMicros } from "@/lib/format-analytics";
 import {
   COOLDOWN_OPTIONS,
-  OPTIMIZATION_GOAL_OPTIONS,
   optimizationGoalLabel,
   spendSettingsEqual,
   type OptimizationGoal,
@@ -339,8 +338,7 @@ export function EntityAutomationSection({
           <div>
             <DetailSubLabel>Automation preset</DetailSubLabel>
             <p className="mt-1 text-xs font-light text-neutral-500">
-              Start from a workspace preset. Editing the controls below switches
-              this {entityLabel} to custom while keeping the preset as a base.
+              Start from a workspace preset or completely customize controls.
             </p>
             {detail.profiles.length === 0 ? (
               <p className="mt-4 text-sm font-light text-neutral-500">
@@ -580,163 +578,147 @@ export function EntityAutomationSection({
             ) : null}
           </div>
 
-          <div>
-            <DetailSubLabel>
-              {isCustomPreset ? "Custom overrides" : "Entity overrides"}
-            </DetailSubLabel>
-            <p className="mt-1 text-xs font-light text-neutral-500">
-              Tuning for{" "}
-              {OPTIMIZATION_GOAL_OPTIONS.find(
-                (option) => option.value === optimizationGoal,
-              )?.hint.toLowerCase()}
-              .{" "}
-              {isCustomPreset
-                ? "These values differ from the preset and are saved only on this entity."
-                : "Only changes from the preset are stored on this entity."}
-            </p>
+          <div className="space-y-8">
+            <SliderField
+              label="Spend aggressiveness"
+              hint="How quickly AdPilot ramps budget on strong performers"
+              value={settings.aggressiveness}
+              min={0}
+              max={100}
+              step={1}
+              onChange={(value) => updateSetting("aggressiveness", value)}
+              endLabels={{
+                left: "Conservative",
+                center: "Balanced",
+                right: "Aggressive",
+              }}
+            />
 
-            <div className="mt-6 space-y-8">
+            <div className="grid gap-6 sm:grid-cols-2">
               <SliderField
-                label="Spend aggressiveness"
-                hint="How quickly AdPilot ramps budget on strong performers"
-                value={settings.aggressiveness}
-                min={0}
-                max={100}
+                label="Max daily increase"
+                value={settings.maxDailyIncreasePct}
+                min={5}
+                max={50}
                 step={1}
-                onChange={(value) => updateSetting("aggressiveness", value)}
-                endLabels={{
-                  left: "Conservative",
-                  center: "Balanced",
-                  right: "Aggressive",
-                }}
+                suffix="%"
+                onChange={(value) => updateSetting("maxDailyIncreasePct", value)}
+                endLabels={{ left: "5%", right: "50%" }}
               />
+              <SliderField
+                label="Max daily decrease"
+                value={settings.maxDailyDecreasePct}
+                min={5}
+                max={50}
+                step={1}
+                suffix="%"
+                onChange={(value) => updateSetting("maxDailyDecreasePct", value)}
+                endLabels={{ left: "5%", right: "50%" }}
+              />
+            </div>
 
-              <div className="grid gap-6 sm:grid-cols-2">
-                <SliderField
-                  label="Max daily increase"
-                  value={settings.maxDailyIncreasePct}
-                  min={5}
-                  max={50}
-                  step={1}
-                  suffix="%"
-                  onChange={(value) => updateSetting("maxDailyIncreasePct", value)}
-                  endLabels={{ left: "5%", right: "50%" }}
-                />
-                <SliderField
-                  label="Max daily decrease"
-                  value={settings.maxDailyDecreasePct}
-                  min={5}
-                  max={50}
-                  step={1}
-                  suffix="%"
-                  onChange={(value) => updateSetting("maxDailyDecreasePct", value)}
-                  endLabels={{ left: "5%", right: "50%" }}
-                />
+            <div>
+              <p className="text-sm font-medium text-foreground">
+                Cooldown between budget changes
+              </p>
+              <p className="mt-1 text-xs font-light text-neutral-500">
+                Minimum wait before AdPilot can increase or decrease the daily
+                budget again on this {entityLabel}.
+              </p>
+              <div
+                className={cn("mt-3", glassSegmentTrackClass)}
+                role="group"
+                aria-label="Cooldown between budget changes"
+              >
+                {COOLDOWN_OPTIONS.map((option) => {
+                  const active = settings.cooldownHours === option.value;
+                  return (
+                    <button
+                      key={option.value}
+                      type="button"
+                      aria-pressed={active}
+                      onClick={() =>
+                        updateSetting("cooldownHours", option.value)
+                      }
+                      className={cn(
+                        glassToggleChipBaseClass,
+                        active
+                          ? glassToggleChipActiveClass
+                          : glassToggleChipInactiveClass,
+                      )}
+                    >
+                      {active ? (
+                        <SegmentThumb
+                          layoutId="entity-cooldown-thumb"
+                          variant="glass"
+                        />
+                      ) : null}
+                      <span className="relative z-10">{option.label}</span>
+                    </button>
+                  );
+                })}
               </div>
+            </div>
 
-              <div>
-                <p className="text-sm font-medium text-foreground">
-                  Cooldown between budget changes
-                </p>
-                <p className="mt-1 text-xs font-light text-neutral-500">
-                  Minimum wait before AdPilot can increase or decrease the daily
-                  budget again on this {entityLabel}.
-                </p>
-                <div
-                  className={cn("mt-3", glassSegmentTrackClass)}
-                  role="group"
-                  aria-label="Cooldown between budget changes"
-                >
-                  {COOLDOWN_OPTIONS.map((option) => {
-                    const active = settings.cooldownHours === option.value;
-                    return (
-                      <button
-                        key={option.value}
-                        type="button"
-                        aria-pressed={active}
-                        onClick={() =>
-                          updateSetting("cooldownHours", option.value)
-                        }
-                        className={cn(
-                          glassToggleChipBaseClass,
-                          active
-                            ? glassToggleChipActiveClass
-                            : glassToggleChipInactiveClass,
-                        )}
-                      >
-                        {active ? (
-                          <SegmentThumb
-                            layoutId="entity-cooldown-thumb"
-                            variant="glass"
-                          />
-                        ) : null}
-                        <span className="relative z-10">{option.label}</span>
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-
-              {optimizationGoal === "ctr" ? (
-                <label className="block space-y-2">
-                  <span className="text-sm font-medium text-foreground">
-                    CTR floor (%)
-                  </span>
-                  <Input
-                    type="number"
-                    min={0}
-                    step={0.1}
-                    value={settings.ctrFloorPct ?? ""}
-                    onChange={(e) =>
-                      updateSetting(
-                        "ctrFloorPct",
-                        e.target.value ? Number(e.target.value) : null,
-                      )
-                    }
-                    className="rounded-full border-neutral-200 bg-walls-white font-light"
-                  />
-                </label>
-              ) : null}
-
-              {optimizationGoal === "cpa" || optimizationGoal === "conversions" ? (
-                <label className="block space-y-2">
-                  <span className="text-sm font-medium text-foreground">
-                    CPA ceiling (USD)
-                  </span>
-                  <Input
-                    type="number"
-                    min={0}
-                    step={1}
-                    value={settings.cpaCeiling ?? ""}
-                    onChange={(e) =>
-                      updateSetting(
-                        "cpaCeiling",
-                        e.target.value ? Number(e.target.value) : null,
-                      )
-                    }
-                    className="rounded-full border-neutral-200 bg-walls-white font-light"
-                  />
-                </label>
-              ) : null}
-
-              <div className="space-y-5 border-t border-neutral-200/70 pt-6">
-                <LabeledSwitch
-                  size="lg"
-                  checked={settings.learningPhaseProtection}
-                  onCheckedChange={(value) =>
-                    updateSetting("learningPhaseProtection", value)
+            {optimizationGoal === "ctr" ? (
+              <label className="block space-y-2">
+                <span className="text-sm font-medium text-foreground">
+                  CTR floor (%)
+                </span>
+                <Input
+                  type="number"
+                  min={0}
+                  step={0.1}
+                  value={settings.ctrFloorPct ?? ""}
+                  onChange={(e) =>
+                    updateSetting(
+                      "ctrFloorPct",
+                      e.target.value ? Number(e.target.value) : null,
+                    )
                   }
-                  label="Learning phase protection"
-                  description="Block scale-ups while Meta marks the ad set as learning limited."
+                  className="rounded-full border-neutral-200 bg-walls-white font-light"
                 />
-                <LabeledSwitch
-                  size="lg"
-                  checked={settings.pauseOnFatigue}
-                  onCheckedChange={(value) => updateSetting("pauseOnFatigue", value)}
-                  label="Pause on frequency fatigue"
-                  description="Slow scaling when frequency rises and CTR drops week over week."
+              </label>
+            ) : null}
+
+            {optimizationGoal === "cpa" || optimizationGoal === "conversions" ? (
+              <label className="block space-y-2">
+                <span className="text-sm font-medium text-foreground">
+                  CPA ceiling (USD)
+                </span>
+                <Input
+                  type="number"
+                  min={0}
+                  step={1}
+                  value={settings.cpaCeiling ?? ""}
+                  onChange={(e) =>
+                    updateSetting(
+                      "cpaCeiling",
+                      e.target.value ? Number(e.target.value) : null,
+                    )
+                  }
+                  className="rounded-full border-neutral-200 bg-walls-white font-light"
                 />
-              </div>
+              </label>
+            ) : null}
+
+            <div className="space-y-5 border-t border-neutral-200/70 pt-6">
+              <LabeledSwitch
+                size="lg"
+                checked={settings.learningPhaseProtection}
+                onCheckedChange={(value) =>
+                  updateSetting("learningPhaseProtection", value)
+                }
+                label="Learning phase protection"
+                description="Block scale-ups while Meta marks the ad set as learning limited."
+              />
+              <LabeledSwitch
+                size="lg"
+                checked={settings.pauseOnFatigue}
+                onCheckedChange={(value) => updateSetting("pauseOnFatigue", value)}
+                label="Pause on frequency fatigue"
+                description="Slow scaling when frequency rises and CTR drops week over week."
+              />
             </div>
           </div>
 
@@ -1205,7 +1187,7 @@ function AgentInstructionsManager({
         <Button
           type="button"
           onClick={startCreate}
-          className={cn(secondaryButtonClass, "inline-flex items-center gap-2")}
+          className="inline-flex items-center gap-2 rounded-xl border border-neutral-300 bg-walls-white px-5 font-medium tracking-tight text-neutral-400 transition-all duration-300 ease-in-out hover:border-neutral-300 hover:bg-walls-white hover:text-neutral-400 active:scale-[0.98]"
         >
           <Plus className="h-4 w-4" />
           Add instruction

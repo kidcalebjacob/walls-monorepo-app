@@ -1,21 +1,21 @@
-import { Suspense } from "react";
+import { redirect } from "next/navigation";
 
-import AgentsTaskKanban from "@/components/agents-projects/taskKanban/agents-task-kanban";
+type SearchParams = Record<string, string | string[] | undefined>;
 
-function BoardFallback() {
-  return (
-    <div className="flex h-full min-h-0 items-center justify-center bg-white text-sm font-light text-neutral-400">
-      Loading board…
-    </div>
-  );
-}
-
-export default function ProjectsBoardPage() {
-  return (
-    <div className="h-full min-h-0 overflow-hidden overscroll-none bg-white">
-      <Suspense fallback={<BoardFallback />}>
-        <AgentsTaskKanban analyticsData={null} />
-      </Suspense>
-    </div>
-  );
+export default async function ProjectsBoardRedirectPage({
+  searchParams,
+}: {
+  searchParams: Promise<SearchParams>;
+}) {
+  const params = await searchParams;
+  const qs = new URLSearchParams();
+  for (const [key, value] of Object.entries(params)) {
+    if (Array.isArray(value)) {
+      for (const v of value) qs.append(key, v);
+    } else if (value != null) {
+      qs.set(key, value);
+    }
+  }
+  const query = qs.toString();
+  redirect(query ? `/tasks?${query}` : "/tasks");
 }

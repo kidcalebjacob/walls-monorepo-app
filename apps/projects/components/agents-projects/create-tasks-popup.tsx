@@ -50,13 +50,14 @@ import {
   notifyTaskAssignee,
   resolveActorDisplayName,
 } from "@/lib/user-notifications";
+import { useActiveAccount } from "@/components/active-account-context";
 import { loadAccessibleProjects as fetchAccessibleProjects } from "./load-accessible-projects";
 
 /* ─── Form config ────────────────────────────────────────────────────────── */
 const popupButtonOuterClass =
   "w-10 h-10 p-0 text-slate-600 hover:bg-transparent flex items-center justify-center shadow-none relative group flex-shrink-0 disabled:opacity-50 disabled:cursor-not-allowed";
 const popupButtonInnerClass =
-  "relative z-10 p-3 rounded-full transition-all duration-300 ease-in-out group-hover:bg-gray-50 group-hover:border group-hover:border-neutral-200 group-hover:shadow-[inset_0_4px_8px_rgba(0,0,0,0.15)] group-hover:scale-95";
+  "relative z-10 p-3 rounded-full transition-all duration-300 ease-in-out group-hover:bg-walls-white group-hover:border group-hover:border-neutral-200 group-hover:shadow-[inset_0_4px_8px_rgba(0,0,0,0.15)] group-hover:scale-95";
 const fieldLabelClass =
   "text-[11px] font-normal uppercase tracking-[0.16em] text-neutral-500";
 const fieldValueClass = "truncate text-[15px] font-light text-neutral-900";
@@ -136,6 +137,7 @@ export function CreateTasksPopup({
   existing,
 }: CreateTasksPopupProps) {
   const { user: authUser } = useAuth();
+  const { activeAccountId, loading: accountLoading } = useActiveAccount();
   const [form, setForm] = useState<TaskFormState>(EMPTY_TASK_FORM);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -173,13 +175,15 @@ export function CreateTasksPopup({
       setLoadingAccessibleProjects(false);
       return;
     }
-    if (!userId) return;
+    if (!userId || !activeAccountId || accountLoading) return;
 
     let cancelled = false;
     setLoadingAccessibleProjects(true);
     const run = async () => {
       try {
-        const data = await fetchAccessibleProjects(userId);
+        const data = await fetchAccessibleProjects(userId, {
+          accountId: activeAccountId,
+        });
         if (!cancelled) setAccessibleProjects(data);
       } catch {
         if (!cancelled) setAccessibleProjects([]);
@@ -192,7 +196,7 @@ export function CreateTasksPopup({
     return () => {
       cancelled = true;
     };
-  }, [open, userId]);
+  }, [open, userId, activeAccountId, accountLoading]);
 
   const projectsForSelect = useMemo(() => {
     if (accessibleProjects.length > 0 || !loadingAccessibleProjects) {
@@ -565,7 +569,7 @@ export function CreateTasksPopup({
       <DialogContent className="sm:max-w-[900px] [&>button]:focus:outline-none [&>button]:focus:ring-0 [&>button]:focus-visible:ring-0 [&>button]:ring-0" onOpenAutoFocus={(e) => e.preventDefault()}>
         <DialogHeader />
 
-        <div className="grid grid-cols-[2fr,1fr] divide-x divide-gray-200 gap-6 py-4">
+        <div className="grid grid-cols-[2fr_1fr] divide-x divide-gray-200 gap-6 py-4">
           {/* Left Column */}
           <div className="min-w-0 space-y-4 pr-6">
             <Input
@@ -573,7 +577,7 @@ export function CreateTasksPopup({
               onChange={(e) => setForm((f) => ({ ...f, title: e.target.value }))}
               placeholder="Add title"
               disabled={saving}
-              className="border-0 border-b-2 rounded-none bg-transparent focus:ring-0 focus-visible:ring-0 px-0 border-b-[var(--walls-sky)] focus:border-b-[var(--walls-sky)] placeholder:text-neutral-300"
+              className="border-0 border-b-2 rounded-none bg-transparent shadow-none focus:ring-0 focus-visible:ring-0 px-0 border-b-[var(--walls-sky)] focus:border-b-[var(--walls-sky)] placeholder:text-neutral-300"
             />
 
             <SimpleMarkdownEditor

@@ -51,6 +51,8 @@ interface UserSearchProps {
   values: string[];
   onToggle: (userId: string) => void;
   onUsersLoaded?: (users: UserSearchUser[]) => void;
+  /** When set, only members of this WALLS account are searchable. */
+  accountId?: string | null;
 }
 
 function UserListSkeleton() {
@@ -117,6 +119,7 @@ export function UserSearch({
   values,
   onToggle,
   onUsersLoaded,
+  accountId,
 }: UserSearchProps) {
   const { user } = useAuth();
   const [users, setUsers] = useState<UserSearchUser[]>([]);
@@ -130,16 +133,25 @@ export function UserSearch({
     const fetchUsers = async () => {
       setLoading(true);
       try {
+        if (!accountId) {
+          setUsers([]);
+          onUsersLoaded?.([]);
+          return;
+        }
+
         const supabase = createClient();
-        const { data: teamData, error: teamError } = await supabase
-          .from("team")
+        const { data: membershipData, error: membershipError } = await supabase
+          .from("account_users")
           .select("user_id")
+          .eq("account_id", accountId)
           .not("user_id", "is", null);
 
-        if (teamError) throw teamError;
+        if (membershipError) throw membershipError;
 
         const userIds = Array.from(
-          new Set((teamData ?? []).map((row) => row.user_id).filter(Boolean)),
+          new Set(
+            (membershipData ?? []).map((row) => row.user_id).filter(Boolean),
+          ),
         ) as string[];
 
         if (userIds.length === 0) {
@@ -171,7 +183,7 @@ export function UserSearch({
     };
 
     void fetchUsers();
-  }, [onUsersLoaded]);
+  }, [accountId, onUsersLoaded]);
 
   useEffect(() => {
     if (!searchQuery.trim()) {
@@ -223,7 +235,7 @@ export function UserSearch({
               e.stopPropagation();
               if (e.key === "Escape") setSearchQuery("");
             }}
-            placeholder="Search team…"
+            placeholder="Search account members…"
             className={cn(
               "w-full rounded-none border-0 border-b bg-transparent py-2 pl-6 pr-2 text-sm font-light transition-colors placeholder:text-neutral-300 focus:border-b-[var(--walls-sky)] focus:outline-none focus-visible:outline-none",
               searchQuery.trim() ? "border-b-[var(--walls-sky)]" : "border-neutral-200",

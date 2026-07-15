@@ -1,5 +1,6 @@
 "use client";
 
+import type { ReactNode } from "react";
 import {
   Area,
   CartesianGrid,
@@ -17,7 +18,12 @@ import {
   formatProgressAxisValue,
   formatProgressTooltipValue,
 } from "@/lib/entity-daily-progress";
-import { formatFrequency } from "@/lib/format-analytics";
+import { formatFrequency, formatRoas } from "@/lib/format-analytics";
+import {
+  getProgressMetricColor,
+  isCurrencyProgressMetric,
+  type ObjectiveProgressMetricKey,
+} from "@/lib/meta-objectives";
 
 import { DetailSection } from "@/components/campaigns/entity-detail-shared";
 
@@ -33,6 +39,20 @@ type ProgressTooltipProps = {
   progress: EntityDailyProgress;
 };
 
+function MetricTooltipValue({
+  metricKey,
+  children,
+}: {
+  metricKey: ObjectiveProgressMetricKey;
+  children: ReactNode;
+}) {
+  return (
+    <span className="font-medium" style={{ color: getProgressMetricColor(metricKey) }}>
+      {children}
+    </span>
+  );
+}
+
 function ProgressTooltip({
   active,
   label,
@@ -44,30 +64,38 @@ function ProgressTooltip({
   const point = payload[0]?.payload;
   if (!point) return null;
 
-  const showProfit = progress.primaryMetric.key === "roas";
+  const showSalesExtras =
+    progress.objectiveBucket === "OUTCOME_SALES" ||
+    progress.primaryMetric.key === "earnings" ||
+    progress.secondaryMetric?.key === "earnings";
   const profitMicros = point.conversionValueMicros - point.spendMicros;
+  const spend = point.spendMicros / 1_000_000;
+  const roas =
+    spend > 0 ? point.conversionValueMicros / 1_000_000 / spend : null;
 
   return (
     <div className="rounded-lg border border-neutral-700 bg-neutral-900 px-3 py-2.5 shadow-lg">
       <p className="mb-2 text-xs font-light text-neutral-300">{label}</p>
       <div className="space-y-1">
         <div className="flex items-center justify-between gap-6 text-xs">
-          <span className="font-light text-neutral-400">{progress.primaryMetric.label}</span>
-          <span className="font-medium text-neutral-100">
-            {formatProgressTooltipValue(progress.primaryMetric.key, point.primary)}
+          <span className="font-light text-neutral-400">
+            {progress.primaryMetric.label}
           </span>
+          <MetricTooltipValue metricKey={progress.primaryMetric.key}>
+            {formatProgressTooltipValue(progress.primaryMetric.key, point.primary)}
+          </MetricTooltipValue>
         </div>
         {progress.secondaryMetric && point.secondary != null ? (
           <div className="flex items-center justify-between gap-6 text-xs">
             <span className="font-light text-neutral-400">
               {progress.secondaryMetric.label}
             </span>
-            <span className="font-medium text-[var(--walls-yellow)]">
+            <MetricTooltipValue metricKey={progress.secondaryMetric.key}>
               {formatProgressTooltipValue(
                 progress.secondaryMetric.key,
                 point.secondary,
               )}
-            </span>
+            </MetricTooltipValue>
           </div>
         ) : null}
         {point.frequency != null ? (
@@ -78,8 +106,14 @@ function ProgressTooltip({
             </span>
           </div>
         ) : null}
-        {showProfit ? (
+        {showSalesExtras ? (
           <>
+            <div className="flex items-center justify-between gap-6 text-xs">
+              <span className="font-light text-neutral-400">ROAS</span>
+              <span className="font-medium text-neutral-100">
+                {formatRoas(roas)}
+              </span>
+            </div>
             <div className="flex items-center justify-between gap-6 text-xs">
               <span className="font-light text-neutral-400">CPA</span>
               <span className="font-medium text-neutral-100">
@@ -99,6 +133,27 @@ function ProgressTooltip({
   );
 }
 
+function ChartLegend({ progress }: { progress: EntityDailyProgress }) {
+  const items = [
+    progress.primaryMetric,
+    ...(progress.secondaryMetric ? [progress.secondaryMetric] : []),
+  ];
+
+  return (
+    <div className="mb-4 flex flex-wrap gap-x-5 gap-y-2 text-[11px] font-light uppercase tracking-wider text-neutral-400">
+      {items.map((metric) => (
+        <span key={metric.key} className="inline-flex items-center gap-1.5">
+          <span
+            className="h-0.5 w-4 rounded-full"
+            style={{ backgroundColor: getProgressMetricColor(metric.key) }}
+          />
+          {metric.label}
+        </span>
+      ))}
+    </div>
+  );
+}
+
 type EntityDailyProgressSectionProps = {
   progress: EntityDailyProgress;
 };
@@ -112,6 +167,17 @@ export function EntityDailyProgressSection({
     primary: day.primaryValue,
     secondary: day.secondaryValue,
   }));
+
+  const primaryColor = getProgressMetricColor(progress.primaryMetric.key);
+  const secondaryColor = progress.secondaryMetric
+    ? getProgressMetricColor(progress.secondaryMetric.key)
+    : null;
+  const shareDollarAxis =
+    progress.secondaryMetric != null &&
+    isCurrencyProgressMetric(progress.primaryMetric.key) &&
+    isCurrencyProgressMetric(progress.secondaryMetric.key);
+  const hasSecondaryAxis =
+    progress.secondaryMetric != null && !shareDollarAxis;
 
   return (
     <DetailSection title="Daily progress">
@@ -153,105 +219,136 @@ export function EntityDailyProgressSection({
             data from Meta.
           </p>
         ) : (
-          <div className="h-[280px] w-full">
-            <ResponsiveContainer width="100%" height="100%">
-              <ComposedChart
-                data={chartData}
-                margin={{ top: 8, right: progress.secondaryMetric ? 48 : 24, left: 0, bottom: 0 }}
-              >
-                <defs>
-                  <linearGradient id="adpilotProgressGrad" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="var(--walls-sky)" stopOpacity={0.28} />
-                    <stop offset="100%" stopColor="var(--walls-sky)" stopOpacity={0} />
-                  </linearGradient>
-                  <linearGradient id="adpilotProgressSecondaryGrad" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="var(--walls-yellow)" stopOpacity={0.22} />
-                    <stop offset="100%" stopColor="var(--walls-yellow)" stopOpacity={0} />
-                  </linearGradient>
-                </defs>
+          <div>
+            <ChartLegend progress={progress} />
+            <div className="h-[280px] w-full">
+              <ResponsiveContainer width="100%" height="100%">
+                <ComposedChart
+                  data={chartData}
+                  margin={{
+                    top: 8,
+                    right: hasSecondaryAxis ? 48 : 24,
+                    left: 0,
+                    bottom: 0,
+                  }}
+                >
+                  <defs>
+                    <linearGradient
+                      id="adpilotProgressPrimaryGrad"
+                      x1="0"
+                      y1="0"
+                      x2="0"
+                      y2="1"
+                    >
+                      <stop offset="0%" stopColor={primaryColor} stopOpacity={0.28} />
+                      <stop offset="100%" stopColor={primaryColor} stopOpacity={0} />
+                    </linearGradient>
+                    {secondaryColor ? (
+                      <linearGradient
+                        id="adpilotProgressSecondaryGrad"
+                        x1="0"
+                        y1="0"
+                        x2="0"
+                        y2="1"
+                      >
+                        <stop
+                          offset="0%"
+                          stopColor={secondaryColor}
+                          stopOpacity={0.22}
+                        />
+                        <stop
+                          offset="100%"
+                          stopColor={secondaryColor}
+                          stopOpacity={0}
+                        />
+                      </linearGradient>
+                    ) : null}
+                  </defs>
 
-                <CartesianGrid
-                  strokeDasharray="3 3"
-                  stroke="rgb(212 212 212)"
-                  vertical
-                  horizontal
-                />
+                  <CartesianGrid
+                    strokeDasharray="3 3"
+                    stroke="rgb(212 212 212)"
+                    vertical
+                    horizontal
+                  />
 
-                <XAxis
-                  dataKey="label"
-                  axisLine={{ stroke: "rgb(212 212 212)" }}
-                  tick={{ fill: "rgb(115 115 115)", fontSize: 11 }}
-                  tickLine={false}
-                  interval="preserveStartEnd"
-                  minTickGap={28}
-                />
+                  <XAxis
+                    dataKey="label"
+                    axisLine={{ stroke: "rgb(212 212 212)" }}
+                    tick={{ fill: "rgb(115 115 115)", fontSize: 11 }}
+                    tickLine={false}
+                    interval="preserveStartEnd"
+                    minTickGap={28}
+                  />
 
-                <YAxis
-                  yAxisId="primary"
-                  orientation="left"
-                  axisLine={false}
-                  tickLine={false}
-                  tick={{ fill: "rgb(115 115 115)", fontSize: 11 }}
-                  tickFormatter={(value: number) =>
-                    formatProgressAxisValue(progress.primaryMetric.key, value)
-                  }
-                  width={48}
-                />
-
-                {progress.secondaryMetric ? (
                   <YAxis
-                    yAxisId="secondary"
-                    orientation="right"
+                    yAxisId="primary"
+                    orientation="left"
                     axisLine={false}
                     tickLine={false}
-                    tick={{ fill: "rgb(163 163 163)", fontSize: 11 }}
+                    tick={{ fill: "rgb(115 115 115)", fontSize: 11 }}
                     tickFormatter={(value: number) =>
-                      formatProgressAxisValue(progress.secondaryMetric!.key, value)
+                      formatProgressAxisValue(progress.primaryMetric.key, value)
                     }
                     width={48}
                   />
-                ) : null}
 
-                <Tooltip
-                  content={<ProgressTooltip progress={progress} />}
-                />
+                  {hasSecondaryAxis && progress.secondaryMetric ? (
+                    <YAxis
+                      yAxisId="secondary"
+                      orientation="right"
+                      axisLine={false}
+                      tickLine={false}
+                      tick={{ fill: "rgb(163 163 163)", fontSize: 11 }}
+                      tickFormatter={(value: number) =>
+                        formatProgressAxisValue(
+                          progress.secondaryMetric!.key,
+                          value,
+                        )
+                      }
+                      width={48}
+                    />
+                  ) : null}
 
-                {progress.secondaryMetric ? (
+                  <Tooltip content={<ProgressTooltip progress={progress} />} />
+
+                  {progress.secondaryMetric && secondaryColor ? (
+                    <Area
+                      yAxisId={shareDollarAxis ? "primary" : "secondary"}
+                      type="monotone"
+                      dataKey="secondary"
+                      stroke={secondaryColor}
+                      strokeWidth={2}
+                      fill="url(#adpilotProgressSecondaryGrad)"
+                      name={progress.secondaryMetric.label}
+                      dot={false}
+                      activeDot={{
+                        r: 4,
+                        fill: "var(--walls-white)",
+                        stroke: secondaryColor,
+                        strokeWidth: 2,
+                      }}
+                    />
+                  ) : null}
+
                   <Area
-                    yAxisId="secondary"
+                    yAxisId="primary"
                     type="monotone"
-                    dataKey="secondary"
-                    stroke="var(--walls-yellow)"
-                    strokeWidth={2}
-                    fill="url(#adpilotProgressSecondaryGrad)"
-                    name="secondary"
-                    dot={false}
+                    dataKey="primary"
+                    stroke={primaryColor}
+                    strokeWidth={2.5}
+                    fill="url(#adpilotProgressPrimaryGrad)"
+                    name={progress.primaryMetric.label}
                     activeDot={{
-                      r: 4,
+                      r: 5,
                       fill: "var(--walls-white)",
-                      stroke: "var(--walls-yellow)",
-                      strokeWidth: 2,
+                      stroke: primaryColor,
+                      strokeWidth: 2.5,
                     }}
                   />
-                ) : null}
-
-                <Area
-                  yAxisId="primary"
-                  type="monotone"
-                  dataKey="primary"
-                  stroke="var(--walls-sky)"
-                  strokeWidth={2.5}
-                  fill="url(#adpilotProgressGrad)"
-                  name="primary"
-                  activeDot={{
-                    r: 5,
-                    fill: "var(--walls-white)",
-                    stroke: "var(--walls-sky)",
-                    strokeWidth: 2.5,
-                  }}
-                />
-              </ComposedChart>
-            </ResponsiveContainer>
+                </ComposedChart>
+              </ResponsiveContainer>
+            </div>
           </div>
         )}
       </div>

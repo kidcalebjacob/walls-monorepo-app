@@ -3,8 +3,8 @@
  * after `@import "tailwindcss"` in each app.
  *
  * Enables Tailwind utilities: bg-walls-yellow, bg-walls-white, text-walls-sky, border-walls-sky,
- * decoration-walls-yellow, from-walls-yellow, ease-walls-spring, etc.
- * Also exposes CSS variables: var(--walls-yellow), var(--walls-sky), …
+ * decoration-walls-yellow, from-walls-yellow, bg-walls-orange, ease-walls-spring, etc.
+ * Also exposes CSS variables: var(--walls-yellow), var(--walls-sky), var(--walls-orange), …
  */
 
 :root {
@@ -26,6 +26,8 @@
   --walls-red-hover: #b91f1f;
   --walls-sky: #6eadc0;
   --walls-sky-hover: #5a9ba8;
+  --walls-orange: #f08a5d;
+  --walls-orange-hover: #e07a4d;
   --walls-emerald: #8dcf76;
   --walls-emerald-hover: #75b85f;
   --walls-forest: #2b5b00;
@@ -67,6 +69,8 @@
   --color-walls-red-hover: var(--walls-red-hover);
   --color-walls-sky: var(--walls-sky);
   --color-walls-sky-hover: var(--walls-sky-hover);
+  --color-walls-orange: var(--walls-orange);
+  --color-walls-orange-hover: var(--walls-orange-hover);
   --color-walls-emerald: var(--walls-emerald);
   --color-walls-emerald-hover: var(--walls-emerald-hover);
   --color-walls-forest: var(--walls-forest);

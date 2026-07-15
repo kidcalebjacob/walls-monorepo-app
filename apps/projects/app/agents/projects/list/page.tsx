@@ -1,9 +1,21 @@
-import AgentsProjectList from "@/components/agents-projects/projectList/agents-project-list";
+import { redirect } from "next/navigation";
 
-export default function ProjectsListPage() {
-  return (
-    <div className="h-full min-h-0 overflow-hidden overscroll-none bg-white">
-      <AgentsProjectList analyticsData={null} />
-    </div>
-  );
+type SearchParams = Record<string, string | string[] | undefined>;
+
+export default async function ProjectsListRedirectPage({
+  searchParams,
+}: {
+  searchParams: Promise<SearchParams>;
+}) {
+  const params = await searchParams;
+  const qs = new URLSearchParams();
+  for (const [key, value] of Object.entries(params)) {
+    if (Array.isArray(value)) {
+      for (const v of value) qs.append(key, v);
+    } else if (value != null) {
+      qs.set(key, value);
+    }
+  }
+  const query = qs.toString();
+  redirect(query ? `/projects?${query}` : "/projects");
 }

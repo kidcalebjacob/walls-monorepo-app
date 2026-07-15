@@ -88,14 +88,48 @@ export type ObjectiveProgressMetricKey =
   | "ctr"
   | "clicks"
   | "impressions"
-  | "spend";
+  | "reach"
+  | "spend"
+  | "earnings";
 
 export type ObjectiveProgressMetric = {
   key: ObjectiveProgressMetricKey;
   label: string;
 };
 
-/** Primary + secondary metrics to chart for each outcome bucket. */
+/** Stroke/fill color for a daily-progress chart series. */
+export function getProgressMetricColor(
+  key: ObjectiveProgressMetricKey,
+): string {
+  switch (key) {
+    case "spend":
+      // Softer neon red for chart readability (not brand walls-red)
+      return "#ff5c6a";
+    case "earnings":
+      return "var(--walls-yellow)";
+    case "reach":
+    case "impressions":
+      return "var(--walls-sky)";
+    case "clicks":
+      return "var(--walls-blue)";
+    case "ctr":
+      return "var(--walls-emerald)";
+    case "roas":
+      return "var(--walls-sky)";
+  }
+}
+
+export function isCurrencyProgressMetric(
+  key: ObjectiveProgressMetricKey,
+): boolean {
+  return key === "spend" || key === "earnings";
+}
+
+/**
+ * Primary + secondary metrics to chart for each outcome bucket.
+ * Sales charts spend vs earnings (dollars). Other outcomes pair the
+ * outcome KPI with spend so cost context stays visible.
+ */
 export function getObjectiveProgressConfig(
   bucket: DashboardObjectiveBucket | null,
 ): {
@@ -105,28 +139,28 @@ export function getObjectiveProgressConfig(
   switch (bucket) {
     case "OUTCOME_SALES":
       return {
-        primary: { key: "roas", label: "ROAS" },
+        primary: { key: "earnings", label: "Earnings" },
         secondary: { key: "spend", label: "Spend" },
       };
     case "OUTCOME_TRAFFIC":
       return {
         primary: { key: "clicks", label: "Clicks" },
-        secondary: { key: "ctr", label: "CTR" },
+        secondary: { key: "spend", label: "Spend" },
       };
     case "OUTCOME_AWARENESS":
       return {
-        primary: { key: "impressions", label: "Impressions" },
+        primary: { key: "reach", label: "Reach" },
         secondary: { key: "spend", label: "Spend" },
       };
     case "OUTCOME_ENGAGEMENT":
       return {
-        primary: { key: "ctr", label: "CTR" },
-        secondary: { key: "clicks", label: "Clicks" },
+        primary: { key: "clicks", label: "Clicks" },
+        secondary: { key: "spend", label: "Spend" },
       };
     case "OUTCOME_LEADS":
       return {
         primary: { key: "clicks", label: "Clicks" },
-        secondary: { key: "ctr", label: "CTR" },
+        secondary: { key: "spend", label: "Spend" },
       };
     case "OUTCOME_APP_PROMOTION":
       return {

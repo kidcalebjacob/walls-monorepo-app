@@ -1,5 +1,6 @@
 "use client";
 
+import { useAppHeaderVisible } from "@walls/ui/private-app-chrome";
 import { cn } from "@walls/utils";
 
 import { AppSidebar } from "./app-sidebar";
@@ -13,13 +14,15 @@ type AppSidebarLayoutProps = {
 function AppSidebarContent({ children, className }: AppSidebarLayoutProps) {
   const { isCollapsed, isHoverExpanded } = useAppSidebar();
   const isExpanded = !isCollapsed || isHoverExpanded;
+  const headerVisible = useAppHeaderVisible();
 
   return (
     <>
-      <AppSidebar headerVisible={false} />
+      <AppSidebar headerVisible={headerVisible} />
       <div
         className={cn(
-          "flex h-screen min-w-0 flex-col overflow-hidden bg-walls-white transition-[margin-left] duration-300",
+          "flex h-screen min-w-0 flex-col overflow-hidden bg-walls-white transition-[margin-left,padding-top] duration-300",
+          headerVisible ? "pt-16" : "pt-0",
           isExpanded ? "md:ml-40" : "md:ml-16",
           className,
         )}
