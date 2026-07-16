@@ -6,5 +6,5 @@ export function getDefaultPostLoginUrl(): string {
     return "http://localhost:3001";
   }
 
-  return "https://adpilot.walls.agency";
+  return "https://adpilot.kenoo.io";
 }

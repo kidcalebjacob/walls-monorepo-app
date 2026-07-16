@@ -3,7 +3,7 @@
  * Legacy `apps.url_redirect` path values remain for walls-app until cutover.
  */
 
-const DEFAULT_ROOT_DOMAIN = "walls.agency";
+const DEFAULT_ROOT_DOMAIN = "kenoo.io";
 
 function stripTrailingSlash(value: string): string {
   return value.replace(/\/$/, "");
@@ -32,7 +32,7 @@ export function originForAppSlug(slug: string): string | null {
   return envOrigin(map[slug]);
 }
 
-/** Build `https://{subdomain}.walls.agency` from a host label. */
+/** Build `https://{subdomain}.kenoo.io` from a host label. */
 export function buildSubdomainOrigin(
   subdomain: string,
   rootDomain = DEFAULT_ROOT_DOMAIN,

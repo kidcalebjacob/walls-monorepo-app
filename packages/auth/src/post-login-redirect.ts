@@ -136,9 +136,16 @@ export function isAllowedPostLoginRedirect(target: string): boolean {
       return !isAuthEntryPath(url.pathname);
     }
 
-    return (
-      configuredOrigins().includes(url.origin) && !isAuthEntryPath(url.pathname)
-    );
+    if (isAuthEntryPath(url.pathname)) return false;
+
+    if (configuredOrigins().includes(url.origin)) return true;
+
+    // Allow same-brand subdomain redirects even when individual app URL envs lag.
+    const host = url.hostname;
+    if (host === "kenoo.io" || host.endsWith(".kenoo.io")) return true;
+    if (host === "walls.agency" || host.endsWith(".walls.agency")) return true;
+
+    return false;
   } catch {
     return false;
   }
