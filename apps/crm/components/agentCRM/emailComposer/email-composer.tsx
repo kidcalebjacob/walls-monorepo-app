@@ -1118,7 +1118,7 @@ export default function EmailComposer({
               {showEditIndicator && (
                 <div className="flex items-center gap-2 border-b border-blue-100/80 bg-blue-50/40 px-4 py-2">
                   <span
-                    className="h-2 w-2 rounded-full bg-walls-yellow animate-pulse flex-shrink-0"
+                    className="h-2 w-2 rounded-full bg-kenoo-yellow animate-pulse flex-shrink-0"
                     aria-hidden
                   />
                   <ShiningText text="Wallie is editing your draft..." className="text-xs" />

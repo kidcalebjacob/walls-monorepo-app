@@ -67,7 +67,7 @@ export default function CrmHomePage() {
             <Link
               key={section.href}
               href={section.href}
-              className="group rounded-2xl border border-neutral-200 bg-walls-white p-5 transition hover:border-neutral-300 hover:shadow-sm"
+              className="group rounded-2xl border border-neutral-200 bg-kenoo-white p-5 transition hover:border-neutral-300 hover:shadow-sm"
             >
               <div className="flex items-center gap-3">
                 <div className="rounded-full border border-neutral-200 p-2.5 transition group-hover:border-neutral-300">

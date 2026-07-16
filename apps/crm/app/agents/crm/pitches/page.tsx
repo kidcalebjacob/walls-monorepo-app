@@ -6,7 +6,7 @@ export const dynamic = "force-dynamic";
 
 export default function PitchesPage() {
   return (
-    <div className="h-full min-h-0 overflow-hidden overscroll-none bg-walls-white">
+    <div className="h-full min-h-0 overflow-hidden overscroll-none bg-kenoo-white">
       <Suspense fallback={null}>
         <AgentPitches analyticsData={null} />
       </Suspense>

@@ -647,11 +647,11 @@ export function ViewPopup({ isOpen, onClose, event, onEventDeleted, onEventUpdat
                   <div
                     className={`px-4 py-2 rounded-[15px] transition-all duration-200 ${
                       eventType === 'event' 
-                        ? 'text-gray-600 bg-walls-light/30 font-medium'
+                        ? 'text-gray-600 bg-kenoo-light/30 font-medium'
                         : eventType === 'outOfOffice'
-                          ? 'text-gray-600 bg-walls-light/30 font-medium'
+                          ? 'text-gray-600 bg-kenoo-light/30 font-medium'
                           : eventType === 'appointmentSchedule'
-                            ? 'text-gray-600 bg-walls-light/30 font-medium'
+                            ? 'text-gray-600 bg-kenoo-light/30 font-medium'
                             : 'text-gray-600'
                     }`}
                   >

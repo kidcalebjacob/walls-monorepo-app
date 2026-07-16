@@ -122,7 +122,7 @@ function NewProjectChromeButton({
       type="button"
       onClick={onClick}
       className={cn(
-        "group relative inline-flex h-11 shrink-0 overflow-hidden rounded-full bg-walls-white p-[1.5px]",
+        "group relative inline-flex h-11 shrink-0 overflow-hidden rounded-full bg-kenoo-white p-[1.5px]",
         "transition-[filter] duration-300 hover:brightness-[1.03]",
         "focus-visible:outline-none",
         className
@@ -131,7 +131,7 @@ function NewProjectChromeButton({
       <span aria-hidden className="pointer-events-none absolute inset-[-60%]">
         <span className="walls-chrome-orbit absolute inset-0" />
       </span>
-      <span className="relative inline-flex h-full items-center gap-2 rounded-full bg-walls-white px-5 text-sm font-medium text-neutral-700">
+      <span className="relative inline-flex h-full items-center gap-2 rounded-full bg-kenoo-white px-5 text-sm font-medium text-neutral-700">
         <Plus className="h-4 w-4" /> New Project
       </span>
     </button>
@@ -296,15 +296,15 @@ function StatusRings({
 
   const track = [{ name: "Track", value: 1 }];
   const outer = [
-    { name: "Done", value: Math.max(done, 0.01), color: "var(--walls-yellow)" },
+    { name: "Done", value: Math.max(done, 0.01), color: "var(--kenoo-yellow)" },
     { name: "Rest", value: Math.max(total - done, 0.01), color: "transparent" },
   ];
   const mid = [
-    { name: "Active", value: Math.max(active, 0.01), color: "var(--walls-orange)" },
+    { name: "Active", value: Math.max(active, 0.01), color: "var(--kenoo-orange)" },
     { name: "Rest", value: Math.max(total - active, 0.01), color: "transparent" },
   ];
   const inner = [
-    { name: "Backlog", value: Math.max(backlog, 0.01), color: "var(--walls-sky)" },
+    { name: "Backlog", value: Math.max(backlog, 0.01), color: "var(--kenoo-sky)" },
     { name: "Rest", value: Math.max(total - backlog, 0.01), color: "transparent" },
   ];
 
@@ -312,17 +312,17 @@ function StatusRings({
     <div className="flex min-h-[200px] flex-1 flex-col items-center justify-center gap-6 sm:flex-row sm:justify-between sm:gap-4">
       <div className="space-y-4 text-base">
         <div className="flex items-center gap-3">
-          <span className="h-3 w-3 rounded-full bg-walls-yellow" />
+          <span className="h-3 w-3 rounded-full bg-kenoo-yellow" />
           <span className="font-light text-neutral-500">Done</span>
           <span className="font-semibold tabular-nums text-neutral-900">{donePct}%</span>
         </div>
         <div className="flex items-center gap-3">
-          <span className="h-3 w-3 rounded-full bg-walls-orange" />
+          <span className="h-3 w-3 rounded-full bg-kenoo-orange" />
           <span className="font-light text-neutral-500">In Progress</span>
           <span className="font-semibold tabular-nums text-neutral-900">{activePct}%</span>
         </div>
         <div className="flex items-center gap-3">
-          <span className="h-3 w-3 rounded-full bg-walls-sky" />
+          <span className="h-3 w-3 rounded-full bg-kenoo-sky" />
           <span className="font-light text-neutral-500">Backlog</span>
           <span className="font-semibold tabular-nums text-neutral-900">{backlogPct}%</span>
         </div>
@@ -681,7 +681,7 @@ function AgentsProjectsContent({ analyticsData: _analyticsData }: AgentsProjects
     <>
       <div className="flex h-full overflow-hidden">
         <div className="flex min-h-0 w-full flex-1 flex-col">
-          <div className="flex min-h-0 flex-1 flex-col overflow-hidden bg-walls-white">
+          <div className="flex min-h-0 flex-1 flex-col overflow-hidden bg-kenoo-white">
             {/* Padding lives on the scroller so card shadows aren't clipped at the sidebar edge */}
             <div className="min-h-0 flex-1 overflow-y-auto overscroll-none px-8 pb-10 pt-4 md:pr-6">
               {showLoading ? (
@@ -751,7 +751,7 @@ function AgentsProjectsContent({ analyticsData: _analyticsData }: AgentsProjects
                         {allMembers.slice(0, 5).map((m) => (
                           <Avatar
                             key={m.id}
-                            className="h-9 w-9 border-2 border-walls-white shadow-sm"
+                            className="h-9 w-9 border-2 border-kenoo-white shadow-sm"
                             title={memberName(m)}
                           >
                             {m.avatar_url ? <AvatarImage src={m.avatar_url} alt="" /> : null}
@@ -761,7 +761,7 @@ function AgentsProjectsContent({ analyticsData: _analyticsData }: AgentsProjects
                           </Avatar>
                         ))}
                         {allMembers.length > 5 && (
-                          <div className="flex h-9 w-9 items-center justify-center rounded-full border-2 border-walls-white bg-[#1F1B2E] text-[10px] font-semibold text-white shadow-sm">
+                          <div className="flex h-9 w-9 items-center justify-center rounded-full border-2 border-kenoo-white bg-[#1F1B2E] text-[10px] font-semibold text-white shadow-sm">
                             +{allMembers.length - 5}
                           </div>
                         )}
@@ -769,7 +769,7 @@ function AgentsProjectsContent({ analyticsData: _analyticsData }: AgentsProjects
                       <button
                         type="button"
                         onClick={() => setTaskFormOpen(true)}
-                        className="inline-flex h-11 items-center gap-2 rounded-full border border-neutral-200 bg-walls-white px-4 text-sm font-medium text-neutral-700 transition-colors hover:bg-neutral-50"
+                        className="inline-flex h-11 items-center gap-2 rounded-full border border-neutral-200 bg-kenoo-white px-4 text-sm font-medium text-neutral-700 transition-colors hover:bg-neutral-50"
                       >
                         <Plus className="h-4 w-4" /> New Task
                       </button>
@@ -941,10 +941,10 @@ function AgentsProjectsContent({ analyticsData: _analyticsData }: AgentsProjects
                     >
                       <div className="mb-3 flex items-center gap-4 text-[11px] font-medium text-neutral-500">
                         <span className="inline-flex items-center gap-1.5">
-                          <span className="h-2 w-2 rounded-sm bg-walls-yellow" /> Done
+                          <span className="h-2 w-2 rounded-sm bg-kenoo-yellow" /> Done
                         </span>
                         <span className="inline-flex items-center gap-1.5">
-                          <span className="h-2 w-2 rounded-sm bg-walls-sky" /> Active
+                          <span className="h-2 w-2 rounded-sm bg-kenoo-sky" /> Active
                         </span>
                       </div>
                       <div className="h-[200px] w-full">
@@ -982,14 +982,14 @@ function AgentsProjectsContent({ analyticsData: _analyticsData }: AgentsProjects
                             <Bar
                               dataKey="done"
                               name="Done"
-                              fill="var(--walls-yellow)"
+                              fill="var(--kenoo-yellow)"
                               radius={[8, 8, 8, 8]}
                               maxBarSize={18}
                             />
                             <Bar
                               dataKey="open"
                               name="Active"
-                              fill="var(--walls-sky)"
+                              fill="var(--kenoo-sky)"
                               radius={[8, 8, 8, 8]}
                               maxBarSize={18}
                             />

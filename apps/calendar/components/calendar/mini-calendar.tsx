@@ -24,7 +24,7 @@ function MiniCalendar({
       <div className="relative flex items-center justify-center h-full w-full">
         <span className="font-light">{day.getDate()}</span>
         {hasDeal && (
-          <span className="absolute bottom-0.5 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-walls-red shadow-[0_0_4px_rgba(255,0,0,0.4)]" />
+          <span className="absolute bottom-0.5 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-kenoo-red shadow-[0_0_4px_rgba(255,0,0,0.4)]" />
         )}
       </div>
     );
@@ -53,8 +53,8 @@ function MiniCalendar({
         cell: cn(
           "h-8 w-8 text-center text-xs p-0 relative",
           "[&:has([aria-selected].day-range-end)]:rounded-r-full",
-          "[&:has([aria-selected].day-outside)]:bg-walls-yellow/10",
-          "[&:has([aria-selected])]:bg-walls-yellow/15",
+          "[&:has([aria-selected].day-outside)]:bg-kenoo-yellow/10",
+          "[&:has([aria-selected])]:bg-kenoo-yellow/15",
           "first:[&:has([aria-selected])]:rounded-l-full",
           "last:[&:has([aria-selected])]:rounded-r-full",
           "focus-within:relative focus-within:z-20"
@@ -64,18 +64,18 @@ function MiniCalendar({
           "transition-all duration-200 ease-in-out",
           "hover:bg-neutral-100 hover:shadow-[inset_0_1px_3px_rgba(0,0,0,0.08)] hover:scale-95",
           "aria-selected:opacity-100 flex items-center justify-center cursor-pointer",
-          "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-walls-yellow/40 focus-visible:ring-offset-1"
+          "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-kenoo-yellow/40 focus-visible:ring-offset-1"
         ),
         day_range_end: "day-range-end",
         day_selected:
-          "bg-walls-yellow text-neutral-900 font-light shadow-sm hover:bg-walls-yellow hover:text-neutral-900 hover:scale-95 focus:bg-walls-yellow focus:text-neutral-900 rounded-full",
+          "bg-kenoo-yellow text-neutral-900 font-light shadow-sm hover:bg-kenoo-yellow hover:text-neutral-900 hover:scale-95 focus:bg-kenoo-yellow focus:text-neutral-900 rounded-full",
         day_today:
-          "font-light text-neutral-800 rounded-full border border-walls-sky [&:not([aria-selected])]:bg-transparent",
+          "font-light text-neutral-800 rounded-full border border-kenoo-sky [&:not([aria-selected])]:bg-transparent",
         day_outside:
-          "day-outside text-neutral-300 opacity-50 aria-selected:bg-walls-yellow/10 aria-selected:text-neutral-400 aria-selected:opacity-40",
+          "day-outside text-neutral-300 opacity-50 aria-selected:bg-kenoo-yellow/10 aria-selected:text-neutral-400 aria-selected:opacity-40",
         day_disabled: "text-neutral-300 opacity-40 cursor-not-allowed hover:bg-transparent hover:scale-100 hover:shadow-none",
         day_range_middle:
-          "aria-selected:bg-walls-yellow/15 aria-selected:text-neutral-700 rounded-none",
+          "aria-selected:bg-kenoo-yellow/15 aria-selected:text-neutral-700 rounded-none",
         day_hidden: "invisible",
         ...classNames,
       }}

@@ -309,9 +309,9 @@ export function AdminTeams() {
               className={cn(
                 "w-full pl-6 pr-3 py-2 text-sm bg-transparent border-0 border-b focus:outline-none focus-visible:outline-none transition-colors placeholder:text-neutral-300 font-light rounded-none",
                 search.trim()
-                  ? "border-b-[var(--walls-sky)]"
+                  ? "border-b-[var(--kenoo-sky)]"
                   : "border-neutral-200",
-                "focus:border-b-[var(--walls-sky)]",
+                "focus:border-b-[var(--kenoo-sky)]",
               )}
               aria-label="Search teams"
             />
@@ -348,7 +348,7 @@ export function AdminTeams() {
                     "sm:grid-cols-4 sm:items-center sm:gap-x-6 sm:gap-y-0 lg:gap-x-10",
                     "transition-all duration-300 ease-in-out",
                     "hover:bg-gray-50 hover:border hover:border-neutral-200 hover:shadow-[inset_0_4px_8px_rgba(0,0,0,0.15)]",
-                    "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--walls-sky)]/40 focus-visible:ring-offset-2",
+                    "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--kenoo-sky)]/40 focus-visible:ring-offset-2",
                   )}
                 >
                   {/* Team name — affinity-style: value on top, label below */}

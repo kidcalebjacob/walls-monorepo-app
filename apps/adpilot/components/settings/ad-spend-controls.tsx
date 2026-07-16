@@ -228,7 +228,7 @@ export function AdSpendControls() {
           title="Ad spend automation"
           description="Workspace-wide presets stored in your automation profile library. Enable AdPilot per campaign or ad set to apply them."
         />
-        <div className="flex items-center justify-center gap-2 rounded-3xl border border-neutral-200/70 bg-walls-white py-16 text-sm font-light text-neutral-500 shadow-sm">
+        <div className="flex items-center justify-center gap-2 rounded-3xl border border-neutral-200/70 bg-kenoo-white py-16 text-sm font-light text-neutral-500 shadow-sm">
           <Loader2 className="h-4 w-4 animate-spin" />
           Loading automation presets…
         </div>
@@ -243,7 +243,7 @@ export function AdSpendControls() {
           title="Ad spend automation"
           description="Workspace-wide presets stored in your automation profile library. Enable AdPilot per campaign or ad set to apply them."
         />
-        <div className="rounded-3xl border border-neutral-200/70 bg-walls-white py-16 text-center text-sm font-light text-neutral-500 shadow-sm">
+        <div className="rounded-3xl border border-neutral-200/70 bg-kenoo-white py-16 text-center text-sm font-light text-neutral-500 shadow-sm">
           No automation presets found.
         </div>
       </section>
@@ -322,7 +322,7 @@ export function AdSpendControls() {
           </Button>
         </div>
 
-        <div className="rounded-[24px] border border-neutral-200/70 bg-walls-white p-5 shadow-sm">
+        <div className="rounded-[24px] border border-neutral-200/70 bg-kenoo-white p-5 shadow-sm">
           <div className="grid gap-4 sm:grid-cols-2">
             <label className="block space-y-2">
               <span className="text-sm font-medium text-foreground">Preset name</span>
@@ -418,7 +418,7 @@ export function AdSpendControls() {
         </div>
 
         <div className="grid gap-3 sm:grid-cols-3">
-          <div className="rounded-[24px] border border-neutral-200/70 bg-walls-white p-4 shadow-sm">
+          <div className="rounded-[24px] border border-neutral-200/70 bg-kenoo-white p-4 shadow-sm">
             <div className="flex items-center gap-2 text-xs font-light text-neutral-500">
               <TrendingUp className="h-3.5 w-3.5" />
               Projected weekly uplift
@@ -430,7 +430,7 @@ export function AdSpendControls() {
               Estimated at current aggressiveness
             </p>
           </div>
-          <div className="rounded-[24px] border border-neutral-200/70 bg-walls-white p-4 shadow-sm">
+          <div className="rounded-[24px] border border-neutral-200/70 bg-kenoo-white p-4 shadow-sm">
             <div className="flex items-center gap-2 text-xs font-light text-neutral-500">
               <Gauge className="h-3.5 w-3.5" />
               Risk score
@@ -443,7 +443,7 @@ export function AdSpendControls() {
               {riskScore < 40 ? "Low volatility" : riskScore < 70 ? "Moderate" : "High volatility"}
             </p>
           </div>
-          <div className="rounded-[24px] border border-neutral-200/70 bg-walls-white p-4 shadow-sm">
+          <div className="rounded-[24px] border border-neutral-200/70 bg-kenoo-white p-4 shadow-sm">
             <div className="flex items-center gap-2 text-xs font-light text-neutral-500">
               <Zap className="h-3.5 w-3.5" />
               Autonomy level
@@ -457,7 +457,7 @@ export function AdSpendControls() {
           </div>
         </div>
 
-        <div className="rounded-[24px] border border-neutral-200/70 bg-walls-white p-5 shadow-sm">
+        <div className="rounded-[24px] border border-neutral-200/70 bg-kenoo-white p-5 shadow-sm">
           <div className="space-y-6">
             <SliderField
               label="Spend aggressiveness"
@@ -513,7 +513,7 @@ export function AdSpendControls() {
           </div>
         </div>
 
-        <div className="rounded-[24px] border border-neutral-200/70 bg-walls-white p-5 shadow-sm">
+        <div className="rounded-[24px] border border-neutral-200/70 bg-kenoo-white p-5 shadow-sm">
           <p className="text-sm font-medium text-foreground">Guardrails</p>
           <p className="mt-1 text-xs font-light text-neutral-500">
             Hard stops that pause or slow scaling before efficiency drops.
@@ -619,7 +619,7 @@ export function AdSpendControls() {
           </div>
         </div>
 
-        <div className="rounded-[24px] border border-neutral-200/70 bg-walls-white p-5 shadow-sm">
+        <div className="rounded-[24px] border border-neutral-200/70 bg-kenoo-white p-5 shadow-sm">
           <p className="text-sm font-medium text-foreground">Safety</p>
           <div className="mt-5 space-y-5">
             <LabeledSwitch

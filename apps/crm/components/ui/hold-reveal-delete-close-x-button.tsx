@@ -92,7 +92,7 @@ export function HoldRevealDeleteCloseXButton({
         >
           <motion.div
             aria-hidden
-            className="pointer-events-none absolute inset-0 z-0 rounded-full bg-walls-yellow"
+            className="pointer-events-none absolute inset-0 z-0 rounded-full bg-kenoo-yellow"
             style={{
               scaleY: holdFill,
               transformOrigin: "50% 100%",

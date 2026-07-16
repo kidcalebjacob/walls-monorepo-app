@@ -201,7 +201,7 @@ export default function EmploymentHistory({ personId }: EmploymentHistoryProps) 
                       aria-label="Visit company website"
                       className="text-black hover:opacity-80 transition-opacity relative group flex-shrink-0"
                     >
-                      <div className="absolute inset-0 -m-1 rounded-[20px] bg-walls-yellow scale-0 transition-transform duration-300 ease-in-out group-hover:scale-100" />
+                      <div className="absolute inset-0 -m-1 rounded-[20px] bg-kenoo-yellow scale-0 transition-transform duration-300 ease-in-out group-hover:scale-100" />
                       <FaGlobe className="relative z-10 w-4 h-4" />
                     </a>
                   )}
@@ -216,7 +216,7 @@ export default function EmploymentHistory({ personId }: EmploymentHistoryProps) 
                     aria-label="Change company"
                     className="text-black hover:opacity-80 transition-opacity relative group flex-shrink-0"
                   >
-                    <div className="absolute inset-0 -m-1 rounded-[20px] bg-walls-yellow scale-0 transition-transform duration-300 ease-in-out group-hover:scale-100" />
+                    <div className="absolute inset-0 -m-1 rounded-[20px] bg-kenoo-yellow scale-0 transition-transform duration-300 ease-in-out group-hover:scale-100" />
                     <Pencil className="relative z-10 w-4 h-4" />
                   </button>
                 </div>
@@ -227,7 +227,7 @@ export default function EmploymentHistory({ personId }: EmploymentHistoryProps) 
               type="button"
               onClick={() => setShowCompanySearch((prev) => !prev)}
               disabled={isLinkingCompany}
-              className="flex items-center gap-2 px-3 py-1.5 rounded-md bg-neutral-200 border border-neutral-300/50 hover:bg-walls-yellow hover:border-transparent transition-colors cursor-pointer text-xs font-light text-foreground disabled:opacity-50 disabled:cursor-not-allowed"
+              className="flex items-center gap-2 px-3 py-1.5 rounded-md bg-neutral-200 border border-neutral-300/50 hover:bg-kenoo-yellow hover:border-transparent transition-colors cursor-pointer text-xs font-light text-foreground disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <Plus className="w-3.5 h-3.5 flex-shrink-0" />
               <span>{showCompanySearch ? "Hide company search" : "Search company"}</span>
@@ -285,7 +285,7 @@ export default function EmploymentHistory({ personId }: EmploymentHistoryProps) 
               <div className="grid grid-cols-2 gap-6 pt-6">
                 {employmentHistory.map((item, index) => (
                   <div key={item.id || index} className="flex items-center gap-4">
-                    <h3 className="text-lg font-semibold text-black bg-walls-yellow/70 px-2 py-1 rounded">
+                    <h3 className="text-lg font-semibold text-black bg-kenoo-yellow/70 px-2 py-1 rounded">
                       {item.title || "—"}
                     </h3>
                     <div className="flex-1 border-t border-black h-[1px]" />

@@ -483,7 +483,7 @@ export default function UserProfileButton({
           <DropdownMenuContent
             align="end"
             sideOffset={12}
-            className="z-[110] w-[min(100vw-2rem,384px)] overflow-hidden rounded-3xl border-0 bg-walls-white p-0 shadow-[0_16px_48px_-12px_rgba(0,0,0,0.35)] outline-none ring-0"
+            className="z-[110] w-[min(100vw-2rem,384px)] overflow-hidden rounded-3xl border-0 bg-kenoo-white p-0 shadow-[0_16px_48px_-12px_rgba(0,0,0,0.35)] outline-none ring-0"
           >
             <motion.div
               initial={{ opacity: 0, y: -6 }}
@@ -491,14 +491,14 @@ export default function UserProfileButton({
               transition={{ duration: 0.2, ease: "easeOut" }}
             >
               {/* Branded header band */}
-              <div className="relative overflow-hidden bg-neutral-950 px-4 pb-5 pt-4 text-walls-white">
+              <div className="relative overflow-hidden bg-neutral-950 px-4 pb-5 pt-4 text-kenoo-white">
                 <div
                   aria-hidden
-                  className="pointer-events-none absolute -right-10 -top-16 h-40 w-40 rounded-full bg-walls-blue/40 blur-3xl"
+                  className="pointer-events-none absolute -right-10 -top-16 h-40 w-40 rounded-full bg-kenoo-blue/40 blur-3xl"
                 />
                 <div
                   aria-hidden
-                  className="pointer-events-none absolute -bottom-16 -left-8 h-36 w-36 rounded-full bg-walls-yellow/20 blur-3xl"
+                  className="pointer-events-none absolute -bottom-16 -left-8 h-36 w-36 rounded-full bg-kenoo-yellow/20 blur-3xl"
                 />
                 <div className="relative flex items-center gap-3">
                   <div className="h-12 w-12 shrink-0 overflow-hidden rounded-full bg-white/10 ring-2 ring-white/30">
@@ -565,7 +565,7 @@ export default function UserProfileButton({
                     <button
                       type="button"
                       onClick={saveAppOrder}
-                      className="text-[11px] font-semibold text-walls-blue hover:underline"
+                      className="text-[11px] font-semibold text-kenoo-blue hover:underline"
                     >
                       Done
                     </button>

@@ -42,7 +42,7 @@ export function PitchesSorter({
               group-hover:shadow-[inset_0_4px_8px_rgba(0,0,0,0.15)]
               ${hasActiveFilters() ? 'bg-neutral-700 shadow-[inset_0_4px_8px_rgba(0,0,0,0.15)]' : ''}
             `}>
-              <Filter className={`h-[18px] w-[18px] stroke-[1.5] ${hasActiveFilters() ? 'text-walls-yellow' : ''}`} />
+              <Filter className={`h-[18px] w-[18px] stroke-[1.5] ${hasActiveFilters() ? 'text-kenoo-yellow' : ''}`} />
             </div>
           </div>
         </Button>

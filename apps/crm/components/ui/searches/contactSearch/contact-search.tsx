@@ -687,8 +687,8 @@ export function ContactSearch({
                 }}
                 placeholder="Search contacts…"
                 className={cn(
-                  "w-full rounded-none border-0 border-b bg-transparent py-2 pl-6 pr-16 text-sm font-light transition-colors placeholder:text-neutral-300 focus:border-b-[var(--walls-sky)] focus:outline-none focus-visible:outline-none",
-                  searchTerm.trim() ? "border-b-[var(--walls-sky)]" : "border-neutral-200"
+                  "w-full rounded-none border-0 border-b bg-transparent py-2 pl-6 pr-16 text-sm font-light transition-colors placeholder:text-neutral-300 focus:border-b-[var(--kenoo-sky)] focus:outline-none focus-visible:outline-none",
+                  searchTerm.trim() ? "border-b-[var(--kenoo-sky)]" : "border-neutral-200"
                 )}
                 onClick={(e) => e.stopPropagation()}
               />
@@ -775,7 +775,7 @@ export function ContactSearch({
                     {isSelected && (!selectedIds || onRemoveContact) ? (
                       <button
                         type="button"
-                        className="absolute right-5 top-1/2 z-10 -translate-y-1/2 text-[10px] font-light lowercase leading-none tracking-wide text-[var(--walls-sky)] hover:underline focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--walls-sky)] focus-visible:ring-offset-1"
+                        className="absolute right-5 top-1/2 z-10 -translate-y-1/2 text-[10px] font-light lowercase leading-none tracking-wide text-[var(--kenoo-sky)] hover:underline focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--kenoo-sky)] focus-visible:ring-offset-1"
                         onClick={(e) => handleRemoveClick(e, person)}
                       >
                         remove

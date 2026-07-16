@@ -188,10 +188,10 @@ export function MarkdownRenderer({ content, className = "" }: MarkdownRendererPr
               href={linkUrl} 
               target="_blank" 
               rel="noopener noreferrer"
-              className="text-walls-sky hover:opacity-80 inline-flex items-center gap-1"
+              className="text-kenoo-sky hover:opacity-80 inline-flex items-center gap-1"
             >
               {linkText}
-              <ExternalLink className="h-3.5 w-3.5 shrink-0 text-walls-sky" />
+              <ExternalLink className="h-3.5 w-3.5 shrink-0 text-kenoo-sky" />
             </a>
           );
           

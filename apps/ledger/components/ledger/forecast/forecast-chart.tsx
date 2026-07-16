@@ -67,16 +67,16 @@ export function ForecastChart({ forecastPoints }: ForecastChartProps) {
           >
             <defs>
               <linearGradient id="forecastFillIncome" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stopColor="var(--walls-lime)" stopOpacity={0.25} />
-                <stop offset="100%" stopColor="var(--walls-lime)" stopOpacity={0} />
+                <stop offset="0%" stopColor="var(--kenoo-lime)" stopOpacity={0.25} />
+                <stop offset="100%" stopColor="var(--kenoo-lime)" stopOpacity={0} />
               </linearGradient>
               <linearGradient id="forecastFillExpenses" x1="0" y1="0" x2="0" y2="1">
                 <stop offset="0%" stopColor="#ff1744" stopOpacity={0.25} />
                 <stop offset="100%" stopColor="#ff1744" stopOpacity={0} />
               </linearGradient>
               <linearGradient id="forecastFillNet" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stopColor="var(--walls-lime)" stopOpacity={0.2} />
-                <stop offset="100%" stopColor="var(--walls-lime)" stopOpacity={0} />
+                <stop offset="0%" stopColor="var(--kenoo-lime)" stopOpacity={0.2} />
+                <stop offset="100%" stopColor="var(--kenoo-lime)" stopOpacity={0} />
               </linearGradient>
               <linearGradient id="forecastFillProjected" x1="0" y1="0" x2="0" y2="1">
                 <stop offset="0%" stopColor="rgb(148 163 184)" stopOpacity={0.15} />
@@ -154,7 +154,7 @@ export function ForecastChart({ forecastPoints }: ForecastChartProps) {
                 <Area
                   type="monotone"
                   dataKey="income"
-                  stroke="var(--walls-lime)"
+                  stroke="var(--kenoo-lime)"
                   strokeWidth={2.5}
                   fill="url(#forecastFillIncome)"
                   name="income"
@@ -174,7 +174,7 @@ export function ForecastChart({ forecastPoints }: ForecastChartProps) {
                 <Area
                   type="monotone"
                   dataKey="projectedIncome"
-                  stroke="var(--walls-lime)"
+                  stroke="var(--kenoo-lime)"
                   strokeWidth={1.5}
                   strokeDasharray="5 5"
                   fill="url(#forecastFillIncome)"
@@ -212,7 +212,7 @@ export function ForecastChart({ forecastPoints }: ForecastChartProps) {
                 <Area
                   type="monotone"
                   dataKey="actual"
-                  stroke="var(--walls-lime)"
+                  stroke="var(--kenoo-lime)"
                   strokeWidth={2.5}
                   fill="url(#forecastFillNet)"
                   name="actual"

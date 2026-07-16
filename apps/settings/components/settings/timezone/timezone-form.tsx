@@ -149,7 +149,7 @@ export function TimezoneForm() {
               <SaveAccount 
                 clickable={savable} 
                 handleSave={handleSave}
-                buttonClassName="bg-black text-walls-yellow font-black" 
+                buttonClassName="bg-black text-kenoo-yellow font-black" 
               />
             </div>
           </div>

@@ -573,7 +573,7 @@ export function CreateTasksPopup({
               onChange={(e) => setForm((f) => ({ ...f, title: e.target.value }))}
               placeholder="Add title"
               disabled={saving}
-              className="border-0 border-b-2 rounded-none bg-transparent focus:ring-0 focus-visible:ring-0 px-0 border-b-[var(--walls-sky)] focus:border-b-[var(--walls-sky)] placeholder:text-neutral-300"
+              className="border-0 border-b-2 rounded-none bg-transparent focus:ring-0 focus-visible:ring-0 px-0 border-b-[var(--kenoo-sky)] focus:border-b-[var(--kenoo-sky)] placeholder:text-neutral-300"
             />
 
             <SimpleMarkdownEditor

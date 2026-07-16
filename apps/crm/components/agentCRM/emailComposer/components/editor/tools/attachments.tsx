@@ -68,7 +68,7 @@ export function AttachmentsList({
       {attachments.map((file, index) => (
         <div
           key={index}
-          className="inline-flex items-center gap-2 rounded-xl bg-white/80 backdrop-blur-xl border border-walls-yellow shadow-2xl px-3 py-2 text-sm text-walls-sky min-w-0 max-w-full group"
+          className="inline-flex items-center gap-2 rounded-xl bg-white/80 backdrop-blur-xl border border-kenoo-yellow shadow-2xl px-3 py-2 text-sm text-kenoo-sky min-w-0 max-w-full group"
         >
           <span className="min-w-0 truncate" title={file.name}>
             {file.name}

@@ -470,7 +470,7 @@ export default function EditAgentCompanies({ analyticsData, companyId, initialDa
                     alt={formData.organization_name}
                     className="object-cover"
                   />
-                  <AvatarFallback className="bg-walls-light/5">
+                  <AvatarFallback className="bg-kenoo-light/5">
                     <Plus className="h-6 w-6 text-gray-400" />
                   </AvatarFallback>
                 </Avatar>
@@ -571,7 +571,7 @@ export default function EditAgentCompanies({ analyticsData, companyId, initialDa
                     rel="noopener noreferrer"
                     className="text-2xl text-black hover:opacity-80 transition-opacity relative group"
                   >
-                    <div className="absolute inset-0 -m-2 rounded-[25px] bg-walls-yellow scale-0 transition-transform duration-300 ease-in-out group-hover:scale-100" />
+                    <div className="absolute inset-0 -m-2 rounded-[25px] bg-kenoo-yellow scale-0 transition-transform duration-300 ease-in-out group-hover:scale-100" />
                     <FaGlobe className="relative z-10" />
                   </a>
                 )}
@@ -582,7 +582,7 @@ export default function EditAgentCompanies({ analyticsData, companyId, initialDa
                     rel="noopener noreferrer"
                     className="text-2xl text-black hover:opacity-80 transition-opacity relative group"
                   >
-                    <div className="absolute inset-0 -m-2 rounded-[25px] bg-walls-yellow scale-0 transition-transform duration-300 ease-in-out group-hover:scale-100" />
+                    <div className="absolute inset-0 -m-2 rounded-[25px] bg-kenoo-yellow scale-0 transition-transform duration-300 ease-in-out group-hover:scale-100" />
                     <FaLinkedin className="relative z-10" />
                   </a>
                 )}
@@ -593,7 +593,7 @@ export default function EditAgentCompanies({ analyticsData, companyId, initialDa
                     rel="noopener noreferrer"
                     className="text-2xl text-black hover:opacity-80 transition-opacity relative group"
                   >
-                    <div className="absolute inset-0 -m-2 rounded-[25px] bg-walls-yellow scale-0 transition-transform duration-300 ease-in-out group-hover:scale-100" />
+                    <div className="absolute inset-0 -m-2 rounded-[25px] bg-kenoo-yellow scale-0 transition-transform duration-300 ease-in-out group-hover:scale-100" />
                     <FaTwitter className="relative z-10" />
                   </a>
                 )}
@@ -604,7 +604,7 @@ export default function EditAgentCompanies({ analyticsData, companyId, initialDa
                     rel="noopener noreferrer"
                     className="text-2xl text-black hover:opacity-80 transition-opacity relative group"
                   >
-                    <div className="absolute inset-0 -m-2 rounded-[25px] bg-walls-yellow scale-0 transition-transform duration-300 ease-in-out group-hover:scale-100" />
+                    <div className="absolute inset-0 -m-2 rounded-[25px] bg-kenoo-yellow scale-0 transition-transform duration-300 ease-in-out group-hover:scale-100" />
                     <FaFacebook className="relative z-10" />
                   </a>
                 )}

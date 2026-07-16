@@ -3,13 +3,18 @@
 import * as React from "react";
 import { useLoadingCallback } from "react-loading-hook";
 import { Loader2, ChevronLeft } from "lucide-react";
-import Image from "next/image";
 import { useRouter } from "next/navigation";
 
 import { getSupabaseClient } from "@walls/auth";
 import { Button } from "@walls/ui/button";
 import { Input } from "@walls/ui/input";
-import { Separator } from "@walls/ui/separator";
+
+import {
+  authGhostLinkClassName,
+  authInputClassName,
+  authPrimaryButtonClassName,
+} from "@/components/kenoo/auth-field";
+import { AuthHeading, AuthShell } from "@/components/kenoo/auth-shell";
 
 type InviteSessionType = "invite" | "recovery" | "signup" | "magiclink";
 
@@ -131,7 +136,7 @@ export default function CreatePasswordPage() {
         return;
       }
 
-      setSuccess("Password created! Redirecting to your apps...");
+      setSuccess("Password created. Redirecting to your apps...");
 
       setTimeout(() => {
         router.push("/login");
@@ -146,130 +151,100 @@ export default function CreatePasswordPage() {
   });
 
   return (
-    <div className="flex h-screen bg-walls-white">
-      <div className="absolute top-4 right-4 pr-6">
+    <AuthShell
+      topRight={
         <Button
           onClick={() => router.push("/login")}
           variant="ghost"
-          className="group flex items-center gap-2 text-black hover:bg-transparent hover:text-black transition-colors"
+          className={authGhostLinkClassName}
         >
-          <ChevronLeft className="w-4 h-4 text-black group-hover:-translate-x-1 transition-transform duration-200" />
-          <span className="text-black font-light">Back to login</span>
+          <ChevronLeft className="h-4 w-4 transition-transform duration-200 group-hover:-translate-x-1" />
+          <span>Back to login</span>
         </Button>
-      </div>
+      }
+    >
+      <AuthHeading
+        title="Create password"
+        description="Set a password to access the apps available to your organization."
+      />
 
-      <div className="hidden md:flex w-1/2 relative bg-walls-yellow rounded-r-[150px] items-center justify-center shadow-inner border border-neutral-200/50">
-        <Image
-          src="https://assets.wallsentertainment.com/logo-variations/black-gradient-indented.png"
-          alt="WALLS Logo"
-          width={400}
-          height={400}
-          className="object-contain"
-        />
-      </div>
-
-      <div className="md:hidden flex justify-center">
-        <Separator orientation="horizontal" className="w-full bg-border/50" />
-      </div>
-
-      <div className="w-full md:w-1/2 flex items-center justify-center p-8">
-        <div className="text-center max-w-md w-full space-y-8">
-          <div className="space-y-2 flex items-center justify-center">
-            <Image
-              src="https://assets.wallsentertainment.com/logo-variations/black-gradient-indented.png"
-              alt="WALLS Logo"
-              width={65}
-              height={65}
-              className="mr-4 mt-2 md:hidden"
-            />
-            <h1 className="text-6xl font-bold tracking-tight">
-              Create Password.
-            </h1>
+      <div className="w-full space-y-4">
+        {error && (
+          <div className="rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-700">
+            {error}
           </div>
+        )}
 
-          <p className="text-sm font-light text-neutral-500">
-            Set a password to access the apps your organization has available.
-          </p>
+        {success && (
+          <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-3 text-sm text-emerald-800">
+            {success}
+          </div>
+        )}
 
-          <div className="space-y-4 w-full">
-            {error && (
-              <div className="p-3 rounded-md bg-destructive/10 border border-destructive/20 text-destructive text-sm">
-                {error}
-              </div>
-            )}
-
-            {success && (
-              <div className="p-3 rounded-md bg-green-500/10 border border-green-500/20 text-green-700 text-sm">
-                {success}
-              </div>
-            )}
-
-            {isBootstrapping ? (
-              <div className="flex justify-center py-8">
-                <Loader2 className="h-8 w-8 animate-spin text-neutral-400" />
-              </div>
-            ) : isReady ? (
-              <>
-                <div className="space-y-4">
-                  <Input
-                    type="password"
-                    placeholder="New Password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    disabled={isCreating}
-                    className="h-12 bg-walls-white backdrop-blur-md shadow-inner border border-neutral-200/50 transition-all duration-300"
-                    onKeyDown={(e) => {
-                      if (
-                        e.key === "Enter" &&
-                        !isCreating &&
-                        password.trim() &&
-                        confirmPassword.trim()
-                      ) {
-                        handleCreatePassword();
-                      }
-                    }}
-                  />
-                  <Input
-                    type="password"
-                    placeholder="Confirm Password"
-                    value={confirmPassword}
-                    onChange={(e) => setConfirmPassword(e.target.value)}
-                    disabled={isCreating}
-                    className="h-12 bg-walls-white backdrop-blur-md shadow-inner border border-neutral-200/50 transition-all duration-300"
-                    onKeyDown={(e) => {
-                      if (
-                        e.key === "Enter" &&
-                        !isCreating &&
-                        password.trim() &&
-                        confirmPassword.trim()
-                      ) {
-                        handleCreatePassword();
-                      }
-                    }}
-                  />
-                </div>
-
-                <Button
-                  onClick={handleCreatePassword}
-                  className="w-full rounded-full font-bold text-xl h-16 bg-walls-yellow/80 hover:bg-walls-yellow/90 text-black transition-all duration-300 shadow-inner border border-neutral-200/50 relative z-10"
-                  disabled={
-                    isCreating || !password.trim() || !confirmPassword.trim()
+        {isBootstrapping ? (
+          <div className="flex justify-center py-8">
+            <Loader2 className="h-8 w-8 animate-spin text-kenoo-muted" />
+          </div>
+        ) : isReady ? (
+          <>
+            <div className="space-y-3">
+              <Input
+                type="password"
+                placeholder="New password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                disabled={isCreating}
+                className={authInputClassName}
+                onKeyDown={(e) => {
+                  if (
+                    e.key === "Enter" &&
+                    !isCreating &&
+                    password.trim() &&
+                    confirmPassword.trim()
+                  ) {
+                    handleCreatePassword();
                   }
-                >
-                  {isCreating ? (
-                    <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Saving...
-                    </>
-                  ) : (
-                    "Create Password"
-                  )}
-                </Button>
-              </>
-            ) : null}
-          </div>
-        </div>
+                }}
+              />
+              <Input
+                type="password"
+                placeholder="Confirm password"
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                disabled={isCreating}
+                className={authInputClassName}
+                onKeyDown={(e) => {
+                  if (
+                    e.key === "Enter" &&
+                    !isCreating &&
+                    password.trim() &&
+                    confirmPassword.trim()
+                  ) {
+                    handleCreatePassword();
+                  }
+                }}
+              />
+            </div>
+
+            <Button
+              onClick={handleCreatePassword}
+              className={authPrimaryButtonClassName}
+              disabled={
+                isCreating || !password.trim() || !confirmPassword.trim()
+              }
+            >
+              {isCreating ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Saving...
+                </>
+              ) : (
+                "Create password"
+              )}
+            </Button>
+          </>
+        ) : null}
       </div>
-    </div>
+    </AuthShell>
   );
 }

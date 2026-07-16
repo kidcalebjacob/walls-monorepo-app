@@ -155,7 +155,7 @@ export function RoasFloorField({
               }
               className={cn(
                 "rounded-full border-neutral-200 font-light",
-                variant === "settings" ? "bg-neutral-50" : "bg-walls-white",
+                variant === "settings" ? "bg-neutral-50" : "bg-kenoo-white",
               )}
             />
           </motion.div>
@@ -208,7 +208,7 @@ export function RoasFloorField({
                     }
                     className={cn(
                       "h-8 w-20 rounded-full border-neutral-200 px-3 text-right text-sm font-medium tabular-nums",
-                      variant === "settings" ? "bg-neutral-50" : "bg-walls-white",
+                      variant === "settings" ? "bg-neutral-50" : "bg-kenoo-white",
                     )}
                   />
                   <Percent className="h-3.5 w-3.5 text-neutral-400" aria-hidden />

@@ -3,42 +3,68 @@
 import * as React from "react";
 import Link from "next/link";
 import { motion } from "framer-motion";
-import {
-  Apple,
-  Flame,
-  Loader2,
-  Plus,
-  Scale,
-  UtensilsCrossed,
-} from "lucide-react";
+import { Loader2 } from "lucide-react";
 
-import { Button } from "@walls/ui/button";
 import { cn } from "@walls/utils";
 
-import type { DashboardAnalytics } from "@/lib/analytics-server";
+import type { DashboardAnalytics, DashboardStat } from "@/lib/analytics-server";
 import { ZERO_DASHBOARD_STATS } from "@/lib/dashboard-defaults";
-import { formatCalories, mealTypeLabel } from "@/lib/format-health";
+import { formatCalories } from "@/lib/format-health";
 import type { TimeRangeValue } from "@/lib/time-range";
 import { TIME_RANGE_OPTIONS } from "@/lib/time-range";
 
 import { CalorieTrendChart } from "./calorie-trend-chart";
-import { HeroStat, MetricBarItem, SectionLabel } from "./dashboard-metrics";
+import { DayPulse } from "./day-pulse";
+import {
+  ArcScaleGraphic,
+  DiamondGraphic,
+  FunnelGraphic,
+  GlowMetricCard,
+  RingsGraphic,
+  WaveGraphic,
+} from "./glow-metric-card";
 
-const HERO_ACCENTS = [
-  "var(--walls-sky)",
-  "var(--walls-blue)",
-  "#10b981",
-  "#7a04eb",
-  "var(--walls-yellow)",
-  "#f59e0b",
-] as const;
+function statByLabel(stats: DashboardStat[], label: string) {
+  return stats.find((stat) => stat.label === label);
+}
 
-const HERO_ICONS = [UtensilsCrossed, Scale, Flame, Apple, Apple, Apple] as const;
+function goalLabel(goalType: string | null | undefined) {
+  if (!goalType) return "Not set";
+  return goalType
+    .split("_")
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+    .join(" ");
+}
+
+function macroStatus(
+  current: number,
+  target: number | null,
+): { label: string; tone: "on" | "low" | "high" } {
+  if (target == null || target <= 0) return { label: "Tracking", tone: "on" };
+  const ratio = current / target;
+  if (ratio < 0.85) return { label: "Below target", tone: "low" };
+  if (ratio > 1.1) return { label: "Above target", tone: "high" };
+  return { label: "On track", tone: "on" };
+}
 
 export function DashboardPage() {
-  const [analytics, setAnalytics] = React.useState<DashboardAnalytics | null>(null);
+  const [analytics, setAnalytics] = React.useState<DashboardAnalytics | null>(
+    null,
+  );
   const [loading, setLoading] = React.useState(true);
   const [timeRange, setTimeRange] = React.useState<TimeRangeValue>("7d");
+  const rightPanelRef = React.useRef<HTMLElement>(null);
+
+  const forwardWheelToRight = React.useCallback(
+    (event: React.WheelEvent<HTMLElement>) => {
+      // Only remap on the split desktop layout.
+      if (typeof window !== "undefined" && window.innerWidth < 1024) return;
+      const panel = rightPanelRef.current;
+      if (!panel) return;
+      panel.scrollTop += event.deltaY;
+    },
+    [],
+  );
 
   const loadDashboard = React.useCallback(async () => {
     const response = await fetch(`/api/analytics?range=${timeRange}`);
@@ -62,17 +88,40 @@ export function DashboardPage() {
   const caloriesByDay = analytics?.caloriesByDay ?? [];
   const todayMeals = analytics?.todayMeals ?? [];
   const macros = analytics?.macros ?? [];
+  const insights = analytics?.insights ?? [];
   const periodLabel = analytics?.periodLabel ?? "Last 7 days";
   const hasProfile = analytics?.hasProfile ?? false;
+  const profile = analytics?.profile;
 
-  const maxMacro = Math.max(
-    ...macros.map((macro) => Math.max(macro.current, macro.target ?? 0)),
-    1,
+  const remaining = statByLabel(stats, "Remaining");
+  const burned = statByLabel(stats, "Burned");
+  const protein = macros.find((macro) => macro.label === "Protein");
+  const carbs = macros.find((macro) => macro.label === "Carbs");
+  const fat = macros.find((macro) => macro.label === "Fat");
+
+  const proteinStatus = macroStatus(
+    protein?.current ?? 0,
+    protein?.target ?? null,
   );
+  const remainingPositive = remaining?.positive ?? true;
+
+  const todayConsumedKcal = todayMeals.reduce(
+    (sum, meal) => sum + meal.calories,
+    0,
+  );
+  const calorieProgress =
+    analytics?.calorieTarget && analytics.calorieTarget > 0
+      ? Math.min(
+          100,
+          Math.round((todayConsumedKcal / analytics.calorieTarget) * 100),
+        )
+      : todayMeals.length > 0
+        ? 35
+        : 0;
 
   if (loading) {
     return (
-      <div className="flex min-h-full items-center justify-center bg-walls-white px-6 py-16">
+      <div className="flex h-full items-center justify-center bg-kenoo-white px-6 py-16">
         <div className="flex items-center gap-2 text-sm font-light text-neutral-500">
           <Loader2 className="h-4 w-4 animate-spin" />
           Loading…
@@ -82,163 +131,220 @@ export function DashboardPage() {
   }
 
   return (
-    <div className="min-h-full bg-walls-white">
-      <div className="space-y-16 px-6 pt-6 pb-12 md:px-10 md:pt-8 md:pb-10">
-        {!hasProfile ? (
-          <div className="rounded-xl border border-amber-200/80 bg-amber-50/60 px-4 py-3 text-sm font-light text-amber-900">
-            Set your calorie target and body metrics in{" "}
-            <Link href="/settings" className="underline underline-offset-2">
-              Settings
-            </Link>{" "}
-            to unlock personalized tracking.
-          </div>
-        ) : null}
-
-        <div className="flex flex-row flex-wrap items-stretch justify-center gap-6 pb-2 pt-2 md:gap-8">
-          {stats.map((stat, index) => (
-            <HeroStat
-              key={stat.label}
-              label={stat.label}
-              value={stat.value}
-              icon={HERO_ICONS[index] ?? UtensilsCrossed}
-              accentColor={HERO_ACCENTS[index] ?? HERO_ACCENTS[0]}
-              loading={loading}
-              delay={index * 0.06}
-            />
-          ))}
+    <div className="flex min-h-full flex-col bg-kenoo-white lg:h-full lg:overflow-hidden">
+      {!hasProfile ? (
+        <div className="shrink-0 border-b border-amber-200/80 bg-amber-50/70 px-6 py-3 text-sm font-light text-amber-900 md:px-8">
+          Set your calorie target and body metrics in{" "}
+          <Link href="/settings" className="underline underline-offset-2">
+            Settings
+          </Link>{" "}
+          to unlock personalized tracking.
         </div>
+      ) : null}
 
-        <motion.div
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.22 }}
+      <div className="grid min-h-0 flex-1 grid-cols-1 lg:grid-cols-2 lg:overflow-hidden">
+        {/* Left — stays put on desktop; wheel still scrolls the right panel */}
+        <section
+          className="relative flex flex-col bg-kenoo-white px-6 py-8 md:px-10 md:py-10 lg:h-full lg:min-h-0 lg:overflow-hidden"
+          onWheel={forwardWheelToRight}
         >
-          <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
-            <SectionLabel>Calories — {periodLabel}</SectionLabel>
-            <div className="flex gap-1">
-              {TIME_RANGE_OPTIONS.map((option) => (
-                <button
-                  key={option.value}
-                  type="button"
-                  onClick={() => setTimeRange(option.value)}
-                  className={cn(
-                    "rounded-full px-3 py-1 text-[11px] font-light uppercase tracking-wider transition-colors",
-                    timeRange === option.value
-                      ? "bg-neutral-900 text-white"
-                      : "text-neutral-500 hover:text-neutral-800",
-                  )}
-                >
-                  {option.label.replace("Last ", "")}
-                </button>
-              ))}
-            </div>
+          <DayPulse
+            className="min-h-0 flex-1"
+            title="Energy & Nutrition"
+            progress={calorieProgress}
+            centerValue={remaining?.value ?? "—"}
+            centerLabel="Remaining"
+            statusItems={[
+              {
+                label: "Goal",
+                value: goalLabel(profile?.goal_type),
+              },
+              {
+                label: "Daily burn",
+                value: profile?.tdee_calories
+                  ? formatCalories(profile.tdee_calories)
+                  : "—",
+              },
+            ]}
+          />
+        </section>
+
+        {/* Right — full-height scrollable metrics panel */}
+        <section
+          ref={rightPanelRef}
+          className="bg-kenoo-white px-5 py-8 md:px-8 md:py-10 lg:h-full lg:overflow-y-auto lg:overscroll-contain"
+        >
+          <div className="grid grid-cols-2 gap-3 md:gap-4">
+            <GlowMetricCard
+              className="col-span-2 min-h-[200px] md:col-span-1 md:min-h-[240px] md:row-span-2"
+              title="Energy balance"
+              value={remaining?.value ?? "—"}
+              detail={
+                remainingPositive
+                  ? `${remaining?.change ?? "Remaining"} · ${burned?.value ?? "0"} burned`
+                  : "Over daily target"
+              }
+              tone="sage"
+              graphic={<RingsGraphic />}
+              delay={0.08}
+            />
+
+            <GlowMetricCard
+              title="Protein"
+              value={protein?.value ?? "0g"}
+              detail={
+                protein?.target != null
+                  ? `${proteinStatus.label} · ${protein.target}g target`
+                  : proteinStatus.label
+              }
+              tone="amber"
+              graphic={<WaveGraphic />}
+              delay={0.12}
+            />
+
+            <GlowMetricCard
+              title="Carbs"
+              value={carbs?.value ?? "0g"}
+              detail={
+                carbs?.target != null
+                  ? `Target ${carbs.target}g`
+                  : "No target set"
+              }
+              tone="spectrum"
+              graphic={<ArcScaleGraphic />}
+              delay={0.16}
+            />
+
+            <GlowMetricCard
+              title="Meals logged"
+              value={`${todayMeals.length}`}
+              detail={
+                todayMeals.length === 0
+                  ? "Start your day"
+                  : `${formatCalories(
+                      todayMeals.reduce((sum, meal) => sum + meal.calories, 0),
+                    )} today`
+              }
+              tone="coral"
+              graphic={<DiamondGraphic />}
+              delay={0.2}
+              href="/meals"
+            />
+
+            <GlowMetricCard
+              title="Fat"
+              value={fat?.value ?? "0g"}
+              detail={
+                fat?.target != null ? `Target ${fat.target}g` : "Tracking"
+              }
+              tone="mist"
+              graphic={<FunnelGraphic stroke="#1a1a1a" />}
+              delay={0.24}
+            />
+
+            <GlowMetricCard
+              className="col-span-2"
+              title="Active burn"
+              value={burned?.value ?? "0"}
+              detail="From logged activities today"
+              tone="lime"
+              graphic={<WaveGraphic stroke="#1a1a1a" className="opacity-35" />}
+              delay={0.28}
+              href="/activities"
+            />
           </div>
-          <CalorieTrendChart days={caloriesByDay} />
-        </motion.div>
 
-        <div className="grid grid-cols-1 gap-10 md:grid-cols-2 md:gap-12">
-          <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.3 }}
-          >
-            <SectionLabel>Today&apos;s Meals</SectionLabel>
-            {todayMeals.length === 0 ? (
-              <div className="space-y-3">
-                <p className="text-sm font-light text-neutral-400">
-                  No meals logged yet today.
-                </p>
-                <Button
-                  asChild
-                  variant="ghost"
-                  size="sm"
-                  className="h-8 rounded-full px-0 font-light text-neutral-500 hover:bg-transparent hover:text-neutral-800"
-                >
-                  <Link href="/meals">
-                    <Plus className="mr-1 h-3.5 w-3.5" />
-                    Log a meal
-                  </Link>
-                </Button>
-              </div>
-            ) : (
-              <div className="space-y-3.5">
-                {todayMeals.map((meal, index) => (
-                  <div key={meal.id} className="flex items-center gap-3">
-                    <div
-                      className="h-2 w-2 flex-shrink-0 rounded-full"
-                      style={{
-                        background:
-                          HERO_ACCENTS[index % HERO_ACCENTS.length] ??
-                          "var(--walls-sky)",
-                      }}
-                    />
-                    <div className="min-w-0 flex-1">
-                      <p className="truncate text-xs font-light text-neutral-700">
-                        {meal.name ?? mealTypeLabel(meal.meal_type)}
-                      </p>
-                      <p className="mt-0.5 text-[11px] font-light text-neutral-400">
-                        {mealTypeLabel(meal.meal_type)} ·{" "}
-                        {new Date(meal.logged_at).toLocaleTimeString("en-US", {
-                          hour: "numeric",
-                          minute: "2-digit",
-                        })}
-                      </p>
-                    </div>
-                    <span className="flex-shrink-0 text-xs font-medium tabular-nums text-neutral-800">
-                      {formatCalories(meal.calories)}
-                    </span>
-                  </div>
-                ))}
-                <Button
-                  asChild
-                  variant="ghost"
-                  size="sm"
-                  className="mt-1 h-8 rounded-full px-0 font-light text-neutral-500 hover:bg-transparent hover:text-neutral-800"
-                >
-                  <Link href="/meals">
-                    <Plus className="mr-1 h-3.5 w-3.5" />
-                    Log another meal
-                  </Link>
-                </Button>
-              </div>
-            )}
-          </motion.div>
+          {insights.length > 0 ? (
+            <div className="mt-4 grid grid-cols-2 gap-3 md:gap-4">
+              {insights.map((insight, index) => {
+                const darkStroke =
+                  insight.tone === "mist" || insight.tone === "lime";
+                const stroke = darkStroke ? "#1a1a1a" : "white";
+                const graphic = darkStroke ? (
+                  index % 2 === 0 ? (
+                    <WaveGraphic stroke={stroke} className="opacity-35" />
+                  ) : (
+                    <FunnelGraphic stroke={stroke} />
+                  )
+                ) : index % 5 === 0 ? (
+                  <RingsGraphic />
+                ) : index % 5 === 1 ? (
+                  <WaveGraphic />
+                ) : index % 5 === 2 ? (
+                  <ArcScaleGraphic />
+                ) : index % 5 === 3 ? (
+                  <DiamondGraphic />
+                ) : (
+                  <FunnelGraphic />
+                );
 
-          <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.34 }}
-          >
-            <SectionLabel>Macro Breakdown — Today</SectionLabel>
-            {macros.length === 0 ? (
-              <p className="text-sm font-light text-neutral-400">
-                Log meals to see macro breakdown.
-              </p>
-            ) : (
-              <div className="space-y-4">
-                {macros.map((macro, index) => (
-                  <MetricBarItem
-                    key={macro.label}
-                    label={macro.label}
-                    sublabel={
-                      macro.target != null
-                        ? `Target ${macro.target}g`
-                        : "No target set"
+                return (
+                  <GlowMetricCard
+                    key={insight.id}
+                    className={
+                      insights.length % 2 === 1 && index === insights.length - 1
+                        ? "col-span-2"
+                        : undefined
                     }
-                    value={macro.value}
-                    numericValue={macro.current}
-                    max={maxMacro}
-                    color={
-                      macro.color ??
-                      HERO_ACCENTS[index % HERO_ACCENTS.length] ??
-                      "var(--walls-sky)"
-                    }
+                    title={insight.title}
+                    value={insight.value}
+                    detail={insight.detail}
+                    tone={insight.tone}
+                    graphic={graphic}
+                    delay={0.3 + index * 0.04}
+                    href={insight.href}
                   />
+                );
+              })}
+            </div>
+          ) : null}
+
+          <motion.div
+            initial={{ opacity: 0, y: 14 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{
+              delay: 0.36,
+              duration: 0.45,
+              ease: [0.22, 1, 0.36, 1],
+            }}
+            className="relative mt-4 min-h-[160px] overflow-hidden rounded-[28px] p-5 shadow-[0_18px_40px_-24px_rgba(0,0,0,0.35)] md:p-6"
+            style={{
+              background:
+                "linear-gradient(145deg, #d9e2e8 0%, #b7c8d2 48%, #9bb0bd 100%)",
+            }}
+          >
+            <div className="relative z-10 mb-4 flex flex-wrap items-start justify-between gap-3">
+              <div>
+                <p className="text-[11px] font-medium uppercase tracking-[0.18em] text-neutral-600">
+                  Calories
+                </p>
+                <p className="mt-1 text-sm font-light text-neutral-700/80">
+                  {periodLabel}
+                </p>
+              </div>
+              <div className="flex gap-1 rounded-full bg-white/35 p-1 ring-1 ring-white/40 backdrop-blur-sm">
+                {TIME_RANGE_OPTIONS.map((option) => (
+                  <button
+                    key={option.value}
+                    type="button"
+                    onClick={() => setTimeRange(option.value)}
+                    className={cn(
+                      "rounded-full px-3 py-1 text-[11px] font-light uppercase tracking-wider transition-colors",
+                      timeRange === option.value
+                        ? "bg-neutral-900 text-white"
+                        : "text-neutral-600 hover:text-neutral-900",
+                    )}
+                  >
+                    {option.label.replace("Last ", "")}
+                  </button>
                 ))}
               </div>
-            )}
+            </div>
+            <div className="relative z-10">
+              <CalorieTrendChart days={caloriesByDay} variant="onGlow" />
+            </div>
           </motion.div>
-        </div>
+        </section>
       </div>
     </div>
   );

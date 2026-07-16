@@ -129,7 +129,7 @@ const iconForType = (type: NotificationItem["type"]) => {
         />
       );
     default:
-      return <Info className="h-6 w-6 text-walls-blue" strokeWidth={1.75} />;
+      return <Info className="h-6 w-6 text-kenoo-blue" strokeWidth={1.75} />;
   }
 };
 
@@ -332,7 +332,7 @@ export default function NotificationsPopup({
                   className={`${markAllReadBtnClass} px-4 py-2`}
                   onClick={() => void markAllRead()}
                 >
-                  <CheckCheck className="h-4 w-4 text-walls-sky/80 transition-colors" />
+                  <CheckCheck className="h-4 w-4 text-kenoo-sky/80 transition-colors" />
                   <span className="text-sm font-light text-neutral-500 transition-colors">
                     Mark all as read
                   </span>

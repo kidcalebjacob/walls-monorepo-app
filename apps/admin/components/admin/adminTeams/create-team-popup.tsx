@@ -211,7 +211,7 @@ export function CreateTeamPopup({ open, onClose, onSaved }: CreateTeamPopupProps
               onChange={(e) => setName(e.target.value)}
               placeholder="Team name"
               disabled={saving}
-              className="border-0 border-b-2 rounded-none bg-transparent focus:ring-0 focus-visible:ring-0 px-0 border-b-[var(--walls-sky)] focus:border-b-[var(--walls-sky)] placeholder:text-neutral-300"
+              className="border-0 border-b-2 rounded-none bg-transparent focus:ring-0 focus-visible:ring-0 px-0 border-b-[var(--kenoo-sky)] focus:border-b-[var(--kenoo-sky)] placeholder:text-neutral-300"
             />
             <Textarea
               value={objective}
@@ -221,7 +221,7 @@ export function CreateTeamPopup({ open, onClose, onSaved }: CreateTeamPopupProps
               rows={8}
               className={cn(
                 "min-h-[140px] resize-y rounded-xl border border-neutral-200/80 bg-white/60 px-3 py-2 text-sm",
-                "placeholder:text-neutral-400 focus-visible:ring-1 focus-visible:ring-[var(--walls-sky)]/40 focus-visible:border-[var(--walls-sky)]",
+                "placeholder:text-neutral-400 focus-visible:ring-1 focus-visible:ring-[var(--kenoo-sky)]/40 focus-visible:border-[var(--kenoo-sky)]",
               )}
             />
           </div>

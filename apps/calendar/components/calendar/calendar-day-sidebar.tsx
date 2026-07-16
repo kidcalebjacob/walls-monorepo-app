@@ -377,7 +377,7 @@ export function CalendarDaySidebar({
                         handleMarkComplete(event);
                       }}
                       disabled={completingTaskKey === event.id}
-                      className="flex items-center gap-1 text-sm text-black font-light disabled:opacity-50 disabled:cursor-not-allowed hover:text-walls-sky"
+                      className="flex items-center gap-1 text-sm text-black font-light disabled:opacity-50 disabled:cursor-not-allowed hover:text-kenoo-sky"
                       aria-label="Mark as complete"
                     >
                       <Check className="w-4 h-4" />
@@ -399,7 +399,7 @@ export function CalendarDaySidebar({
                       {attendees.slice(0, 3).map((attendee, i) => (
                         <span
                           key={i}
-                          className="text-[9px] text-black bg-walls-yellow/30 px-2 py-0.5 rounded-full truncate max-w-[120px]"
+                          className="text-[9px] text-black bg-kenoo-yellow/30 px-2 py-0.5 rounded-full truncate max-w-[120px]"
                           title={attendee.email}
                         >
                           {attendee.email}

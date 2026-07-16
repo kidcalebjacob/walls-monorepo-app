@@ -104,7 +104,7 @@ function ConversationCard({
         <div className="flex items-center justify-between gap-2">
           <div className="flex items-center gap-1.5 min-w-0">
             {thread.unread && (
-              <span className="w-2 h-2 rounded-full bg-walls-lime shrink-0 shadow-[0_0_5px_rgba(206,255,0,0.7)]" />
+              <span className="w-2 h-2 rounded-full bg-kenoo-lime shrink-0 shadow-[0_0_5px_rgba(206,255,0,0.7)]" />
             )}
             <span
               className={cn(

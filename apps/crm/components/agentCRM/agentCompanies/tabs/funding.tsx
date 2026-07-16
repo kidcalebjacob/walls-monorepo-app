@@ -105,7 +105,7 @@ export default function Funding({ formData }: FundingProps) {
                 <div className="grid grid-cols-2 gap-6 pt-6">
             {formData.funding_events?.map((event: any, index: number) => (
               <div key={event.id || index} className="flex items-center gap-4">
-                <h3 className="text-lg font-semibold text-black bg-walls-yellow/70 px-2 py-1 rounded">
+                <h3 className="text-lg font-semibold text-black bg-kenoo-yellow/70 px-2 py-1 rounded">
                   {formatAmount(event.amount, event.currency)}
                 </h3>
                 <div className="flex-1 border-t border-black h-[1px]" />
@@ -117,7 +117,7 @@ export default function Funding({ formData }: FundingProps) {
                       rel="noopener noreferrer"
                       className="text-xl text-black hover:opacity-80 transition-opacity relative group flex-shrink-0"
                     >
-                      <div className="absolute inset-0 -m-2 rounded-[25px] bg-walls-yellow scale-0 transition-transform duration-300 ease-in-out group-hover:scale-100" />
+                      <div className="absolute inset-0 -m-2 rounded-[25px] bg-kenoo-yellow scale-0 transition-transform duration-300 ease-in-out group-hover:scale-100" />
                       <FaGlobe className="relative z-10" />
                     </a>
                   )}

@@ -217,7 +217,7 @@ export function PitchTracker({ onPitchChange }: PitchTrackerProps) {
             {selectedCreators.length === 0 ? (
               <Plus className="h-[18px] w-[18px] stroke-[1.5] text-neutral-600 flex-shrink-0" />
             ) : selectedCreators.length === 1 ? (
-              <div className="h-[24px] w-[24px] rounded-full relative overflow-hidden bg-walls-blue flex items-center justify-center flex-shrink-0">
+              <div className="h-[24px] w-[24px] rounded-full relative overflow-hidden bg-kenoo-blue flex items-center justify-center flex-shrink-0">
                 {selectedCreators[0].avatar_url ? (
                   <Image
                     src={selectedCreators[0].avatar_url}
@@ -237,7 +237,7 @@ export function PitchTracker({ onPitchChange }: PitchTrackerProps) {
                 )}
               </div>
             ) : (
-              <div className="h-[24px] w-[24px] rounded-full bg-walls-blue text-white flex items-center justify-center text-xs font-medium flex-shrink-0">
+              <div className="h-[24px] w-[24px] rounded-full bg-kenoo-blue text-white flex items-center justify-center text-xs font-medium flex-shrink-0">
                 {selectedCreators.length}
               </div>
             )}
@@ -270,7 +270,7 @@ export function PitchTracker({ onPitchChange }: PitchTrackerProps) {
               }}
               placeholder="Search creators…"
               className={`w-full rounded-none border-0 border-b bg-transparent py-2 pl-6 pr-4 text-sm font-light transition-colors placeholder:text-neutral-300 focus:outline-none focus-visible:outline-none ${
-                searchTerm.trim() ? "border-b-[var(--walls-sky)]" : "border-neutral-200"
+                searchTerm.trim() ? "border-b-[var(--kenoo-sky)]" : "border-neutral-200"
               }`}
               onClick={(e) => e.stopPropagation()}
             />
@@ -354,7 +354,7 @@ export function PitchTracker({ onPitchChange }: PitchTrackerProps) {
                         {isCreatorSelected(creator.id) && (
                           <button
                             type="button"
-                            className="absolute right-4 top-1/2 z-10 -translate-y-1/2 text-[10px] font-light lowercase leading-none tracking-wide text-[var(--walls-sky)] hover:underline focus:outline-none"
+                            className="absolute right-4 top-1/2 z-10 -translate-y-1/2 text-[10px] font-light lowercase leading-none tracking-wide text-[var(--kenoo-sky)] hover:underline focus:outline-none"
                             onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleCreatorSelect(creator.id); }}
                             onMouseDown={(e) => { e.preventDefault(); e.stopPropagation(); }}
                           >
@@ -444,7 +444,7 @@ export function PitchTracker({ onPitchChange }: PitchTrackerProps) {
                         {isCreatorSelected(creator.id) && (
                           <button
                             type="button"
-                            className="absolute right-4 top-1/2 z-10 -translate-y-1/2 text-[10px] font-light lowercase leading-none tracking-wide text-[var(--walls-sky)] hover:underline focus:outline-none"
+                            className="absolute right-4 top-1/2 z-10 -translate-y-1/2 text-[10px] font-light lowercase leading-none tracking-wide text-[var(--kenoo-sky)] hover:underline focus:outline-none"
                             onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleCreatorSelect(creator.id); }}
                             onMouseDown={(e) => { e.preventDefault(); e.stopPropagation(); }}
                           >

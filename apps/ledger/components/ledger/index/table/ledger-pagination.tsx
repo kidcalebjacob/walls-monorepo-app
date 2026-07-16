@@ -153,7 +153,7 @@ export function LedgerPagination({
             className={cn(
               pageButtonClass,
               currentPage === page &&
-                "bg-walls-yellow text-neutral-900 hover:bg-walls-yellow/90 border-walls-yellow"
+                "bg-kenoo-yellow text-neutral-900 hover:bg-kenoo-yellow/90 border-kenoo-yellow"
             )}
           >
             {formatNumber(page)}

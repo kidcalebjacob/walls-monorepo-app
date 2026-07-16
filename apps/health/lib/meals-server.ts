@@ -2,7 +2,8 @@ import { createClient } from "@walls/supabase/server";
 
 import type { HealthDataScope } from "@/lib/health-scope";
 import { healthScopeFields, withHealthScope } from "@/lib/health-scope";
-import { formatDateKey } from "@/lib/time-range";
+import { resolveHealthTimezone } from "@/lib/profile-server";
+import { todayDateKey } from "@/lib/time-range";
 
 export type MealType = "breakfast" | "lunch" | "dinner" | "snack" | "other";
 
@@ -167,7 +168,8 @@ export async function logMeal(
 ): Promise<MealWithItems> {
   const supabase = await createClient();
   const totals = sumItems(input.items);
-  const mealDate = input.meal_date ?? formatDateKey(new Date());
+  const timeZone = await resolveHealthTimezone(scope);
+  const mealDate = input.meal_date ?? todayDateKey(timeZone);
 
   const { data: meal, error: mealError } = await supabase
     .from("health_meals")

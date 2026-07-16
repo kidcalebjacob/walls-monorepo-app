@@ -81,10 +81,10 @@ const EMOJI_OPTIONS: { value: boolean; label: string; helper: string }[] = [
 ];
 
 const fieldClass =
-  "border-0 border-b border-neutral-200 rounded-none px-0 py-2 font-light focus:outline-none focus-visible:outline-none focus-visible:ring-0 focus:ring-0 focus:border-b-[var(--walls-sky)] bg-transparent w-full placeholder:text-neutral-300";
+  "border-0 border-b border-neutral-200 rounded-none px-0 py-2 font-light focus:outline-none focus-visible:outline-none focus-visible:ring-0 focus:ring-0 focus:border-b-[var(--kenoo-sky)] bg-transparent w-full placeholder:text-neutral-300";
 const labelClass = "text-xs font-normal text-neutral-400 tracking-wide block mb-1";
 const textareaClass =
-  "border-0 border-b border-neutral-200 rounded-none px-0 py-2 font-light focus:outline-none focus-visible:outline-none focus-visible:ring-0 focus:ring-0 focus:border-b-[var(--walls-sky)] bg-transparent w-full resize-none text-sm placeholder:text-neutral-300";
+  "border-0 border-b border-neutral-200 rounded-none px-0 py-2 font-light focus:outline-none focus-visible:outline-none focus-visible:ring-0 focus:ring-0 focus:border-b-[var(--kenoo-sky)] bg-transparent w-full resize-none text-sm placeholder:text-neutral-300";
 
 // ─── Defaults ─────────────────────────────────────────────────────────────────
 
@@ -157,7 +157,7 @@ function OptionGroup<T extends string | boolean>({
                 className={cn(
                   "relative z-10 rounded-2xl px-3 py-3 transition-all duration-300 ease-in-out",
                   "border border-transparent",
-                  "group-hover:bg-walls-white group-hover:border group-hover:border-neutral-200 group-hover:shadow-[inset_0_4px_8px_rgba(0,0,0,0.15)] group-hover:scale-[0.99]",
+                  "group-hover:bg-kenoo-white group-hover:border group-hover:border-neutral-200 group-hover:shadow-[inset_0_4px_8px_rgba(0,0,0,0.15)] group-hover:scale-[0.99]",
                   isSelected
                     ? [
                         "border-[rgba(110,173,192,0.45)] bg-white/40",
@@ -336,7 +336,7 @@ export default function WallieSettingsPage() {
   // ── Render ─────────────────────────────────────────────────────────────────
 
   return (
-    <div className="flex flex-col h-full overflow-y-auto overscroll-none bg-walls-white">
+    <div className="flex flex-col h-full overflow-y-auto overscroll-none bg-kenoo-white">
       <div className="w-full">
         <div className="max-w-5xl mx-auto px-8 pb-24">
 
@@ -363,7 +363,7 @@ export default function WallieSettingsPage() {
                     className={cn(
                       "relative z-10 rounded-2xl px-4 py-4 transition-all duration-300 ease-in-out",
                       "border border-transparent",
-                      "group-hover:bg-walls-white group-hover:border group-hover:border-neutral-200 group-hover:shadow-[inset_0_4px_8px_rgba(0,0,0,0.15)] group-hover:scale-[0.99]",
+                      "group-hover:bg-kenoo-white group-hover:border group-hover:border-neutral-200 group-hover:shadow-[inset_0_4px_8px_rgba(0,0,0,0.15)] group-hover:scale-[0.99]",
                       isActive
                         ? [
                             "border-[rgba(110,173,192,0.45)] bg-white/40",
@@ -524,7 +524,7 @@ export default function WallieSettingsPage() {
                               exit={{ opacity: 0, x: -10, scale: 0.8, transition: { duration: 0.2, ease: [0.4, 0, 1, 1] } }}
                               className="absolute left-4 flex items-center pointer-events-none"
                             >
-                              <Check className="h-4 w-4 text-walls-yellow" />
+                              <Check className="h-4 w-4 text-kenoo-yellow" />
                             </motion.div>
                           )}
                         </AnimatePresence>

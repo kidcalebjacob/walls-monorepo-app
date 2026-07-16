@@ -120,6 +120,30 @@ export async function getUserBirthDate(
   return (data?.date_of_birth as string | null) ?? null;
 }
 
+/**
+ * Prefer `users.timezone` (settings), then health profile, then Eastern.
+ */
+export async function resolveHealthTimezone(
+  scope: HealthDataScope,
+): Promise<string> {
+  const supabase = await createClient();
+  const [{ data: user }, profile] = await Promise.all([
+    supabase
+      .from("users")
+      .select("timezone")
+      .eq("id", scope.userId)
+      .maybeSingle(),
+    ensureHealthProfile(scope),
+  ]);
+
+  const userTz =
+    typeof user?.timezone === "string" ? user.timezone.trim() : "";
+  const healthTz =
+    typeof profile.timezone === "string" ? profile.timezone.trim() : "";
+
+  return userTz || healthTz || DEFAULT_PROFILE.timezone || "America/New_York";
+}
+
 export function estimateBmr(
   profile: Pick<HealthProfile, "sex" | "height_cm" | "current_weight_kg">,
   birthDate: string | null,

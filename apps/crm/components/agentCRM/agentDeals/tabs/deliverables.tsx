@@ -107,7 +107,7 @@ function getValueLabel(d: DeliverableRow): string | undefined {
 }
 
 const fieldWrapperClass =
-  "border-0 border-b border-neutral-200 rounded-none px-0 py-0 bg-transparent transition-colors focus-within:border-b-[var(--walls-sky)]";
+  "border-0 border-b border-neutral-200 rounded-none px-0 py-0 bg-transparent transition-colors focus-within:border-b-[var(--kenoo-sky)]";
 const inputInnerClass =
   "border-0 rounded-none px-0 py-2 font-light bg-transparent flex-1 w-full min-w-0 placeholder:text-neutral-300 h-10 focus:outline-none focus-visible:outline-none focus-visible:ring-0 focus:ring-0";
 const numberInputClass = `${inputInnerClass} [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none [-moz-appearance:textfield]`;

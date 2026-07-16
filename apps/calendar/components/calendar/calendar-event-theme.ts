@@ -16,7 +16,7 @@ export type CalendarEventTheme = {
 
 export function getCalendarEventTheme(event: CalendarEventLike): CalendarEventTheme {
   const isMeeting = event.type === 'regular-event';
-  const accentColor = isMeeting ? 'bg-walls-sky' : 'bg-walls-yellow';
+  const accentColor = isMeeting ? 'bg-kenoo-sky' : 'bg-kenoo-yellow';
 
   return {
     container: 'rounded-md transition-colors hover:bg-muted/40',

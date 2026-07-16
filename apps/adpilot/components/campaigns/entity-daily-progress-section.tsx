@@ -324,7 +324,7 @@ export function EntityDailyProgressSection({
                       dot={false}
                       activeDot={{
                         r: 4,
-                        fill: "var(--walls-white)",
+                        fill: "var(--kenoo-white)",
                         stroke: secondaryColor,
                         strokeWidth: 2,
                       }}
@@ -341,7 +341,7 @@ export function EntityDailyProgressSection({
                     name={progress.primaryMetric.label}
                     activeDot={{
                       r: 5,
-                      fill: "var(--walls-white)",
+                      fill: "var(--kenoo-white)",
                       stroke: primaryColor,
                       strokeWidth: 2.5,
                     }}

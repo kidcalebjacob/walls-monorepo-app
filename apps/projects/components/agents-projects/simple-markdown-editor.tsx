@@ -29,7 +29,7 @@ const popupIconButtonClass =
   "w-10 h-10 p-0 text-slate-600 hover:bg-transparent flex items-center justify-center shadow-none relative group flex-shrink-0 disabled:opacity-50 disabled:cursor-not-allowed";
 
 const popupIconInnerClass =
-  "relative z-10 p-3 rounded-full transition-all duration-300 ease-in-out group-hover:bg-walls-white group-hover:border group-hover:border-neutral-200 group-hover:shadow-[inset_0_4px_8px_rgba(0,0,0,0.15)] group-hover:scale-95";
+  "relative z-10 p-3 rounded-full transition-all duration-300 ease-in-out group-hover:bg-kenoo-white group-hover:border group-hover:border-neutral-200 group-hover:shadow-[inset_0_4px_8px_rgba(0,0,0,0.15)] group-hover:scale-95";
 
 /** Wraps long unbroken strings (e.g. tokens/URLs) inside a bounded width. */
 const markdownContentClass =
@@ -385,7 +385,7 @@ export function SimpleMarkdownEditor({
               className="w-9 h-9 p-0 text-slate-600 hover:bg-transparent flex items-center justify-center shadow-none relative group flex-shrink-0 disabled:opacity-50 disabled:cursor-not-allowed"
               aria-label="Close editor toolbar"
             >
-              <div className="relative z-10 p-2.5 rounded-full transition-all duration-300 ease-in-out group-hover:bg-walls-white group-hover:border group-hover:border-neutral-200 group-hover:shadow-[inset_0_4px_8px_rgba(0,0,0,0.15)] group-hover:scale-95">
+              <div className="relative z-10 p-2.5 rounded-full transition-all duration-300 ease-in-out group-hover:bg-kenoo-white group-hover:border group-hover:border-neutral-200 group-hover:shadow-[inset_0_4px_8px_rgba(0,0,0,0.15)] group-hover:scale-95">
                 <X className="h-[15px] w-[15px] stroke-[1.5] text-neutral-500" />
               </div>
             </button>

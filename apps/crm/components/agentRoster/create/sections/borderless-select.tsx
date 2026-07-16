@@ -23,7 +23,7 @@ export function BorderlessSelect({
 }) {
   return (
     <Select value={value} onValueChange={onValueChange}>
-      <SelectTrigger className="h-10 w-full rounded-none border-0 border-b border-neutral-200 bg-transparent px-0 py-2 text-sm font-light shadow-none ring-0 focus:ring-0 focus-visible:ring-0 focus:border-b-[var(--walls-sky)]">
+      <SelectTrigger className="h-10 w-full rounded-none border-0 border-b border-neutral-200 bg-transparent px-0 py-2 text-sm font-light shadow-none ring-0 focus:ring-0 focus-visible:ring-0 focus:border-b-[var(--kenoo-sky)]">
         <SelectValue placeholder={placeholder} />
       </SelectTrigger>
       <SelectContent>

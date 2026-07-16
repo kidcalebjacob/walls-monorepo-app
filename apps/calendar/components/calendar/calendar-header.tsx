@@ -78,7 +78,7 @@ export function CalendarHeader({
           <DropdownMenuTrigger asChild>
             <button
               type="button"
-              className="flex items-center gap-1.5 px-4 h-9 rounded-xl bg-walls-yellow text-neutral-900 text-xs font-medium uppercase tracking-wider hover:bg-walls-yellow/90 transition-all shadow-sm cursor-pointer"
+              className="flex items-center gap-1.5 px-4 h-9 rounded-xl bg-kenoo-yellow text-neutral-900 text-xs font-medium uppercase tracking-wider hover:bg-kenoo-yellow/90 transition-all shadow-sm cursor-pointer"
             >
               <Plus className="h-3.5 w-3.5" />
               Create
@@ -146,7 +146,7 @@ export function CalendarHeader({
             onClick={onTodayClick}
           >
             <div className="relative z-10 flex items-center gap-2 px-3 min-h-[2.25rem] py-2.5 rounded-full border border-transparent transition-all duration-300 ease-in-out text-neutral-500 text-xs font-medium uppercase tracking-wider group-hover:bg-neutral-50 group-hover:border-neutral-200 group-hover:shadow-[inset_0_2px_4px_rgba(0,0,0,0.10)] group-hover:scale-95 origin-center">
-              <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-walls-yellow" aria-hidden />
+              <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-kenoo-yellow" aria-hidden />
               Today
             </div>
           </button>

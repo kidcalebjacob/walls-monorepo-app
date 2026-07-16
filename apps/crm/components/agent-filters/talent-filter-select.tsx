@@ -192,7 +192,7 @@ export function TalentFilterSelect({ selectedTalentIds, onTalentChange }: Talent
               <span className="text-neutral-700">—</span>
             ) : selectedTalent.length === 1 ? (
               <div className="flex items-center gap-2 min-w-0">
-                <div className="h-6 w-6 rounded-full relative overflow-hidden bg-walls-blue flex-shrink-0">
+                <div className="h-6 w-6 rounded-full relative overflow-hidden bg-kenoo-blue flex-shrink-0">
                   {selectedTalent[0].avatar_url ? (
                     <Image
                       src={selectedTalent[0].avatar_url}
@@ -291,7 +291,7 @@ export function TalentFilterSelect({ selectedTalentIds, onTalentChange }: Talent
                           e.stopPropagation();
                         }}
                         className={`flex items-center px-4 py-2 cursor-pointer rounded-none hover:bg-neutral-300/30 focus:bg-neutral-500/10 ${
-                          isTalentSelected(t.id) ? 'bg-walls-yellow/40' : ''
+                          isTalentSelected(t.id) ? 'bg-kenoo-yellow/40' : ''
                         }`}
                       >
                         <div className="flex items-center space-x-3 w-full">
@@ -377,7 +377,7 @@ export function TalentFilterSelect({ selectedTalentIds, onTalentChange }: Talent
                           e.stopPropagation();
                         }}
                         className={`flex items-center px-4 py-2 cursor-pointer rounded-none hover:bg-neutral-300/30 focus:bg-neutral-500/10 ${
-                          isTalentSelected(t.id) ? 'bg-walls-yellow/40' : ''
+                          isTalentSelected(t.id) ? 'bg-kenoo-yellow/40' : ''
                         }`}
                       >
                         <div className="flex items-center space-x-3 w-full">

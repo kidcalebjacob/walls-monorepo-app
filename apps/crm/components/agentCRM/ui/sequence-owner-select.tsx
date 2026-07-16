@@ -223,7 +223,7 @@ export function SequenceOwnerSelect({ value, onValueChange, className, hideEmail
               key={member.id}
               value={member.id}
               className={`rounded-none hover:bg-neutral-300/30 focus:bg-neutral-500/10 pr-4 pl-2 [&>span:first-child]:hidden ${
-                value === member.id ? 'bg-walls-yellow/40' : ''
+                value === member.id ? 'bg-kenoo-yellow/40' : ''
               }`}
             >
               <div className="flex items-center space-x-2 flex-1">

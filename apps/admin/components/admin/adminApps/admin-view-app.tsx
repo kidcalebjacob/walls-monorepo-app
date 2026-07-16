@@ -189,12 +189,12 @@ export function AdminAppDetail({ app: initialApp }: AdminAppDetailProps) {
                       ? `${app.subdomain}.walls.agency`
                       : null
                   }
-                  valueClassName="text-walls-sky underline decoration-dotted underline-offset-2"
+                  valueClassName="text-kenoo-sky underline decoration-dotted underline-offset-2"
                 />
                 <DetailRow
                   label="Redirect path (legacy)"
                   value={app.url_redirect}
-                  valueClassName="text-walls-sky underline decoration-dotted underline-offset-2"
+                  valueClassName="text-kenoo-sky underline decoration-dotted underline-offset-2"
                 />
               </div>
               <div className="p-4 sm:p-6">

@@ -23,9 +23,9 @@ import {
 
 const noopSetAddress = () => {};
 const vendorFieldClass =
-  "border-0 border-b border-neutral-200 rounded-none px-0 py-2 font-light focus:outline-none focus-visible:outline-none focus-visible:ring-0 focus:ring-0 focus:border-b-[var(--walls-sky)] bg-transparent placeholder:text-neutral-300";
+  "border-0 border-b border-neutral-200 rounded-none px-0 py-2 font-light focus:outline-none focus-visible:outline-none focus-visible:ring-0 focus:ring-0 focus:border-b-[var(--kenoo-sky)] bg-transparent placeholder:text-neutral-300";
 const vendorSelectTriggerClass =
-  "w-full border-0 border-b border-neutral-200 rounded-none px-0 py-2 font-light focus:outline-none focus-visible:outline-none focus-visible:ring-0 focus:ring-0 focus:border-b-[var(--walls-sky)] bg-transparent justify-between [&_[data-placeholder]]:text-neutral-300";
+  "w-full border-0 border-b border-neutral-200 rounded-none px-0 py-2 font-light focus:outline-none focus-visible:outline-none focus-visible:ring-0 focus:ring-0 focus:border-b-[var(--kenoo-sky)] bg-transparent justify-between [&_[data-placeholder]]:text-neutral-300";
 
 export type DealCompanyOption = {
   company_id: string;

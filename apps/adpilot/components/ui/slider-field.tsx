@@ -89,7 +89,7 @@ export function SliderField({
                 key={mark}
                 className={cn(
                   "h-3 w-px rounded-full transition-colors duration-200",
-                  mark === activeMark ? "bg-[var(--walls-sky)]" : "bg-neutral-300/90",
+                  mark === activeMark ? "bg-[var(--kenoo-sky)]" : "bg-neutral-300/90",
                 )}
               />
             ))}

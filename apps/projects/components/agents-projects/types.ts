@@ -95,7 +95,7 @@ export const PROJECT_STATUS_CONFIG: Record<
   active: {
     label: "Active",
     badge: "bg-lime-100 text-lime-700",
-    accent: "var(--walls-lime)",
+    accent: "var(--kenoo-lime)",
   },
   on_hold: {
     label: "On Hold",
@@ -136,13 +136,13 @@ export const TASK_STATUS_CONFIG: Record<
   },
   in_progress: {
     label: "In Progress",
-    badge: "bg-neutral-100 text-[var(--walls-sky-hover)]",
-    accent: "var(--walls-sky)",
+    badge: "bg-neutral-100 text-[var(--kenoo-sky-hover)]",
+    accent: "var(--kenoo-sky)",
   },
   in_review: {
     label: "In Review",
     badge: "bg-neutral-100 text-neutral-800",
-    accent: "var(--walls-dark-yellow)",
+    accent: "var(--kenoo-dark-yellow)",
   },
   on_hold: {
     label: "On Hold",
@@ -167,7 +167,7 @@ export const PRIORITY_CONFIG: Record<
 > = {
   1: { label: "Urgent", color: "#ff1744", dot: "bg-red-500" },
   2: { label: "High", color: "rgb(245 158 11)", dot: "bg-amber-400" },
-  3: { label: "Medium", color: "var(--walls-lime)", dot: "bg-lime-400" },
+  3: { label: "Medium", color: "var(--kenoo-lime)", dot: "bg-lime-400" },
   4: { label: "Low", color: "rgb(148 163 184)", dot: "bg-slate-300" },
 };
 

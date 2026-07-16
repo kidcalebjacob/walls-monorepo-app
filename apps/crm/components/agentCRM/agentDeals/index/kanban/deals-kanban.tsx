@@ -50,7 +50,7 @@ interface DealsKanbanProps {
 function stageAccent(stage: DealStage): string {
   if (stage.is_won) return "rgb(16 185 129)";
   if (stage.is_lost) return "rgb(239 68 68)";
-  return "var(--walls-sky)";
+  return "var(--kenoo-sky)";
 }
 
 function formatAmount(amount: number): string {

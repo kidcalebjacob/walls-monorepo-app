@@ -10,7 +10,7 @@ type SegmentThumbVariant = "brand" | "glass";
  * The sliding "thumb" of a segmented control. Render only inside the
  * active segment; the shared `layoutId` glides it to the selected option.
  *
- * - brand: walls-yellow gradient (presets / ROAS)
+ * - brand: kenoo-yellow gradient (presets / ROAS)
  * - glass: near-opaque white pill like wallie-mobile Work/Chat
  */
 export function SegmentThumb({

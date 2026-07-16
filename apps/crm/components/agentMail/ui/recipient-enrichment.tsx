@@ -121,22 +121,22 @@ export function RecipientEnrichment({
                 <div
                   className={`w-5 h-[2.5px] rounded-sm transition-all duration-300 ${
                     isSuccess
-                      ? "bg-walls-sky/60"
+                      ? "bg-kenoo-sky/60"
                       : isLoading
                         ? "bg-blue-500"
                         : status === "fresh"
-                          ? "bg-walls-sky/60"
+                          ? "bg-kenoo-sky/60"
                           : "bg-gray-300"
                   }`}
                 />
                 <div
                   className={`w-4 h-[2.5px] rounded-sm transition-all duration-300 ${
                     isSuccess
-                      ? "bg-walls-sky/60"
+                      ? "bg-kenoo-sky/60"
                       : isLoading
                         ? "bg-blue-400 delay-100"
                         : status === "fresh"
-                          ? "bg-walls-sky/60"
+                          ? "bg-kenoo-sky/60"
                           : status === "moderate"
                             ? "bg-yellow-500"
                             : "bg-gray-300"
@@ -145,11 +145,11 @@ export function RecipientEnrichment({
                 <div
                   className={`w-3 h-[2.5px] rounded-sm transition-all duration-300 ${
                     isSuccess
-                      ? "bg-walls-sky/60"
+                      ? "bg-kenoo-sky/60"
                       : isLoading
                         ? "bg-blue-300 delay-200"
                         : status === "fresh"
-                          ? "bg-walls-sky/60"
+                          ? "bg-kenoo-sky/60"
                           : status === "moderate"
                             ? "bg-yellow-500"
                             : "bg-red-500"

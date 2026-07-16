@@ -3,8 +3,6 @@
 import * as React from "react";
 import { useLoadingCallback } from "react-loading-hook";
 import { Loader2, ChevronLeft } from "lucide-react";
-import { motion } from "framer-motion";
-import Image from "next/image";
 import Link from "next/link";
 
 import {
@@ -16,9 +14,15 @@ import {
 } from "@walls/auth";
 import { Button } from "@walls/ui/button";
 import { Input } from "@walls/ui/input";
-import { Separator } from "@walls/ui/separator";
 
 import { AppOrbitLauncher } from "@/components/app-orbit-launcher";
+import {
+  authGhostLinkClassName,
+  authInputClassName,
+  authPrimaryButtonClassName,
+  authSecondaryButtonClassName,
+} from "@/components/kenoo/auth-field";
+import { AuthHeading, AuthShell } from "@/components/kenoo/auth-shell";
 import { useRedirectAfterLogin } from "@/hooks/useRedirectAfterLogin";
 import { useRedirectParam } from "@/hooks/useRedirectParam";
 import {
@@ -27,10 +31,68 @@ import {
 } from "@/lib/user-apps";
 import { publicSitePath } from "@/lib/urls";
 
+function GoogleIcon({ className }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" aria-hidden>
+      <path
+        fill="#4285F4"
+        d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
+      />
+      <path
+        fill="#34A853"
+        d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
+      />
+      <path
+        fill="#FBBC05"
+        d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"
+      />
+      <path
+        fill="#EA4335"
+        d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
+      />
+    </svg>
+  );
+}
+
+async function assertActivePortalUser(
+  supabase: ReturnType<typeof getSupabaseClient>,
+  userId: string,
+): Promise<{ ok: true } | { ok: false; message: string }> {
+  const { data: statusRow, error } = await supabase
+    .from("users")
+    .select("status")
+    .eq("id", userId)
+    .maybeSingle();
+
+  if (error) {
+    return {
+      ok: false,
+      message: "Unable to verify your account. Please try again.",
+    };
+  }
+
+  if (!statusRow) {
+    return {
+      ok: false,
+      message:
+        "No Kenoo account found for this login. Ask an admin for an invite first.",
+    };
+  }
+
+  if (statusRow.status !== "active") {
+    return {
+      ok: false,
+      message: "Your account is not active. Please contact support.",
+    };
+  }
+
+  return { ok: true };
+}
+
 function LoginPageFallback() {
   return (
-    <div className="flex h-screen items-center justify-center bg-walls-white">
-      <Loader2 className="h-8 w-8 animate-spin text-neutral-400" />
+    <div className="flex min-h-screen items-center justify-center bg-kenoo-canvas">
+      <Loader2 className="h-8 w-8 animate-spin text-kenoo-muted" />
     </div>
   );
 }
@@ -49,8 +111,6 @@ function LoginPageContent() {
     [],
   );
   const [appsLoading, setAppsLoading] = React.useState(false);
-  const [shouldSlideOut, setShouldSlideOut] = React.useState(false);
-  const [isDesktop, setIsDesktop] = React.useState(false);
   const [needsMfaVerification, setNeedsMfaVerification] = React.useState(false);
   const [mfaCode, setMfaCode] = React.useState("");
   const [mfaError, setMfaError] = React.useState<string | null>(null);
@@ -59,7 +119,12 @@ function LoginPageContent() {
 
   const redirectParam = useRedirectParam();
   const redirectAfterLogin = useRedirectAfterLogin();
-  const redirectAfterLoginRef = React.useRef(redirectAfterLogin);
+  const completeLoginSuccessRef = React.useRef<
+    (
+      supabase: ReturnType<typeof getSupabaseClient>,
+      sessionFromSignIn?: { access_token?: string } | null,
+    ) => Promise<void>
+  >(async () => {});
   const hasRedirectParam = Boolean(redirectParam);
   const mfaInputRef = React.useRef<HTMLInputElement>(null);
   const mfaFactorIdRef = React.useRef<string | null>(null);
@@ -83,10 +148,6 @@ function LoginPageContent() {
     const query = params.toString();
     window.history.replaceState({}, "", `/login${query ? `?${query}` : ""}`);
   }, []);
-
-  React.useEffect(() => {
-    redirectAfterLoginRef.current = redirectAfterLogin;
-  }, [redirectAfterLogin]);
 
   const beginMfaVerification = React.useCallback((factorId: string) => {
     const alreadyActive =
@@ -132,6 +193,14 @@ function LoginPageContent() {
       } = await supabase.auth.getUser();
       if (error || !authUser) return;
 
+      const access = await assertActivePortalUser(supabase, authUser.id);
+      if (!access.ok) {
+        localStorage.removeItem("authToken");
+        await supabase.auth.signOut();
+        setError(access.message);
+        return;
+      }
+
       if (isTotpMfaSecondFactorPending(authUser, session.access_token)) {
         const totpFactor = getVerifiedTotpFactor(authUser);
         if (totpFactor?.id) {
@@ -149,13 +218,11 @@ function LoginPageContent() {
       if (autoRedirectStartedRef.current) return;
       autoRedirectStartedRef.current = true;
 
-      setTimeout(() => {
-        redirectAfterLoginRef.current();
-      }, 100);
+      await completeLoginSuccessRef.current(supabase, session);
     };
 
     void checkAuth();
-    // Only run once on mount — redirectAfterLogin is read via ref.
+    // Only run once on mount — success handler is read via ref.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -189,31 +256,6 @@ function LoginPageContent() {
       cancelled = true;
     };
   }, [hasLogged, needsMfaVerification]);
-
-  React.useEffect(() => {
-    const checkDesktop = () => {
-      setIsDesktop(window.innerWidth >= 768);
-    };
-    checkDesktop();
-    window.addEventListener("resize", checkDesktop);
-    return () => window.removeEventListener("resize", checkDesktop);
-  }, []);
-
-  React.useEffect(() => {
-    if (hasLogged && !isLoadingUserData && userData?.first_name && isDesktop) {
-      // Slide yellow panel out once greeting has played (launcher or redirect).
-      const timer = setTimeout(() => {
-        setShouldSlideOut(true);
-      }, hasRedirectParam ? 2000 : 2200);
-      return () => clearTimeout(timer);
-    }
-  }, [
-    hasLogged,
-    isLoadingUserData,
-    userData?.first_name,
-    isDesktop,
-    hasRedirectParam,
-  ]);
 
   const completeLoginSuccess = React.useCallback(
     async (
@@ -274,6 +316,10 @@ function LoginPageContent() {
     [hasRedirectParam, redirectAfterLogin],
   );
 
+  React.useEffect(() => {
+    completeLoginSuccessRef.current = completeLoginSuccess;
+  }, [completeLoginSuccess]);
+
   const [handleLogin, isLoading] = useLoadingCallback(async () => {
     try {
       setHasLogged(false);
@@ -295,15 +341,10 @@ function LoginPageContent() {
         return;
       }
 
-      const { data: statusRow } = await supabase
-        .from("users")
-        .select("status")
-        .eq("id", data.user.id)
-        .single();
-
-      if (statusRow?.status && statusRow.status !== "active") {
+      const access = await assertActivePortalUser(supabase, data.user.id);
+      if (!access.ok) {
         await supabase.auth.signOut();
-        setError("Your account is not active. Please contact support.");
+        setError(access.message);
         return;
       }
 
@@ -327,6 +368,39 @@ function LoginPageContent() {
           : "An unexpected error occurred. Please try again.",
       );
       setHasLogged(false);
+    }
+  });
+
+  const [handleGoogleLogin, isGoogleLoading] = useLoadingCallback(async () => {
+    try {
+      setError(null);
+      const supabase = getSupabaseClient();
+
+      const redirectTo = new URL("/login", window.location.origin);
+      if (redirectParam) {
+        redirectTo.searchParams.set("redirect", redirectParam);
+      }
+
+      const { error: oauthError } = await supabase.auth.signInWithOAuth({
+        provider: "google",
+        options: {
+          redirectTo: redirectTo.toString(),
+          queryParams: {
+            access_type: "offline",
+            prompt: "select_account",
+          },
+        },
+      });
+
+      if (oauthError) {
+        setError(oauthError.message);
+      }
+    } catch (err) {
+      setError(
+        err instanceof Error
+          ? err.message
+          : "Unable to start Google sign-in. Please try again.",
+      );
     }
   });
 
@@ -414,296 +488,246 @@ function LoginPageContent() {
   );
 
   return (
-    <div className="flex h-screen bg-walls-white">
-      {!hasLogged && !needsMfaVerification && (
-        <div className="absolute top-4 right-4 pr-6">
-          <Button
-            asChild
-            variant="ghost"
-            className="group flex items-center gap-2 text-black hover:bg-transparent hover:text-black transition-colors"
-          >
-            <a href={publicSitePath("/")}>
-              <ChevronLeft className="w-4 h-4 text-black group-hover:-translate-x-1 transition-transform duration-200" />
-              <span className="text-black font-light">Back home</span>
-            </a>
-          </Button>
-        </div>
-      )}
-
-      {needsMfaVerification && (
-        <div className="absolute top-4 left-4 pl-6">
+    <AuthShell
+      wide={hasLogged}
+      topRight={
+        needsMfaVerification ? (
           <Button
             onClick={() => {
               resetMfaVerification();
               void getSupabaseClient().auth.signOut();
             }}
             variant="ghost"
-            className="group flex items-center gap-2 text-black hover:bg-transparent hover:text-black transition-colors"
+            className={authGhostLinkClassName}
           >
-            <ChevronLeft className="w-4 h-4 text-black group-hover:-translate-x-1 transition-transform duration-200" />
-            <span className="text-black font-light">Back</span>
+            <ChevronLeft className="h-4 w-4 transition-transform duration-200 group-hover:-translate-x-1" />
+            <span>Back</span>
           </Button>
-        </div>
+        ) : !hasLogged ? (
+          <Button asChild variant="ghost" className={authGhostLinkClassName}>
+            <a href={publicSitePath("/")}>
+              <ChevronLeft className="h-4 w-4 transition-transform duration-200 group-hover:-translate-x-1" />
+              <span>Back home</span>
+            </a>
+          </Button>
+        ) : undefined
+      }
+    >
+      {!hasLogged && !needsMfaVerification && (
+        <AuthHeading
+          title="Sign in"
+          description="Enter your credentials to open your workspace."
+        />
       )}
 
-      <motion.div
-        className="hidden md:flex relative bg-walls-yellow rounded-r-[150px] items-center justify-center shadow-inner border border-neutral-200/50 overflow-hidden"
-        initial={false}
-        animate={{
-          width: shouldSlideOut ? "0%" : "50%",
-          x: shouldSlideOut ? "-100%" : 0,
-          opacity: shouldSlideOut ? 0 : 1,
-        }}
-        transition={{
-          duration: shouldSlideOut ? 1.2 : 0,
-          ease: [0.4, 0, 0.2, 1],
-        }}
-        style={{ zIndex: shouldSlideOut ? 0 : 10 }}
-      >
-        <motion.div
-          initial={false}
-          animate={{
-            opacity: shouldSlideOut ? 0 : 1,
-            scale: shouldSlideOut ? 0.8 : 1,
-          }}
-          transition={{
-            duration: shouldSlideOut ? 0.4 : 0,
-            ease: [0.4, 0, 0.2, 1],
-          }}
-        >
-          <Image
-            src="https://assets.wallsentertainment.com/logo-variations/black-logo.png"
-            alt="WALLS Logo"
-            width={400}
-            height={400}
-            className="object-contain"
+      {needsMfaVerification ? (
+        <div className="w-full space-y-6">
+          <AuthHeading
+            title="Verify"
+            description="Enter the 6-digit code from your authenticator app."
           />
-        </motion.div>
-      </motion.div>
-
-      <div className="md:hidden flex justify-center">
-        <Separator orientation="horizontal" className="w-full bg-border/50" />
-      </div>
-
-      <motion.div
-        className={`w-full flex items-center justify-center ${
-          hasLogged ? "p-4 sm:p-8" : "p-8"
-        }`}
-        initial={false}
-        animate={{
-          width: isDesktop ? (shouldSlideOut ? "100%" : "50%") : "100%",
-        }}
-        transition={{
-          duration: shouldSlideOut ? 1.2 : 0,
-          ease: [0.4, 0, 0.2, 1],
-        }}
-      >
-        <div
-          className={`w-full text-center ${
-            hasLogged ? "max-w-3xl space-y-0" : "max-w-md space-y-8"
-          }`}
-        >
-          {!hasLogged && !needsMfaVerification && (
-            <div className="space-y-2 flex items-center justify-center">
-              <Image
-                src="https://assets.wallsentertainment.com/logo-variations/black-gradient-indented.png"
-                alt="WALLS Logo"
-                width={65}
-                height={65}
-                className="mr-4 mt-2 md:hidden"
-              />
-              <h1 className="text-6xl font-bold tracking-tight">Login.</h1>
+          {mfaError && (
+            <div className="rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-700">
+              {mfaError}
             </div>
           )}
-
-          {needsMfaVerification ? (
-            <div className="space-y-4 w-full">
-              <div className="space-y-2 flex items-center justify-center">
-                <Image
-                  src="https://assets.wallsentertainment.com/logo-variations/black-gradient-indented.png"
-                  alt="WALLS Logo"
-                  width={65}
-                  height={65}
-                  className="mr-4 mt-2 md:hidden"
-                />
-                <h1 className="text-6xl font-bold tracking-tight">Verify.</h1>
-              </div>
-              <p className="text-sm font-light text-neutral-500 text-center">
-                Enter the 6-digit code from your authenticator app.
-              </p>
-              {mfaError && (
-                <div className="p-3 rounded-md bg-destructive/10 border border-destructive/20 text-destructive text-sm">
-                  {mfaError}
-                </div>
-              )}
-              <div
-                className="flex gap-2 justify-center"
-                role="group"
-                aria-label="Verification code"
-              >
-                <input
-                  ref={mfaInputRef}
-                  type="text"
-                  inputMode="numeric"
-                  autoComplete="one-time-code"
-                  maxLength={6}
-                  value={mfaCode}
-                  onFocus={() => setMfaInputFocused(true)}
-                  onBlur={() => setMfaInputFocused(false)}
-                  onChange={(e) => {
-                    const next = e.target.value.replace(/\D/g, "").slice(0, 6);
-                    setMfaCode(next);
-                    if (next.length === 6 && !mfaVerifying) handleMfaVerify(next);
-                  }}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter" && !mfaVerifying) handleMfaVerify();
-                  }}
-                  disabled={mfaVerifying}
-                  className="sr-only"
-                  aria-label="6-digit verification code"
-                />
-                <div
-                  role="button"
-                  tabIndex={0}
-                  onClick={() => mfaInputRef.current?.focus()}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter" || e.key === " ") {
-                      e.preventDefault();
-                      mfaInputRef.current?.focus();
-                    }
-                  }}
-                  className="flex gap-2 justify-center items-center cursor-text"
-                >
-                  {[0, 1, 2].map((i) => {
-                    const isCursorHere = mfaInputFocused && i === mfaCode.length;
-                    return (
-                      <div
-                        key={i}
-                        className="w-12 h-16 flex-shrink-0 flex items-center justify-center gap-0.5 rounded-xl bg-walls-white backdrop-blur-md shadow-inner border border-neutral-200/50 text-xl font-mono text-foreground"
-                      >
-                        <span>{mfaCode[i] ?? ""}</span>
-                        {isCursorHere && (
-                          <span
-                            className="inline-block w-1 h-6 bg-foreground animate-caret-blink flex-shrink-0"
-                            aria-hidden
-                          />
-                        )}
-                      </div>
-                    );
-                  })}
-                  <span
-                    className="text-neutral-400 font-light text-lg mx-0.5"
-                    aria-hidden
-                  >
-                    -
-                  </span>
-                  {[3, 4, 5].map((i) => {
-                    const isCursorHere = mfaInputFocused && i === mfaCode.length;
-                    return (
-                      <div
-                        key={i}
-                        className="w-12 h-16 flex-shrink-0 flex items-center justify-center gap-0.5 rounded-xl bg-walls-white backdrop-blur-md shadow-inner border border-neutral-200/50 text-xl font-mono text-foreground"
-                      >
-                        <span>{mfaCode[i] ?? ""}</span>
-                        {isCursorHere && (
-                          <span
-                            className="inline-block w-1 h-6 bg-foreground animate-caret-blink flex-shrink-0"
-                            aria-hidden
-                          />
-                        )}
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-            </div>
-          ) : hasLogged ? (
-            <AppOrbitLauncher
-              firstName={userData?.first_name ?? null}
-              avatarUrl={userData?.avatar_url ?? null}
-              isLoadingUserData={isLoadingUserData}
-              apps={launcherApps}
-              appsLoading={appsLoading}
-              redirectMode={hasRedirectParam}
+          <div
+            className="flex justify-center gap-2"
+            role="group"
+            aria-label="Verification code"
+          >
+            <input
+              ref={mfaInputRef}
+              type="text"
+              inputMode="numeric"
+              autoComplete="one-time-code"
+              maxLength={6}
+              value={mfaCode}
+              onFocus={() => setMfaInputFocused(true)}
+              onBlur={() => setMfaInputFocused(false)}
+              onChange={(e) => {
+                const next = e.target.value.replace(/\D/g, "").slice(0, 6);
+                setMfaCode(next);
+                if (next.length === 6 && !mfaVerifying) handleMfaVerify(next);
+              }}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" && !mfaVerifying) handleMfaVerify();
+              }}
+              disabled={mfaVerifying}
+              className="sr-only"
+              aria-label="6-digit verification code"
             />
-          ) : (
-            <div className="space-y-4 w-full">
-              {error && (
-                <div className="p-3 rounded-md bg-destructive/10 border border-destructive/20 text-destructive text-sm">
-                  {error}
-                </div>
-              )}
-
-              <div className="space-y-4">
-                <Input
-                  type="email"
-                  placeholder="Email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  disabled={isLoading}
-                  className="h-12 bg-walls-white backdrop-blur-md shadow-inner border border-neutral-200/50 transition-all duration-300 placeholder:text-neutral-400/80"
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter" && !isLoading) handleLogin();
-                  }}
-                />
-                <Input
-                  type="password"
-                  placeholder="Password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  disabled={isLoading}
-                  className="h-12 bg-walls-white backdrop-blur-md shadow-inner border border-neutral-200/50 transition-all duration-300 placeholder:text-neutral-400/80"
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter" && !isLoading) handleLogin();
-                  }}
-                />
-              </div>
-
-              <div className="flex justify-start">
-                <Link
-                  href="/reset-password"
-                  className="text-xs text-muted-foreground hover:text-walls-light transition-colors underline"
-                >
-                  Forgot password?
-                </Link>
-              </div>
-
-              <Button
-                onClick={handleLogin}
-                className="w-full rounded-full font-bold text-xl h-16 bg-walls-yellow/80 hover:bg-walls-yellow/90 text-black transition-all duration-300 shadow-inner border border-neutral-200/50 relative z-10"
-                disabled={isLoading || !email.trim() || !password.trim()}
-              >
-                {isLoading ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Signing in...
-                  </>
-                ) : (
-                  "Sign in"
-                )}
-              </Button>
-
-              <p className="text-xs text-muted-foreground">
-                By continuing, you agree to our{" "}
-                <a
-                  href={publicSitePath("/terms-and-conditions")}
-                  className="underline hover:text-walls-blue text-walls-light"
-                >
-                  Terms of Service
-                </a>{" "}
-                and{" "}
-                <a
-                  href={publicSitePath("/privacy-policy")}
-                  className="underline hover:text-walls-blue text-walls-light"
-                >
-                  Privacy Policy
-                </a>
-              </p>
+            <div
+              role="button"
+              tabIndex={0}
+              onClick={() => mfaInputRef.current?.focus()}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                  e.preventDefault();
+                  mfaInputRef.current?.focus();
+                }
+              }}
+              className="flex cursor-text items-center justify-center gap-2"
+            >
+              {[0, 1, 2].map((i) => {
+                const isCursorHere = mfaInputFocused && i === mfaCode.length;
+                return (
+                  <div
+                    key={i}
+                    className="flex h-16 w-12 flex-shrink-0 items-center justify-center gap-0.5 rounded-xl border border-kenoo-border bg-kenoo-surface font-mono text-xl text-kenoo-ink"
+                  >
+                    <span>{mfaCode[i] ?? ""}</span>
+                    {isCursorHere && (
+                      <span
+                        className="inline-block h-6 w-1 flex-shrink-0 animate-caret-blink bg-kenoo-ink"
+                        aria-hidden
+                      />
+                    )}
+                  </div>
+                );
+              })}
+              <span className="mx-0.5 text-lg font-light text-kenoo-muted" aria-hidden>
+                -
+              </span>
+              {[3, 4, 5].map((i) => {
+                const isCursorHere = mfaInputFocused && i === mfaCode.length;
+                return (
+                  <div
+                    key={i}
+                    className="flex h-16 w-12 flex-shrink-0 items-center justify-center gap-0.5 rounded-xl border border-kenoo-border bg-kenoo-surface font-mono text-xl text-kenoo-ink"
+                  >
+                    <span>{mfaCode[i] ?? ""}</span>
+                    {isCursorHere && (
+                      <span
+                        className="inline-block h-6 w-1 flex-shrink-0 animate-caret-blink bg-kenoo-ink"
+                        aria-hidden
+                      />
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      ) : hasLogged ? (
+        <AppOrbitLauncher
+          firstName={userData?.first_name ?? null}
+          avatarUrl={userData?.avatar_url ?? null}
+          isLoadingUserData={isLoadingUserData}
+          apps={launcherApps}
+          appsLoading={appsLoading}
+          redirectMode={hasRedirectParam}
+        />
+      ) : (
+        <div className="w-full space-y-4">
+          {error && (
+            <div className="rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-700">
+              {error}
             </div>
           )}
+
+          <div className="space-y-3">
+            <Input
+              type="email"
+              placeholder="Email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              disabled={isLoading || isGoogleLoading}
+              className={authInputClassName}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" && !isLoading && !isGoogleLoading) {
+                  handleLogin();
+                }
+              }}
+            />
+            <Input
+              type="password"
+              placeholder="Password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              disabled={isLoading || isGoogleLoading}
+              className={authInputClassName}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" && !isLoading && !isGoogleLoading) {
+                  handleLogin();
+                }
+              }}
+            />
+          </div>
+
+          <div className="flex justify-center">
+            <Link
+              href="/reset-password"
+              className="text-xs text-kenoo-muted transition-colors hover:text-kenoo-ink"
+            >
+              Forgot password?
+            </Link>
+          </div>
+
+          <Button
+            onClick={handleLogin}
+            className={authPrimaryButtonClassName}
+            disabled={
+              isLoading ||
+              isGoogleLoading ||
+              !email.trim() ||
+              !password.trim()
+            }
+          >
+            {isLoading ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Signing in...
+              </>
+            ) : (
+              "Sign in"
+            )}
+          </Button>
+
+          <div className="flex items-center gap-3">
+            <div className="h-px flex-1 bg-kenoo-border" />
+            <span className="text-xs text-kenoo-muted">or</span>
+            <div className="h-px flex-1 bg-kenoo-border" />
+          </div>
+
+          <Button
+            type="button"
+            onClick={handleGoogleLogin}
+            className={authSecondaryButtonClassName}
+            disabled={isLoading || isGoogleLoading}
+          >
+            {isGoogleLoading ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Connecting...
+              </>
+            ) : (
+              <>
+                <GoogleIcon className="mr-2 h-4 w-4" />
+                Continue with Google
+              </>
+            )}
+          </Button>
+
+          <p className="text-xs text-kenoo-muted">
+            By continuing, you agree to our{" "}
+            <a
+              href={publicSitePath("/terms-and-conditions")}
+              className="text-kenoo-ink underline hover:opacity-70"
+            >
+              Terms of Service
+            </a>{" "}
+            and{" "}
+            <a
+              href={publicSitePath("/privacy-policy")}
+              className="text-kenoo-ink underline hover:opacity-70"
+            >
+              Privacy Policy
+            </a>
+          </p>
         </div>
-      </motion.div>
-    </div>
+      )}
+    </AuthShell>
   );
 }
 

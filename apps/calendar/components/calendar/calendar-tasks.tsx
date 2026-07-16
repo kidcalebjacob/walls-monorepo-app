@@ -227,8 +227,8 @@ export function CalendarTasks({
       className={`flex items-center gap-2 p-3 rounded-lg hover:bg-gray-100 group relative cursor-pointer ${
         isTaskScheduled(task.id!) 
           ? task.eventType === 'deal' 
-            ? 'border-l-4 border-walls-red' 
-            : 'border-l-4 border-walls-lime'
+            ? 'border-l-4 border-kenoo-red' 
+            : 'border-l-4 border-kenoo-lime'
           : ''
       }`}
       onClick={() => handleTaskClick(task)}
@@ -257,7 +257,7 @@ export function CalendarTasks({
       </div>
       <div className={`text-xs px-2 py-1 rounded-full ${
         isTaskScheduled(task.id!)
-          ? 'bg-black/70 text-walls-lime'
+          ? 'bg-black/70 text-kenoo-lime'
           : 'bg-gray-100 text-gray-600'
       } group-hover:hidden`}>
         {isTaskScheduled(task.id!) ? "Scheduled" : task.status}

@@ -178,7 +178,7 @@ export function CreatePopup({
                     onClick={() => setSelectedType('event')}
                     className={`px-4 py-2 rounded-[15px] transition-all duration-200 ${
                       selectedType === 'event' 
-                        ? 'text-gray-600 bg-walls-light/30 font-medium'
+                        ? 'text-gray-600 bg-kenoo-light/30 font-medium'
                         : 'text-gray-600'
                     }`}
                   >
@@ -189,7 +189,7 @@ export function CreatePopup({
                     onClick={() => setSelectedType('outOfOffice')}
                     className={`px-4 py-2 rounded-[15px] transition-all duration-200 ${
                       selectedType === 'outOfOffice' 
-                        ? 'text-gray-600 bg-walls-light/30 font-medium'
+                        ? 'text-gray-600 bg-kenoo-light/30 font-medium'
                         : 'text-gray-600'
                     }`}
                   >
@@ -200,7 +200,7 @@ export function CreatePopup({
                     onClick={() => setSelectedType('appointmentSchedule')}
                     className={`px-4 py-2 rounded-[13px] transition-all duration-200 ${
                       selectedType === 'appointmentSchedule' 
-                        ? 'text-gray-600 bg-walls-light/30 font-medium'
+                        ? 'text-gray-600 bg-kenoo-light/30 font-medium'
                         : 'text-gray-600'
                     }`}
                   >

@@ -42,8 +42,8 @@ const variantDefaults: Record<
 > = {
   success: {
     Icon: Check,
-    ripple: "bg-walls-yellow",
-    bg: "bg-walls-yellow",
+    ripple: "bg-kenoo-yellow",
+    bg: "bg-kenoo-yellow",
     color: "text-neutral-800",
     sparkle: true,
   },
@@ -64,8 +64,8 @@ const variantDefaults: Record<
   },
   loading: {
     Icon: Loader2,
-    ripple: "bg-walls-yellow/30",
-    bg: "bg-walls-yellow/20",
+    ripple: "bg-kenoo-yellow/30",
+    bg: "bg-kenoo-yellow/20",
     color: "text-neutral-800",
     sparkle: false,
   },
@@ -142,7 +142,7 @@ export function WallsToastContent({
           transition={{ delay: 0.5, duration: 0.6, ease: "easeOut" }}
           className="absolute right-2"
         >
-          <div className="text-lg text-walls-yellow">✨</div>
+          <div className="text-lg text-kenoo-yellow">✨</div>
         </motion.div>
       )}
     </div>

@@ -173,7 +173,7 @@ export function Pagination({ currentPage, totalPages, onPageChange }: Pagination
             variant={currentPage === page ? "default" : "outline"}
             onClick={() => onPageChange(page as number)}
             className={`${buttonBaseClass} ${
-              currentPage === page ? "!bg-walls-yellow/70 text-neutral-700 hover:!bg-walls-yellow/60" : ""
+              currentPage === page ? "!bg-kenoo-yellow/70 text-neutral-700 hover:!bg-kenoo-yellow/60" : ""
             }`}
           >
             {formatNumber(page as number)}

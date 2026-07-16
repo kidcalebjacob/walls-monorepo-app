@@ -868,7 +868,7 @@ export default function EmailPreview({
                     onClick={() => handleMessageReply(latestEmail.id, false)}
                     className="flex items-center gap-2 pr-4 text-xs rounded-full bg-white/60 backdrop-blur-sm border border-neutral-200/40 shadow-md hover:bg-white/80"
                   >
-                    <span className="flex items-center justify-center h-7 w-7 rounded-full bg-walls-yellow/60 text-neutral-900">
+                    <span className="flex items-center justify-center h-7 w-7 rounded-full bg-kenoo-yellow/60 text-neutral-900">
                       <motion.span
                         variants={{
                           initial: { rotate: 0 },
@@ -893,7 +893,7 @@ export default function EmailPreview({
                       onClick={() => handleMessageReply(latestEmail.id, true)}
                       className="flex items-center gap-2 pr-4 text-xs rounded-full bg-white/60 backdrop-blur-sm border border-neutral-200/40 shadow-md hover:bg-white/80"
                     >
-                      <span className="flex items-center justify-center h-7 w-7 rounded-full bg-walls-yellow/60 text-neutral-900">
+                      <span className="flex items-center justify-center h-7 w-7 rounded-full bg-kenoo-yellow/60 text-neutral-900">
                         <motion.span
                           variants={{
                             initial: { rotate: 0 },
@@ -918,7 +918,7 @@ export default function EmailPreview({
                     onClick={() => handleMessageForward(latestEmail.id)}
                     className="flex items-center gap-2 pr-4 text-xs rounded-full bg-white/60 backdrop-blur-sm border border-neutral-200/40 shadow-md hover:bg-white/80"
                   >
-                    <span className="flex items-center justify-center h-7 w-7 rounded-full bg-walls-yellow/60 text-neutral-900">
+                    <span className="flex items-center justify-center h-7 w-7 rounded-full bg-kenoo-yellow/60 text-neutral-900">
                       <motion.span
                         variants={{
                           initial: { rotate: 0 },

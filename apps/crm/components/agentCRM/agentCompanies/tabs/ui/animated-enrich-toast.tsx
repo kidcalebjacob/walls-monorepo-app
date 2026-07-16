@@ -36,7 +36,7 @@ export const AnimatedEnrichToast = ({ personName }: AnimatedEnrichToastProps) =>
             duration: 0.8,
             ease: "easeOut"
           }}
-          className="absolute inset-0 rounded-full bg-walls-yellow"
+          className="absolute inset-0 rounded-full bg-kenoo-yellow"
         />
 
         {/* Main icon */}
@@ -44,7 +44,7 @@ export const AnimatedEnrichToast = ({ personName }: AnimatedEnrichToastProps) =>
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.2, duration: 0.3 }}
-          className="relative z-10 bg-walls-yellow rounded-full p-2"
+          className="relative z-10 bg-kenoo-yellow rounded-full p-2"
         >
           <Sparkles className="h-4 w-4 text-neutral-800" />
         </motion.div>
@@ -87,7 +87,7 @@ export const AnimatedEnrichToast = ({ personName }: AnimatedEnrichToastProps) =>
         }}
         className="absolute right-2"
       >
-        <div className="text-walls-yellow text-lg">✨</div>
+        <div className="text-kenoo-yellow text-lg">✨</div>
       </motion.div>
     </div>
   );

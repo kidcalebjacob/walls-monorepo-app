@@ -89,7 +89,7 @@ export function GoalsPage() {
   }
 
   return (
-    <div className="min-h-full bg-walls-white px-6 py-8 md:px-10">
+    <div className="min-h-full bg-kenoo-white px-6 py-8 md:px-10">
       <div className="mx-auto max-w-4xl space-y-8">
         <div>
           <h1 className="text-2xl font-light tracking-tight text-neutral-900">
@@ -125,7 +125,7 @@ export function GoalsPage() {
           />
           <Button
             disabled={saving || !customName.trim()}
-            className="rounded-full bg-walls-yellow text-black hover:bg-walls-yellow"
+            className="rounded-full bg-kenoo-yellow text-black hover:bg-kenoo-yellow"
             onClick={() =>
               void createGoal({
                 name: customName.trim(),

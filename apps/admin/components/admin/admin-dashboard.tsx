@@ -193,14 +193,14 @@ const overviewLinks = [
 
 const DEVICE_COLORS: Record<string, string> = {
   desktop: "rgb(99 102 241)",
-  mobile: "var(--walls-lime)",
+  mobile: "var(--kenoo-lime)",
   tablet: "rgb(245 158 11)",
   Unknown: "rgb(163 163 163)",
 };
 
 const CHART_COLORS = [
   "rgb(99 102 241)",
-  "var(--walls-lime)",
+  "var(--kenoo-lime)",
   "rgb(245 158 11)",
   "rgb(239 68 68)",
   "rgb(16 185 129)",
@@ -347,7 +347,7 @@ const AdminDashboard = () => {
       value: sessionCount,
       sub: `${activeToday} active today`,
       icon: <TrendingUp className="h-3.5 w-3.5" />,
-      accentColor: "var(--walls-lime)",
+      accentColor: "var(--kenoo-lime)",
     },
     {
       label: "Avg Time",
@@ -552,12 +552,12 @@ const AdminDashboard = () => {
                       >
                         <stop
                           offset="0%"
-                          stopColor="var(--walls-lime)"
+                          stopColor="var(--kenoo-lime)"
                           stopOpacity={0.25}
                         />
                         <stop
                           offset="100%"
-                          stopColor="var(--walls-lime)"
+                          stopColor="var(--kenoo-lime)"
                           stopOpacity={0}
                         />
                       </linearGradient>
@@ -590,7 +590,7 @@ const AdminDashboard = () => {
                     <Area
                       type="monotone"
                       dataKey="count"
-                      stroke="var(--walls-lime)"
+                      stroke="var(--kenoo-lime)"
                       strokeWidth={2.5}
                       fill="url(#sessionGrad)"
                       name="Sessions"
@@ -724,7 +724,7 @@ const AdminDashboard = () => {
                 label: "Active Today",
                 value: activeToday,
                 icon: <Activity className="h-3.5 w-3.5" />,
-                accentColor: "var(--walls-lime)",
+                accentColor: "var(--kenoo-lime)",
               },
               {
                 label: "Countries",
@@ -776,9 +776,9 @@ const AdminDashboard = () => {
                     key={item.name}
                     type="button"
                     onClick={() => router.push(item.path)}
-                    className="group flex items-center gap-4 rounded-xl border border-zinc-200 bg-white p-4 text-left shadow-sm transition-colors hover:border-zinc-300 hover:bg-zinc-50/50 focus:outline-none focus:ring-2 focus:ring-walls-blue/20 focus:ring-offset-1"
+                    className="group flex items-center gap-4 rounded-xl border border-zinc-200 bg-white p-4 text-left shadow-sm transition-colors hover:border-zinc-300 hover:bg-zinc-50/50 focus:outline-none focus:ring-2 focus:ring-kenoo-blue/20 focus:ring-offset-1"
                   >
-                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-zinc-100 text-zinc-600 transition-colors group-hover:bg-walls-blue/10 group-hover:text-walls-blue">
+                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-zinc-100 text-zinc-600 transition-colors group-hover:bg-kenoo-blue/10 group-hover:text-kenoo-blue">
                       <Icon className="h-5 w-5" />
                     </div>
                     <div className="min-w-0 flex-1">

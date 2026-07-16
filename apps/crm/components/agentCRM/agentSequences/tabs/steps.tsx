@@ -873,7 +873,7 @@ const Steps = forwardRef<StepsRef, StepsProps>(({ sequenceId, onTemplateChange }
                         <div className="min-h-[48px] flex items-center">
                           <div className="border-0 rounded-full bg-transparent hover:bg-gray-100 px-4 py-2 w-full">
                             <div className="flex items-center">
-                              <span className="text-sm font-bold text-black bg-walls-yellow/70 px-2 py-1 rounded">Name:</span>
+                              <span className="text-sm font-bold text-black bg-kenoo-yellow/70 px-2 py-1 rounded">Name:</span>
                               <span className="text-sm font-light ml-2">{step.step.name}</span>
                             </div>
                           </div>
@@ -882,7 +882,7 @@ const Steps = forwardRef<StepsRef, StepsProps>(({ sequenceId, onTemplateChange }
                       <div className="min-h-[48px] flex items-center">
                         <div className="border-0 rounded-full bg-transparent hover:bg-gray-100 px-4 py-2 w-full">
                           <div className="flex items-center">
-                            <span className="text-sm font-bold text-black bg-walls-yellow/70 px-2 py-1 rounded">Delay:</span>
+                            <span className="text-sm font-bold text-black bg-kenoo-yellow/70 px-2 py-1 rounded">Delay:</span>
                             <span className="text-sm font-light ml-2">{formatDelay(step.delay_minutes)}</span>
                           </div>
                         </div>
@@ -891,7 +891,7 @@ const Steps = forwardRef<StepsRef, StepsProps>(({ sequenceId, onTemplateChange }
                         <div className="min-h-[48px] flex items-center">
                           <div className="border-0 rounded-full bg-transparent hover:bg-gray-100 px-4 py-2 w-full">
                             <div className="flex items-center">
-                              <span className="text-sm font-bold text-black bg-walls-yellow/70 px-2 py-1 rounded">Slug:</span>
+                              <span className="text-sm font-bold text-black bg-kenoo-yellow/70 px-2 py-1 rounded">Slug:</span>
                               <span className="text-sm font-light ml-2">{step.step.slug}</span>
                             </div>
                           </div>
@@ -901,7 +901,7 @@ const Steps = forwardRef<StepsRef, StepsProps>(({ sequenceId, onTemplateChange }
                         <div className="min-h-[48px] flex items-center">
                           <div className="border-0 rounded-full bg-transparent hover:bg-gray-100 px-4 py-2 w-full">
                             <div className="flex items-center">
-                              <span className="text-sm font-bold text-black bg-walls-yellow/70 px-2 py-1 rounded">Channel:</span>
+                              <span className="text-sm font-bold text-black bg-kenoo-yellow/70 px-2 py-1 rounded">Channel:</span>
                               <span className="text-sm font-light ml-2 capitalize">{step.step.channel}</span>
                             </div>
                           </div>
@@ -911,7 +911,7 @@ const Steps = forwardRef<StepsRef, StepsProps>(({ sequenceId, onTemplateChange }
                         <div className="min-h-[48px] flex items-center col-span-2">
                           <div className="border-0 rounded-full bg-transparent hover:bg-gray-100 px-4 py-2 w-full">
                             <div className="flex items-center">
-                              <span className="text-sm font-bold text-black bg-walls-yellow/70 px-2 py-1 rounded">Description:</span>
+                              <span className="text-sm font-bold text-black bg-kenoo-yellow/70 px-2 py-1 rounded">Description:</span>
                               <span className="text-sm font-light ml-2">{step.step.description}</span>
                             </div>
                           </div>
@@ -943,7 +943,7 @@ const Steps = forwardRef<StepsRef, StepsProps>(({ sequenceId, onTemplateChange }
                         bg-neutral-100/80 backdrop-blur-md 
                         rounded-full shadow-inner border border-neutral-200/50
                         transition-all duration-300 ease-in-out
-                        group-hover:bg-walls-yellow/60
+                        group-hover:bg-kenoo-yellow/60
                         group-hover:shadow-inner group-hover:border-neutral-200
                         group-hover:scale-95
                         group-hover:shadow-[inset_0_4px_8px_rgba(0,0,0,0.15)]
@@ -990,7 +990,7 @@ const Steps = forwardRef<StepsRef, StepsProps>(({ sequenceId, onTemplateChange }
                         bg-neutral-100/80 backdrop-blur-md 
                         rounded-full shadow-inner border border-neutral-200/50
                         transition-all duration-300 ease-in-out
-                        group-hover:bg-walls-yellow/60
+                        group-hover:bg-kenoo-yellow/60
                         group-hover:shadow-inner group-hover:border-neutral-200
                         group-hover:scale-95
                         group-hover:shadow-[inset_0_4px_8px_rgba(0,0,0,0.15)]

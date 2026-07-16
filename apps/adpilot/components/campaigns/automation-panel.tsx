@@ -343,7 +343,7 @@ export function EntityAutomationSection({
             {detail.profiles.length === 0 ? (
               <p className="mt-4 text-sm font-light text-neutral-500">
                 No presets yet.{" "}
-                <Link href="/settings" className="text-[var(--walls-sky)] hover:underline">
+                <Link href="/settings" className="text-[var(--kenoo-sky)] hover:underline">
                   Create one in Settings
                 </Link>{" "}
                 — or tune the defaults below for this {entityLabel}.
@@ -354,7 +354,7 @@ export function EntityAutomationSection({
                   <button
                     type="button"
                     className={cn(
-                      "mt-4 flex w-full max-w-md items-center gap-3 rounded-xl bg-walls-white px-3 py-2.5 text-left transition",
+                      "mt-4 flex w-full max-w-md items-center gap-3 rounded-xl bg-kenoo-white px-3 py-2.5 text-left transition",
                       "hover:bg-neutral-50",
                       "focus:outline-none",
                       presetMenuOpen && "bg-neutral-50",
@@ -390,7 +390,7 @@ export function EntityAutomationSection({
                 <DropdownMenuContent
                   align="start"
                   sideOffset={8}
-                  className="z-50 w-[min(100vw-2rem,28rem)] rounded-2xl border-0 bg-walls-white p-2 shadow-xl"
+                  className="z-50 w-[min(100vw-2rem,28rem)] rounded-2xl border-0 bg-kenoo-white p-2 shadow-xl"
                 >
                   <p className="px-2 pb-1 pt-1 text-sm font-medium text-neutral-500">
                     Choose a preset
@@ -486,7 +486,7 @@ export function EntityAutomationSection({
               onClick={() => setPendingPreset(null)}
             >
               <div
-                className="w-full max-w-md rounded-2xl bg-walls-white p-5 shadow-xl"
+                className="w-full max-w-md rounded-2xl bg-kenoo-white p-5 shadow-xl"
                 onClick={(event) => event.stopPropagation()}
               >
                 <h2
@@ -543,7 +543,7 @@ export function EntityAutomationSection({
                     markDirty();
                     setMinBudget(e.target.value);
                   }}
-                  className="rounded-full border-neutral-200 bg-walls-white font-light"
+                  className="rounded-full border-neutral-200 bg-kenoo-white font-light"
                 />
               </label>
               <label className="block space-y-2">
@@ -560,7 +560,7 @@ export function EntityAutomationSection({
                     markDirty();
                     setMaxBudget(e.target.value);
                   }}
-                  className="rounded-full border-neutral-200 bg-walls-white font-light"
+                  className="rounded-full border-neutral-200 bg-kenoo-white font-light"
                 />
               </label>
             </div>
@@ -676,7 +676,7 @@ export function EntityAutomationSection({
                       e.target.value ? Number(e.target.value) : null,
                     )
                   }
-                  className="rounded-full border-neutral-200 bg-walls-white font-light"
+                  className="rounded-full border-neutral-200 bg-kenoo-white font-light"
                 />
               </label>
             ) : null}
@@ -697,7 +697,7 @@ export function EntityAutomationSection({
                       e.target.value ? Number(e.target.value) : null,
                     )
                   }
-                  className="rounded-full border-neutral-200 bg-walls-white font-light"
+                  className="rounded-full border-neutral-200 bg-kenoo-white font-light"
                 />
               </label>
             ) : null}
@@ -778,13 +778,13 @@ function instructionStatusMeta(status: AgentInstructionStatus): {
     case "active":
       return {
         label: "Live",
-        dotClass: "bg-walls-yellow",
+        dotClass: "bg-kenoo-yellow",
         textClass: "text-neutral-700",
       };
     case "scheduled":
       return {
         label: "Scheduled",
-        dotClass: "bg-walls-sky",
+        dotClass: "bg-kenoo-sky",
         textClass: "text-neutral-500",
       };
     case "expired":
@@ -1120,7 +1120,7 @@ function AgentInstructionsManager({
             }
             placeholder="e.g. Scale daily budget as aggressively as allowed until we hit the ROAS floor."
             rows={3}
-            className="rounded-xl border border-neutral-200 bg-walls-white px-3 py-2.5 font-light text-sm"
+            className="rounded-xl border border-neutral-200 bg-kenoo-white px-3 py-2.5 font-light text-sm"
           />
 
           <div className="grid gap-4 sm:grid-cols-2">
@@ -1137,7 +1137,7 @@ function AgentInstructionsManager({
                 onChange={(e) =>
                   setForm((prev) => ({ ...prev, startsAt: e.target.value }))
                 }
-                className="rounded-full border-neutral-200 bg-walls-white font-light"
+                className="rounded-full border-neutral-200 bg-kenoo-white font-light"
               />
             </label>
             <label className="block space-y-2">
@@ -1151,7 +1151,7 @@ function AgentInstructionsManager({
                 onChange={(e) =>
                   setForm((prev) => ({ ...prev, endsAt: e.target.value }))
                 }
-                className="rounded-full border-neutral-200 bg-walls-white font-light"
+                className="rounded-full border-neutral-200 bg-kenoo-white font-light"
               />
             </label>
           </div>
@@ -1187,7 +1187,7 @@ function AgentInstructionsManager({
         <Button
           type="button"
           onClick={startCreate}
-          className="inline-flex items-center gap-2 rounded-xl border border-neutral-300 bg-walls-white px-5 font-medium tracking-tight text-neutral-400 transition-all duration-300 ease-in-out hover:border-neutral-300 hover:bg-walls-white hover:text-neutral-400 active:scale-[0.98]"
+          className="inline-flex items-center gap-2 rounded-xl border border-neutral-300 bg-kenoo-white px-5 font-medium tracking-tight text-neutral-400 transition-all duration-300 ease-in-out hover:border-neutral-300 hover:bg-kenoo-white hover:text-neutral-400 active:scale-[0.98]"
         >
           <Plus className="h-4 w-4" />
           Add instruction

@@ -141,7 +141,7 @@ export function AgentSidebar() {
       {/* Desktop sidebar */}
       <aside
         className={cn(
-          "hidden md:flex shrink-0 flex-col overflow-hidden border-r border-neutral-200 bg-walls-white transition-[width] duration-300 ease-[cubic-bezier(0.4,0,0.2,1)]",
+          "hidden md:flex shrink-0 flex-col overflow-hidden border-r border-neutral-200 bg-kenoo-white transition-[width] duration-300 ease-[cubic-bezier(0.4,0,0.2,1)]",
           isCollapsed ? "w-14" : "w-52"
         )}
       >
@@ -192,7 +192,7 @@ export function AgentSidebar() {
       </aside>
 
       {/* Mobile nav */}
-      <nav className="md:hidden flex items-center gap-6 overflow-x-auto border-b border-neutral-200 bg-walls-white px-6 py-4">
+      <nav className="md:hidden flex items-center gap-6 overflow-x-auto border-b border-neutral-200 bg-kenoo-white px-6 py-4">
         {navItems.map((item) => (
           <MobileNavLink key={item.id} item={item} pathname={pathname} />
         ))}

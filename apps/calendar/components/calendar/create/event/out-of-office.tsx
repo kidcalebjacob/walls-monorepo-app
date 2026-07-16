@@ -212,7 +212,7 @@ export function OutOfOffice({ onDataChange }: OutOfOfficeProps) {
               onCheckedChange={(checked) => setOutOfOfficeData({ ...outOfOfficeData, declineMeetings: checked })}
               onFocus={() => setFocusedField('decline-meetings')}
               onBlur={() => setFocusedField(null)}
-              className="data-[state=checked]:bg-walls-light"
+              className="data-[state=checked]:bg-kenoo-light"
             />
           </div>
         </div>

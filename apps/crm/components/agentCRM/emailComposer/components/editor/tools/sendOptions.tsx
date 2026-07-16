@@ -35,11 +35,11 @@ export function SendOptionsDropdown({
       </DropdownMenuTrigger>
       <DropdownMenuContent align="center" className="w-[160px] overflow-hidden z-[200] rounded-xl bg-white/80 backdrop-blur-xl border border-white/30 shadow-2xl p-1.5">
         <DropdownMenuItem onClick={onScheduleClick} className="cursor-pointer flex justify-between items-center rounded-lg focus:bg-neutral-100 focus:text-foreground hover:bg-neutral-100">
-          <MdOutlineScheduleSend className="mr-1 h-5 w-5 text-walls-sky" />
+          <MdOutlineScheduleSend className="mr-1 h-5 w-5 text-kenoo-sky" />
           <span className="flex-grow text-right font-light">Schedule Send</span>
         </DropdownMenuItem>
         <DropdownMenuItem onClick={onTestSendClick} className="cursor-pointer flex justify-between items-center rounded-lg focus:bg-neutral-100 focus:text-foreground hover:bg-neutral-100">
-          <TbTestPipe className="mr-1 h-5 w-5 text-walls-sky" />
+          <TbTestPipe className="mr-1 h-5 w-5 text-kenoo-sky" />
           <span className="flex-grow text-right font-light">Test Send (Me)</span>
         </DropdownMenuItem>
       </DropdownMenuContent>

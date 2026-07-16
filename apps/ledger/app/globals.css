@@ -1,39 +1,39 @@
 @import "tailwindcss";
-@import "@walls/ui/walls-theme.css";
+@import "@walls/ui/kenoo-theme.css";
 
 @source "../../../packages/ui/src";
 @source "../components";
 
 :root {
-  --background: var(--walls-white);
+  --background: var(--kenoo-white);
   --foreground: #0a0a0a;
-  --card: var(--walls-white);
+  --card: var(--kenoo-white);
   --muted: #737373;
   --muted-foreground: #737373;
   --accent: #f3f3f3;
   --accent-foreground: #0a0a0a;
   --border: #e8e8e8;
   --input: #e8e8e8;
-  --ring-offset-background: var(--walls-white);
-  --popover: var(--walls-white);
+  --ring-offset-background: var(--kenoo-white);
+  --popover: var(--kenoo-white);
   --popover-foreground: #0a0a0a;
 }
 
 @theme inline {
-  --color-background: var(--walls-white);
+  --color-background: var(--kenoo-white);
   --color-foreground: #0a0a0a;
-  --color-card: var(--walls-white);
+  --color-card: var(--kenoo-white);
   --color-muted: #737373;
   --color-muted-foreground: #737373;
   --color-accent: #f3f3f3;
   --color-accent-foreground: #0a0a0a;
   --color-border: #e8e8e8;
   --color-input: #e8e8e8;
-  --color-ring-offset-background: var(--walls-white);
-  --color-popover: var(--walls-white);
+  --color-ring-offset-background: var(--kenoo-white);
+  --color-popover: var(--kenoo-white);
   --color-popover-foreground: #0a0a0a;
-  --color-walls-blue: var(--walls-blue);
-  --color-walls-yellow: var(--walls-yellow);
+  --color-kenoo-blue: var(--kenoo-blue);
+  --color-kenoo-yellow: var(--kenoo-yellow);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 }
@@ -43,7 +43,7 @@
   html[data-app="ledger"] body {
     height: 100%;
     overflow: hidden;
-    background-color: var(--walls-white);
+    background-color: var(--kenoo-white);
     color: #0a0a0a;
   }
 

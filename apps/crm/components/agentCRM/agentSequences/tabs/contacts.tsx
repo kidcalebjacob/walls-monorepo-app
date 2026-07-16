@@ -869,7 +869,7 @@ export default function Contacts({ sequenceId }: ContactsProps) {
                 "text-sm font-light transition-colors",
                 selectedContacts.size > 0
                   ? "text-red-600 hover:text-red-700 focus-visible:ring-red-500/35"
-                  : "text-walls-sky hover:opacity-90 focus-visible:ring-walls-sky/35",
+                  : "text-kenoo-sky hover:opacity-90 focus-visible:ring-kenoo-sky/35",
                 "disabled:opacity-40 disabled:pointer-events-none",
                 "bg-transparent border-0 p-0 shadow-none cursor-pointer",
                 "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 rounded-sm"
@@ -1016,8 +1016,8 @@ export default function Contacts({ sequenceId }: ContactsProps) {
               }}
               className={cn(
                 "w-full pl-6 pr-3 py-2 text-sm bg-transparent border-0 border-b focus:outline-none focus-visible:outline-none transition-colors placeholder:text-neutral-300 font-light rounded-none",
-                searchTerm ? "border-b-[var(--walls-sky)]" : "border-neutral-200",
-                "focus:border-b-[var(--walls-sky)]"
+                searchTerm ? "border-b-[var(--kenoo-sky)]" : "border-neutral-200",
+                "focus:border-b-[var(--kenoo-sky)]"
               )}
             />
           </div>

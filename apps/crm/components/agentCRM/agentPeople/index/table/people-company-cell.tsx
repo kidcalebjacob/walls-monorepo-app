@@ -133,7 +133,7 @@ export function PeopleCompanyCell({
         >
           <motion.div
             aria-hidden
-            className="pointer-events-none absolute inset-0 z-0 rounded-md bg-walls-yellow"
+            className="pointer-events-none absolute inset-0 z-0 rounded-md bg-kenoo-yellow"
             style={{ scaleY: holdFill, transformOrigin: "50% 100%" }}
           />
           <div className="relative z-10 flex items-center gap-2 min-w-0">

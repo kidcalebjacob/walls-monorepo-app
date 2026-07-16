@@ -108,7 +108,7 @@ export function TalentSearch({ value, onSelect }: TalentSearchProps) {
                   e.stopPropagation();
                 }}
                 className={`flex items-center px-4 py-2 cursor-pointer rounded-none hover:bg-neutral-300/30 focus:bg-neutral-500/10 ${
-                  isSelected ? "bg-walls-yellow/40" : ""
+                  isSelected ? "bg-kenoo-yellow/40" : ""
                 }`}
               >
                 <div className="flex items-center space-x-3 w-full">

@@ -40,11 +40,11 @@ function Avatar({
 
   return (
     <div
-      className="relative shrink-0 overflow-hidden rounded-full bg-walls-white shadow-[0_12px_40px_-16px_rgba(0,0,0,0.35)] ring-1 ring-black/[0.06]"
+      className="relative shrink-0 overflow-hidden rounded-full bg-kenoo-surface ring-1 ring-kenoo-border"
       style={{ width: px, height: px }}
     >
       <div
-        className={`absolute inset-0 bg-neutral-200/70 transition-opacity duration-300 ${
+        className={`absolute inset-0 bg-kenoo-subtle transition-opacity duration-300 ${
           showSkeleton ? "animate-pulse opacity-100" : "opacity-0"
         }`}
       />
@@ -79,14 +79,10 @@ function AppTile({
       initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: 0.03 * Math.min(index, 12), duration: 0.35, ease: easeOut }}
-      className="group flex w-[4.75rem] shrink-0 snap-center flex-col items-center gap-2 outline-none focus-visible:ring-2 focus-visible:ring-black/10 focus-visible:ring-offset-2 sm:w-[5.25rem]"
+      className="group flex w-[4.75rem] shrink-0 snap-center flex-col items-center gap-2 outline-none focus-visible:ring-2 focus-visible:ring-kenoo-accent/30 focus-visible:ring-offset-2 focus-visible:ring-offset-kenoo-canvas sm:w-[5.25rem]"
       aria-label={`Open ${app.name}`}
     >
-      <div className="relative flex h-14 w-14 items-center justify-center overflow-hidden rounded-[1.15rem] bg-gradient-to-br from-walls-white to-walls-white shadow-[0_2px_8px_-2px_rgba(0,0,0,0.12)] ring-1 ring-black/[0.04] transition-all duration-300 ease-out group-hover:-translate-y-1 group-hover:shadow-[0_14px_28px_-12px_rgba(0,0,0,0.28)] group-active:translate-y-0 group-active:scale-[0.97] sm:h-16 sm:w-16 sm:rounded-[1.25rem]">
-        <span
-          aria-hidden
-          className="pointer-events-none absolute inset-x-0 top-0 h-1/2 bg-gradient-to-b from-white/80 to-transparent"
-        />
+      <div className="relative flex h-14 w-14 items-center justify-center overflow-hidden rounded-xl border border-kenoo-border bg-kenoo-surface transition-all duration-300 ease-out group-hover:-translate-y-0.5 group-hover:border-kenoo-accent/30 group-active:translate-y-0 group-active:scale-[0.97] sm:h-16 sm:w-16">
         <Image
           src={app.icon}
           alt=""
@@ -95,7 +91,7 @@ function AppTile({
           className="h-9 w-9 object-contain sm:h-10 sm:w-10"
         />
       </div>
-      <span className="line-clamp-2 w-full text-center text-[11px] font-medium leading-tight tracking-[-0.01em] text-neutral-600 transition-colors duration-200 group-hover:text-neutral-950 sm:text-xs">
+      <span className="line-clamp-2 w-full text-center text-[11px] font-medium leading-tight tracking-[-0.01em] text-kenoo-muted transition-colors duration-200 group-hover:text-kenoo-ink sm:text-xs">
         {app.name}
       </span>
     </motion.a>
@@ -147,7 +143,7 @@ function AppSlider({ apps }: { apps: PortalLauncherApp[] }) {
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: -10 }}
               transition={{ duration: 0.22, ease: easeOut }}
-              className="flex h-9 w-9 items-center justify-center text-neutral-500 transition-colors hover:text-neutral-950"
+              className="flex h-9 w-9 items-center justify-center text-kenoo-muted transition-colors hover:text-kenoo-ink"
             >
               <ChevronLeft className="h-5 w-5" strokeWidth={1.75} />
             </motion.button>
@@ -166,7 +162,7 @@ function AppSlider({ apps }: { apps: PortalLauncherApp[] }) {
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: 10 }}
               transition={{ duration: 0.22, ease: easeOut }}
-              className="flex h-9 w-9 items-center justify-center text-neutral-500 transition-colors hover:text-neutral-950"
+              className="flex h-9 w-9 items-center justify-center text-kenoo-muted transition-colors hover:text-kenoo-ink"
             >
               <ChevronRight className="h-5 w-5" strokeWidth={1.75} />
             </motion.button>
@@ -174,16 +170,15 @@ function AppSlider({ apps }: { apps: PortalLauncherApp[] }) {
         </AnimatePresence>
       </div>
 
-      {/* Edge fades — no board behind the apps */}
       <div
         aria-hidden
-        className={`pointer-events-none absolute inset-y-0 left-2 z-10 w-10 bg-gradient-to-r from-walls-white to-transparent transition-opacity duration-200 sm:left-4 ${
+        className={`pointer-events-none absolute inset-y-0 left-2 z-10 w-10 bg-gradient-to-r from-kenoo-canvas to-transparent transition-opacity duration-200 sm:left-4 ${
           canPrev ? "opacity-100" : "opacity-0"
         }`}
       />
       <div
         aria-hidden
-        className={`pointer-events-none absolute inset-y-0 right-2 z-10 w-10 bg-gradient-to-l from-walls-white to-transparent transition-opacity duration-200 sm:right-4 ${
+        className={`pointer-events-none absolute inset-y-0 right-2 z-10 w-10 bg-gradient-to-l from-kenoo-canvas to-transparent transition-opacity duration-200 sm:right-4 ${
           canNext ? "opacity-100" : "opacity-0"
         }`}
       />
@@ -237,9 +232,9 @@ export function AppOrbitLauncher({
               isLoadingUserData={isLoadingUserData}
               size="lg"
             />
-            <h2 className="text-[2rem] font-semibold tracking-[-0.035em] text-neutral-950 sm:text-[2.35rem]">
+            <h2 className="font-display text-[2rem] font-semibold tracking-[-0.04em] text-kenoo-ink sm:text-[2.35rem]">
               <motion.span
-                className="inline-block text-neutral-400"
+                className="inline-block text-kenoo-muted"
                 initial={{ opacity: 0, y: 8 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.4, delay: 0.25, ease: easeOut }}
@@ -272,10 +267,10 @@ export function AppOrbitLauncher({
               />
               {firstName ? (
                 <div className="text-center">
-                  <p className="text-[15px] font-semibold tracking-[-0.02em] text-neutral-900">
+                  <p className="font-display text-[15px] font-semibold tracking-[-0.02em] text-kenoo-ink">
                     {firstName}
                   </p>
-                  <p className="mt-0.5 text-[12px] font-normal tracking-[-0.01em] text-neutral-400">
+                  <p className="mt-0.5 text-[12px] font-normal tracking-[-0.01em] text-kenoo-muted">
                     Choose an app to continue
                   </p>
                 </div>
@@ -283,7 +278,7 @@ export function AppOrbitLauncher({
             </div>
 
             {apps.length === 0 ? (
-              <p className="text-sm text-neutral-400">No apps assigned yet</p>
+              <p className="text-sm text-kenoo-muted">No apps assigned yet</p>
             ) : (
               <AppSlider apps={apps} />
             )}

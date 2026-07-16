@@ -57,7 +57,7 @@ export function AnimatedUserStatusToast({ variant, userName }: AnimatedUserStatu
           }}
           className={cn(
             "absolute inset-0 rounded-full",
-            isRestrictive ? "bg-red-400" : "bg-walls-yellow",
+            isRestrictive ? "bg-red-400" : "bg-kenoo-yellow",
           )}
         />
 
@@ -67,7 +67,7 @@ export function AnimatedUserStatusToast({ variant, userName }: AnimatedUserStatu
           transition={{ delay: 0.2, duration: 0.3 }}
           className={cn(
             "relative z-10 rounded-full p-2",
-            isRestrictive ? "bg-red-400" : "bg-walls-yellow",
+            isRestrictive ? "bg-red-400" : "bg-kenoo-yellow",
           )}
         >
           <Icon className="h-4 w-4 text-neutral-800" />
@@ -111,7 +111,7 @@ export function AnimatedUserStatusToast({ variant, userName }: AnimatedUserStatu
       >
         <div className={cn(
             "text-lg",
-            isRestrictive ? "text-red-400" : "text-walls-yellow",
+            isRestrictive ? "text-red-400" : "text-kenoo-yellow",
           )}>✨</div>
       </motion.div>
     </motion.div>

@@ -385,7 +385,7 @@ export function GenerateInvoiceDialog({
                           onClick={() => toggleKey(key, !checked)}
                           className={cn(
                             "flex h-4 w-4 shrink-0 items-center justify-center rounded-full border border-neutral-300/90 bg-white transition-colors",
-                            "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-walls-sky/35 focus-visible:ring-offset-2",
+                            "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-kenoo-sky/35 focus-visible:ring-offset-2",
                             (isSubmitting || deliverableSelectionLocked) && "cursor-not-allowed opacity-50"
                           )}
                           aria-label={`Include ${label}`}
@@ -398,7 +398,7 @@ export function GenerateInvoiceDialog({
                                 animate={{ scale: 1, opacity: 1 }}
                                 exit={{ scale: 0, opacity: 0 }}
                                 transition={deliverableDotTransition}
-                                className="block h-3 w-3 rounded-full bg-walls-sky"
+                                className="block h-3 w-3 rounded-full bg-kenoo-sky"
                                 aria-hidden
                               />
                             ) : null}

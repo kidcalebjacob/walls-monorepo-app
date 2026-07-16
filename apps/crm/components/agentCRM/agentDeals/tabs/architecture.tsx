@@ -27,7 +27,7 @@ import { getSupabaseClient } from "@/app/auth/supabaseClient";
 import { ManagerSearch, ManagerSearchAdd, type ManagerRecord } from "@/components/ui/searches/manager-search";
 
 const fieldWrapperClass =
-  "border-0 border-b border-neutral-200 rounded-none px-0 py-0 bg-transparent transition-colors focus-within:border-b-[var(--walls-sky)]";
+  "border-0 border-b border-neutral-200 rounded-none px-0 py-0 bg-transparent transition-colors focus-within:border-b-[var(--kenoo-sky)]";
 const inputInnerClass =
   "border-0 rounded-none px-0 py-2 font-light focus:outline-none focus-visible:outline-none focus-visible:ring-0 focus:ring-0 bg-transparent flex-1 w-full min-w-0 placeholder:text-neutral-400 h-10";
 /** Hide browser number steppers (Chrome / Firefox / Safari). */
@@ -95,8 +95,8 @@ function TableToolbar({
             }}
             className={cn(
               "w-full pl-6 pr-3 py-2 text-sm bg-transparent border-0 border-b focus:outline-none focus-visible:outline-none transition-colors placeholder:text-neutral-300 font-light rounded-none",
-              searchTerm ? "border-b-[var(--walls-sky)]" : "border-neutral-200",
-              "focus:border-b-[var(--walls-sky)]"
+              searchTerm ? "border-b-[var(--kenoo-sky)]" : "border-neutral-200",
+              "focus:border-b-[var(--kenoo-sky)]"
             )}
           />
         </div>

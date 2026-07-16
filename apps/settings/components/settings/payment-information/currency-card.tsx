@@ -27,7 +27,7 @@ export default function CurrencyCard({
     <motion.div
       className={cn(
         "flex items-center justify-between p-4 rounded-lg w-full transition-all cursor-pointer border border-transparent hover:bg-neutral-100 hover:backdrop-blur-md hover:border-neutral-200/50 hover:shadow-[inset_0_2px_4px_rgba(0,0,0,0.15)]",
-        isSelected ? "shadow-[inset_0_2px_4px_rgba(0,0,0,0.15)] border-walls-yellow bg-neutral-100 backdrop-blur-md" : ""
+        isSelected ? "shadow-[inset_0_2px_4px_rgba(0,0,0,0.15)] border-kenoo-yellow bg-neutral-100 backdrop-blur-md" : ""
       )}
       onClick={onClick}
       whileHover="hover"

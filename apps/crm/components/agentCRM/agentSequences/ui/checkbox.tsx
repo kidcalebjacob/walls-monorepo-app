@@ -10,7 +10,7 @@ export type SequenceCheckboxIndicator = "check" | "dot";
 
 export type SequenceCheckboxProps =
   React.ComponentPropsWithoutRef<typeof CheckboxPrimitive.Root> & {
-    /** `dot`: circular outline + walls-sky dot when checked (no check icon). Default: checkmark. */
+    /** `dot`: circular outline + kenoo-sky dot when checked (no check icon). Default: checkmark. */
     indicator?: SequenceCheckboxIndicator;
   };
 
@@ -35,7 +35,7 @@ const Checkbox = React.forwardRef<
             )
           : cn(
               "box-border h-4 w-4 rounded-sm border border-primary",
-              "data-[state=checked]:bg-walls-yellow data-[state=checked]:text-black"
+              "data-[state=checked]:bg-kenoo-yellow data-[state=checked]:text-black"
             ),
         className
       )}
@@ -48,7 +48,7 @@ const Checkbox = React.forwardRef<
       >
         {isDot ? (
           <span
-            className="block h-2 w-2 shrink-0 rounded-full bg-walls-sky"
+            className="block h-2 w-2 shrink-0 rounded-full bg-kenoo-sky"
             aria-hidden
           />
         ) : (

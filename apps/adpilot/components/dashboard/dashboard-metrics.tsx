@@ -82,7 +82,7 @@ function MetricBarItem({
   value,
   numericValue,
   max,
-  color = "var(--walls-sky)",
+  color = "var(--kenoo-sky)",
 }: MetricBarItemProps) {
   const pct = Math.round((numericValue / Math.max(max, 1)) * 100);
 

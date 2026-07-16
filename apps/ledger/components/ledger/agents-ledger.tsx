@@ -659,9 +659,9 @@ function AgentsLedgerContent({ analyticsData: _analyticsData }: AgentsLedgerProp
                   <AnimatedBalance value={quarterRevenue} />
                 </p>
                 <span className="mt-0.5 font-light text-neutral-500 uppercase tracking-wider text-xs inline-flex items-center gap-2 w-full max-w-[120px]">
-                  <span className="flex-1 min-w-0 border-t-2 border-solid border-[var(--walls-lime)]" />
+                  <span className="flex-1 min-w-0 border-t-2 border-solid border-[var(--kenoo-lime)]" />
                   <span className="flex-shrink-0">{quarterLabel} Revenue</span>
-                  <span className="flex-1 min-w-0 border-t-2 border-solid border-[var(--walls-lime)]" />
+                  <span className="flex-1 min-w-0 border-t-2 border-solid border-[var(--kenoo-lime)]" />
                 </span>
               </div>
               <div className="flex flex-col items-center justify-center flex-shrink-0">
@@ -760,8 +760,8 @@ function AgentsLedgerContent({ analyticsData: _analyticsData }: AgentsLedgerProp
                   >
                     <defs>
                       <linearGradient id="fillPrimary" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="0%" stopColor="var(--walls-lime)" stopOpacity={0.25} />
-                        <stop offset="100%" stopColor="var(--walls-lime)" stopOpacity={0} />
+                        <stop offset="0%" stopColor="var(--kenoo-lime)" stopOpacity={0.25} />
+                        <stop offset="100%" stopColor="var(--kenoo-lime)" stopOpacity={0} />
                       </linearGradient>
                       <linearGradient id="fillExpenses" x1="0" y1="0" x2="0" y2="1">
                         <stop offset="0%" stopColor="#ff1744" stopOpacity={0.25} />
@@ -772,14 +772,14 @@ function AgentsLedgerContent({ analyticsData: _analyticsData }: AgentsLedgerProp
                         <stop offset="100%" stopColor="rgb(148 163 184)" stopOpacity={0} />
                       </linearGradient>
                       <linearGradient id="strokeNetByZero" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="0%" stopColor="var(--walls-lime)" />
-                        <stop offset={`${netZeroOffset * 100}%`} stopColor="var(--walls-lime)" />
+                        <stop offset="0%" stopColor="var(--kenoo-lime)" />
+                        <stop offset={`${netZeroOffset * 100}%`} stopColor="var(--kenoo-lime)" />
                         <stop offset={`${netZeroOffset * 100}%`} stopColor="#ff1744" />
                         <stop offset="100%" stopColor="#ff1744" />
                       </linearGradient>
                       <linearGradient id="fillNetByZero" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="0%" stopColor="var(--walls-lime)" stopOpacity={0.25} />
-                        <stop offset={`${netZeroOffset * 100}%`} stopColor="var(--walls-lime)" stopOpacity={0.25} />
+                        <stop offset="0%" stopColor="var(--kenoo-lime)" stopOpacity={0.25} />
+                        <stop offset={`${netZeroOffset * 100}%`} stopColor="var(--kenoo-lime)" stopOpacity={0.25} />
                         <stop offset={`${netZeroOffset * 100}%`} stopColor="#ff1744" stopOpacity={0.22} />
                         <stop offset="100%" stopColor="#ff1744" stopOpacity={0.22} />
                       </linearGradient>
@@ -825,7 +825,7 @@ function AgentsLedgerContent({ analyticsData: _analyticsData }: AgentsLedgerProp
                         <Area
                           type="monotone"
                           dataKey="income"
-                          stroke="var(--walls-lime)"
+                          stroke="var(--kenoo-lime)"
                           strokeWidth={2.5}
                           fill="url(#fillPrimary)"
                           name="Income"
@@ -898,8 +898,8 @@ function AgentsLedgerContent({ analyticsData: _analyticsData }: AgentsLedgerProp
                       >
                         <defs>
                           <linearGradient id="fillTalentBar" x1="0" y1="0" x2="1" y2="0">
-                            <stop offset="0%" stopColor="var(--walls-lime)" stopOpacity={0.9} />
-                            <stop offset="100%" stopColor="var(--walls-lime)" stopOpacity={0.35} />
+                            <stop offset="0%" stopColor="var(--kenoo-lime)" stopOpacity={0.9} />
+                            <stop offset="100%" stopColor="var(--kenoo-lime)" stopOpacity={0.35} />
                           </linearGradient>
                         </defs>
                         <CartesianGrid

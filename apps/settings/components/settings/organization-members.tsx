@@ -33,13 +33,13 @@ function roleMeta(role: AccountRole): {
     case "owner":
       return {
         label: "Owner",
-        dotClass: "bg-walls-yellow",
+        dotClass: "bg-kenoo-yellow",
         textClass: "text-neutral-700",
       };
     case "admin":
       return {
         label: "Admin",
-        dotClass: "bg-walls-sky",
+        dotClass: "bg-kenoo-sky",
         textClass: "text-neutral-600",
       };
     case "member":
@@ -281,7 +281,7 @@ export function OrganizationMembers({
                     }
                   }}
                   placeholder="user@example.com"
-                  className="rounded-xl border border-neutral-200 bg-walls-white px-3 py-2.5 font-light text-sm"
+                  className="rounded-xl border border-neutral-200 bg-kenoo-white px-3 py-2.5 font-light text-sm"
                 />
               </label>
 
@@ -294,7 +294,7 @@ export function OrganizationMembers({
                   value={inviteRole}
                   onValueChange={(value) => setInviteRole(value as AccountRole)}
                 >
-                  <SelectTrigger className="rounded-full border-neutral-200 bg-walls-white font-light shadow-none">
+                  <SelectTrigger className="rounded-full border-neutral-200 bg-kenoo-white font-light shadow-none">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -340,7 +340,7 @@ export function OrganizationMembers({
           <Button
             type="button"
             onClick={() => setShowInviteForm(true)}
-            className="inline-flex items-center gap-2 rounded-xl border border-neutral-300 bg-walls-white px-5 font-medium tracking-tight text-neutral-400 transition-all duration-300 ease-in-out hover:border-neutral-300 hover:bg-walls-white hover:text-neutral-400 active:scale-[0.98]"
+            className="inline-flex items-center gap-2 rounded-xl border border-neutral-300 bg-kenoo-white px-5 font-medium tracking-tight text-neutral-400 transition-all duration-300 ease-in-out hover:border-neutral-300 hover:bg-kenoo-white hover:text-neutral-400 active:scale-[0.98]"
           >
             <Plus className="h-4 w-4" />
             Invite user

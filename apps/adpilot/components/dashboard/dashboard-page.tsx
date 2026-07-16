@@ -27,8 +27,8 @@ import { SpendTrendChart } from "./spend-trend-chart";
 import { TopPerformingAds } from "./top-performing-ads";
 
 const HERO_ACCENTS = [
-  "var(--walls-sky)",
-  "var(--walls-blue)",
+  "var(--kenoo-sky)",
+  "var(--kenoo-blue)",
   "#00d1c1",
   "#7a04eb",
   "#f59e0b",
@@ -169,7 +169,7 @@ export function DashboardPage() {
 
   if (loading) {
     return (
-      <div className="flex min-h-full items-center justify-center bg-walls-white px-6 py-16">
+      <div className="flex min-h-full items-center justify-center bg-kenoo-white px-6 py-16">
         <div className="flex items-center gap-2 text-sm font-light text-neutral-500">
           <Loader2 className="h-4 w-4 animate-spin" />
           Loading…
@@ -180,12 +180,12 @@ export function DashboardPage() {
 
   if (!hasLiveConnections) {
     return (
-      <div className="flex min-h-full items-center justify-center bg-walls-white px-6">
+      <div className="flex min-h-full items-center justify-center bg-kenoo-white px-6">
         <div className="flex flex-col items-center gap-6 text-center">
           <p className="text-sm font-light text-neutral-600">No accounts connected</p>
           <a
             href="/api/oauth/meta/login"
-            className="inline-flex items-center gap-2 rounded-none border-0 bg-walls-yellow px-5 py-2.5 text-sm font-medium text-black shadow-none hover:bg-walls-yellow"
+            className="inline-flex items-center gap-2 rounded-none border-0 bg-kenoo-yellow px-5 py-2.5 text-sm font-medium text-black shadow-none hover:bg-kenoo-yellow"
           >
             <Link2 className="h-4 w-4" strokeWidth={1.5} />
             Connect Meta
@@ -196,7 +196,7 @@ export function DashboardPage() {
   }
 
   return (
-    <div className="min-h-full bg-walls-white">
+    <div className="min-h-full bg-kenoo-white">
       <div className="space-y-16 px-6 pt-6 pb-12 md:px-10 md:pt-8 md:pb-10">
         <div className="flex flex-row flex-wrap items-stretch justify-center gap-6 pb-2 pt-2 md:gap-8">
           {stats.map((stat, index) => (
@@ -248,7 +248,7 @@ export function DashboardPage() {
                       style={{
                         background:
                           HERO_ACCENTS[index % HERO_ACCENTS.length] ??
-                          "var(--walls-sky)",
+                          "var(--kenoo-sky)",
                       }}
                     />
                     <div className="min-w-0 flex-1">
@@ -308,7 +308,7 @@ export function DashboardPage() {
                     max={maxAccountSpend}
                     color={
                       HERO_ACCENTS[index % HERO_ACCENTS.length] ??
-                      "var(--walls-sky)"
+                      "var(--kenoo-sky)"
                     }
                   />
                 ))}

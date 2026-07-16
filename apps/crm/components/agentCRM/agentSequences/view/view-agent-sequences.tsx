@@ -514,7 +514,7 @@ export default function EditAgentSequences({ analyticsData, sequenceId, initialD
                   >
                     <span>{tab.name}</span>
                     {tab.id === 'tasks' && scheduledTasksCount > 0 && (
-                      <span className="ml-1 text-xs rounded-full px-2 py-0.5 bg-walls-yellow/70 text-black font-semibold">
+                      <span className="ml-1 text-xs rounded-full px-2 py-0.5 bg-kenoo-yellow/70 text-black font-semibold">
                         {scheduledTasksCount}
                       </span>
                     )}

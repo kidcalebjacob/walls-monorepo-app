@@ -165,7 +165,7 @@ export function HyperlinkTool({ editorRef }: HyperlinkToolProps) {
               disabled={!linkUrl.trim()}
               className="shrink-0 px-1.5 py-1.5 text-xs font-normal transition-all disabled:cursor-not-allowed disabled:opacity-50"
             >
-              <span className={linkUrl.trim() ? 'text-walls-sky hover:underline' : 'text-neutral-400'}>
+              <span className={linkUrl.trim() ? 'text-kenoo-sky hover:underline' : 'text-neutral-400'}>
                 Apply
               </span>
             </button>

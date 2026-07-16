@@ -99,9 +99,9 @@ function TooltipRow({
       <span
         className={
           accent === "sky"
-            ? "font-medium text-[var(--walls-sky)]"
+            ? "font-medium text-[var(--kenoo-sky)]"
             : accent === "yellow"
-              ? "font-medium text-[var(--walls-yellow)]"
+              ? "font-medium text-[var(--kenoo-yellow)]"
               : "font-medium text-neutral-100"
         }
       >
@@ -119,7 +119,7 @@ export function SpendTrendChart({ days }: SpendTrendChartProps) {
     <div className="relative w-full">
       {!hasLiveData ? (
         <div className="pointer-events-none absolute right-0 top-0 z-10">
-          <span className="rounded-full border border-neutral-200/80 bg-walls-white/90 px-2.5 py-0.5 text-[10px] font-light uppercase tracking-wider text-neutral-500 shadow-sm">
+          <span className="rounded-full border border-neutral-200/80 bg-kenoo-white/90 px-2.5 py-0.5 text-[10px] font-light uppercase tracking-wider text-neutral-500 shadow-sm">
             Preview
           </span>
         </div>
@@ -127,15 +127,15 @@ export function SpendTrendChart({ days }: SpendTrendChartProps) {
 
       <div className="mb-4 flex flex-wrap gap-x-5 gap-y-2 text-[11px] font-light uppercase tracking-wider text-neutral-400">
         <span className="inline-flex items-center gap-1.5">
-          <span className="h-0.5 w-4 rounded-full bg-[var(--walls-sky)]" />
+          <span className="h-0.5 w-4 rounded-full bg-[var(--kenoo-sky)]" />
           Spend
         </span>
         <span className="inline-flex items-center gap-1.5">
-          <span className="h-0.5 w-4 rounded-full bg-[var(--walls-yellow)]" />
+          <span className="h-0.5 w-4 rounded-full bg-[var(--kenoo-yellow)]" />
           Purchase value
         </span>
         <span className="inline-flex items-center gap-1.5">
-          <span className="h-0.5 w-4 rounded-full bg-[var(--walls-blue)]" />
+          <span className="h-0.5 w-4 rounded-full bg-[var(--kenoo-blue)]" />
           Impressions
         </span>
       </div>
@@ -148,16 +148,16 @@ export function SpendTrendChart({ days }: SpendTrendChartProps) {
           >
             <defs>
               <linearGradient id="adpilotSpendGrad" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stopColor="var(--walls-sky)" stopOpacity={0.28} />
-                <stop offset="100%" stopColor="var(--walls-sky)" stopOpacity={0} />
+                <stop offset="0%" stopColor="var(--kenoo-sky)" stopOpacity={0.28} />
+                <stop offset="100%" stopColor="var(--kenoo-sky)" stopOpacity={0} />
               </linearGradient>
               <linearGradient id="adpilotPurchaseGrad" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stopColor="var(--walls-yellow)" stopOpacity={0.22} />
-                <stop offset="100%" stopColor="var(--walls-yellow)" stopOpacity={0} />
+                <stop offset="0%" stopColor="var(--kenoo-yellow)" stopOpacity={0.22} />
+                <stop offset="100%" stopColor="var(--kenoo-yellow)" stopOpacity={0} />
               </linearGradient>
               <linearGradient id="adpilotImpressionsGrad" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stopColor="var(--walls-blue)" stopOpacity={0.2} />
-                <stop offset="100%" stopColor="var(--walls-blue)" stopOpacity={0} />
+                <stop offset="0%" stopColor="var(--kenoo-blue)" stopOpacity={0.2} />
+                <stop offset="100%" stopColor="var(--kenoo-blue)" stopOpacity={0} />
               </linearGradient>
             </defs>
 
@@ -203,15 +203,15 @@ export function SpendTrendChart({ days }: SpendTrendChartProps) {
               yAxisId="impressions"
               type="monotone"
               dataKey="impressions"
-              stroke="var(--walls-blue)"
+              stroke="var(--kenoo-blue)"
               strokeWidth={2}
               fill="url(#adpilotImpressionsGrad)"
               name="Impressions"
               dot={false}
               activeDot={{
                 r: 4,
-                fill: "var(--walls-white)",
-                stroke: "var(--walls-blue)",
+                fill: "var(--kenoo-white)",
+                stroke: "var(--kenoo-blue)",
                 strokeWidth: 2,
               }}
             />
@@ -220,15 +220,15 @@ export function SpendTrendChart({ days }: SpendTrendChartProps) {
               yAxisId="dollars"
               type="monotone"
               dataKey="purchaseValue"
-              stroke="var(--walls-yellow)"
+              stroke="var(--kenoo-yellow)"
               strokeWidth={2}
               fill="url(#adpilotPurchaseGrad)"
               name="Purchase value"
               dot={false}
               activeDot={{
                 r: 4,
-                fill: "var(--walls-white)",
-                stroke: "var(--walls-yellow)",
+                fill: "var(--kenoo-white)",
+                stroke: "var(--kenoo-yellow)",
                 strokeWidth: 2,
               }}
             />
@@ -237,14 +237,14 @@ export function SpendTrendChart({ days }: SpendTrendChartProps) {
               yAxisId="dollars"
               type="monotone"
               dataKey="spend"
-              stroke="var(--walls-sky)"
+              stroke="var(--kenoo-sky)"
               strokeWidth={2.5}
               fill="url(#adpilotSpendGrad)"
               name="Spend"
               activeDot={{
                 r: 5,
-                fill: "var(--walls-white)",
-                stroke: "var(--walls-sky)",
+                fill: "var(--kenoo-white)",
+                stroke: "var(--kenoo-sky)",
                 strokeWidth: 2.5,
               }}
             />

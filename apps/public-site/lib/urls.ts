@@ -1,3 +1,6 @@
-/** External WALLS agency domain — auth and internal apps live here, not on the marketing site. */
-export const WALLS_AGENCY_PORTAL_URL =
+/** Auth and product apps live on the portal domain, not the marketing site. */
+export const KENOO_PORTAL_URL =
   process.env.NEXT_PUBLIC_WALLS_AGENCY_URL ?? "https://walls.agency";
+
+/** @deprecated Use KENOO_PORTAL_URL */
+export const WALLS_AGENCY_PORTAL_URL = KENOO_PORTAL_URL;

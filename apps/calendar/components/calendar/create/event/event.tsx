@@ -468,7 +468,7 @@ export function Event({ onDataChange }: EventProps) {
               onCheckedChange={(checked) => setEventData({ ...eventData, useGoogleMeet: checked })}
               onFocus={() => setFocusedField('google-meet')}
               onBlur={() => setFocusedField(null)}
-              className="data-[state=checked]:bg-walls-light"
+              className="data-[state=checked]:bg-kenoo-light"
             />
           </div>
           

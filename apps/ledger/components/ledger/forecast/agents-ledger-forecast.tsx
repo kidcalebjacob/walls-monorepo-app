@@ -497,9 +497,9 @@ function AgentsLedgerForecastContent({ analyticsData: _analyticsData }: AgentsLe
                     <AnimatedAmount value={projectedAnnualIncome} />
                   </p>
                   <span className="mt-0.5 font-light text-neutral-500 uppercase tracking-wider text-xs inline-flex items-center gap-2 w-full max-w-[140px]">
-                    <span className="flex-1 min-w-0 border-t-2 border-solid border-[var(--walls-lime)]" />
+                    <span className="flex-1 min-w-0 border-t-2 border-solid border-[var(--kenoo-lime)]" />
                     <span className="flex-shrink-0">Annual Income</span>
-                    <span className="flex-1 min-w-0 border-t-2 border-solid border-[var(--walls-lime)]" />
+                    <span className="flex-1 min-w-0 border-t-2 border-solid border-[var(--kenoo-lime)]" />
                   </span>
                 </div>
 

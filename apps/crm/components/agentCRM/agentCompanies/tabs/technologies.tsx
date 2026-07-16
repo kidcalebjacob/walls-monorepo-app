@@ -45,7 +45,7 @@ export default function Technologies({ formData }: TechnologyProps) {
                 <div className="grid grid-cols-2 gap-6 pt-6">
             {formData.current_technologies?.map((tech: any, index: number) => (
               <div key={index} className="flex items-center gap-4">
-                <h3 className="text-lg font-semibold text-black bg-walls-yellow/70 px-2 py-1 rounded">
+                <h3 className="text-lg font-semibold text-black bg-kenoo-yellow/70 px-2 py-1 rounded">
                   {tech.name}
                 </h3>
                 <div className="flex-1 border-t border-black h-[1px]" />

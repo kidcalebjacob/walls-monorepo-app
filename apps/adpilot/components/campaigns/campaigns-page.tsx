@@ -136,7 +136,7 @@ function ResizableHeader({
   return (
     <th
       className={cn(
-        "relative bg-walls-white py-3 pr-4 text-left text-xs font-medium tracking-wide whitespace-nowrap text-neutral-400 uppercase select-none",
+        "relative bg-kenoo-white py-3 pr-4 text-left text-xs font-medium tracking-wide whitespace-nowrap text-neutral-400 uppercase select-none",
         indented && "pl-3",
       )}
       style={{ width }}
@@ -321,7 +321,7 @@ export function CampaignsPage() {
     "Last 30 days";
 
   return (
-    <div className="flex h-full min-h-0 flex-col bg-walls-white">
+    <div className="flex h-full min-h-0 flex-col bg-kenoo-white">
       <div className="flex min-h-0 flex-1 flex-col px-6 pt-8 pb-6 md:px-10 md:pt-10">
         <div className="mb-6 shrink-0">
           <SegmentToggle
@@ -356,8 +356,8 @@ export function CampaignsPage() {
                 onChange={(event) => setSearch(event.target.value)}
                 className={cn(
                   "w-full rounded-none border-0 border-b bg-transparent py-2 pl-6 pr-3 text-sm font-light transition-colors placeholder:text-neutral-300 focus:outline-none",
-                  search ? "border-b-[var(--walls-sky)]" : "border-neutral-200",
-                  "focus:border-b-[var(--walls-sky)]",
+                  search ? "border-b-[var(--kenoo-sky)]" : "border-neutral-200",
+                  "focus:border-b-[var(--kenoo-sky)]",
                 )}
               />
             </div>
@@ -376,7 +376,7 @@ export function CampaignsPage() {
                 >
                   {accountFilter ? (
                     <span
-                      className="h-2 w-2 flex-shrink-0 rounded-full bg-[var(--walls-sky)]"
+                      className="h-2 w-2 flex-shrink-0 rounded-full bg-[var(--kenoo-sky)]"
                       aria-hidden
                     />
                   ) : null}
@@ -437,7 +437,7 @@ export function CampaignsPage() {
                             className={cn(
                               "h-2 w-2 flex-shrink-0 rounded-full",
                               accountFilter === account.id
-                                ? "bg-[var(--walls-sky)]"
+                                ? "bg-[var(--kenoo-sky)]"
                                 : "bg-neutral-200",
                             )}
                             aria-hidden
@@ -465,7 +465,7 @@ export function CampaignsPage() {
                 >
                   {objectiveFilter ? (
                     <span
-                      className="h-2 w-2 flex-shrink-0 rounded-full bg-[var(--walls-sky)]"
+                      className="h-2 w-2 flex-shrink-0 rounded-full bg-[var(--kenoo-sky)]"
                       aria-hidden
                     />
                   ) : null}
@@ -526,7 +526,7 @@ export function CampaignsPage() {
                             className={cn(
                               "h-2 w-2 flex-shrink-0 rounded-full",
                               objectiveFilter === objective.value
-                                ? "bg-[var(--walls-sky)]"
+                                ? "bg-[var(--kenoo-sky)]"
                                 : "bg-neutral-200",
                             )}
                             aria-hidden
@@ -587,7 +587,7 @@ export function CampaignsPage() {
                         className={cn(
                           "h-2 w-2 flex-shrink-0 rounded-full",
                           timeRange === option.value
-                            ? "bg-[var(--walls-sky)]"
+                            ? "bg-[var(--kenoo-sky)]"
                             : "bg-neutral-200",
                         )}
                         aria-hidden
@@ -640,7 +640,7 @@ export function CampaignsPage() {
                 <col key={columnId} style={{ width: widths[columnId] }} />
               ))}
             </colgroup>
-            <thead className="sticky top-0 z-10 border-b border-neutral-100 bg-walls-white">
+            <thead className="sticky top-0 z-10 border-b border-neutral-100 bg-kenoo-white">
               <tr>
                 {CAMPAIGN_COLUMN_IDS.map((columnId, index) => (
                   <ResizableHeader
@@ -710,7 +710,7 @@ export function CampaignsPage() {
                         {detailHref ? (
                           <Link
                             href={detailHref}
-                            className="truncate text-sm font-medium text-neutral-800 transition-colors hover:text-[var(--walls-sky)]"
+                            className="truncate text-sm font-medium text-neutral-800 transition-colors hover:text-[var(--kenoo-sky)]"
                           >
                             {row.name}
                           </Link>
@@ -734,7 +734,7 @@ export function CampaignsPage() {
                         ) : parentHref ? (
                           <Link
                             href={parentHref}
-                            className="transition-colors hover:text-[var(--walls-sky)]"
+                            className="transition-colors hover:text-[var(--kenoo-sky)]"
                           >
                             {row.parentName ?? "—"}
                           </Link>
@@ -750,7 +750,7 @@ export function CampaignsPage() {
                       <span className="inline-flex items-center gap-1.5">
                         {isActiveStatus(row.status) ? (
                           <span
-                            className="h-2 w-2 flex-shrink-0 rounded-full bg-[var(--walls-sky)]"
+                            className="h-2 w-2 flex-shrink-0 rounded-full bg-[var(--kenoo-sky)]"
                             aria-hidden
                           />
                         ) : null}

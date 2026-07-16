@@ -2,7 +2,7 @@ import { Input as BorderlessInput } from "@/components/ui/borderless-input";
 import { ContactSearch } from "@/components/ui/searches/contactSearch/contact-search";
 
 const vendorFieldClass =
-  "border-0 border-b border-neutral-200 rounded-none px-0 py-2 font-light focus:outline-none focus-visible:outline-none focus-visible:ring-0 focus:ring-0 focus:border-b-[var(--walls-sky)] bg-transparent w-full placeholder:text-neutral-300";
+  "border-0 border-b border-neutral-200 rounded-none px-0 py-2 font-light focus:outline-none focus-visible:outline-none focus-visible:ring-0 focus:ring-0 focus:border-b-[var(--kenoo-sky)] bg-transparent w-full placeholder:text-neutral-300";
 const labelClass = "text-xs font-normal text-neutral-400 tracking-wide block mb-1";
 
 interface VendorInformationProps {

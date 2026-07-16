@@ -28,12 +28,12 @@ import { ProfileProgressIndicator } from "@/components/settings/talentSettings/p
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 const fieldClass =
-  "border-0 border-b border-neutral-200 rounded-none px-0 py-2 font-light focus:outline-none focus-visible:outline-none focus-visible:ring-0 focus:ring-0 focus:border-b-[var(--walls-sky)] bg-transparent w-full placeholder:text-neutral-300";
+  "border-0 border-b border-neutral-200 rounded-none px-0 py-2 font-light focus:outline-none focus-visible:outline-none focus-visible:ring-0 focus:ring-0 focus:border-b-[var(--kenoo-sky)] bg-transparent w-full placeholder:text-neutral-300";
 const labelClass = "text-xs font-normal text-neutral-400 tracking-wide block mb-1";
 const readonlyFieldClass =
   "border-0 border-b border-neutral-200 rounded-none px-0 py-2 font-light bg-transparent w-full text-neutral-400 placeholder:text-neutral-300 cursor-not-allowed pr-10";
 const selectTriggerClass =
-  "w-full border-0 border-b border-neutral-200 rounded-none px-0 py-2 h-auto min-h-0 font-light shadow-none focus:outline-none focus-visible:outline-none focus-visible:ring-0 focus:ring-0 focus:border-b-[var(--walls-sky)] bg-transparent";
+  "w-full border-0 border-b border-neutral-200 rounded-none px-0 py-2 h-auto min-h-0 font-light shadow-none focus:outline-none focus-visible:outline-none focus-visible:ring-0 focus:ring-0 focus:border-b-[var(--kenoo-sky)] bg-transparent";
 
 const AgentSettingsPage = () => {
   const { user } = useAuth();
@@ -512,7 +512,7 @@ const AgentSettingsPage = () => {
   }, [existingFirstName, existingLastName, existingPersonalEmail, existingLinkedInUrl, existingPhoneNumber, existingTimezone]);
 
   return (
-    <div className="flex flex-col h-full overflow-y-auto overscroll-none bg-walls-white">
+    <div className="flex flex-col h-full overflow-y-auto overscroll-none bg-kenoo-white">
       <div className="w-full">
         <div className="max-w-5xl mx-auto px-8 pb-8">
           {/* Header */}
@@ -788,7 +788,7 @@ const AgentSettingsPage = () => {
                             }}
                             placeholder="Search timezones…"
                             className={`w-full rounded-none border-0 border-b bg-transparent py-2 pl-6 pr-4 text-sm font-light transition-colors placeholder:text-neutral-300 focus:outline-none focus-visible:outline-none ${
-                              timezoneSearchTerm.trim() ? "border-b-[var(--walls-sky)]" : "border-neutral-200"
+                              timezoneSearchTerm.trim() ? "border-b-[var(--kenoo-sky)]" : "border-neutral-200"
                             }`}
                             onClick={(e) => e.stopPropagation()}
                           />
@@ -817,7 +817,7 @@ const AgentSettingsPage = () => {
                             </div>
                           </div>
                           {!timezone && (
-                            <span className="absolute right-4 top-1/2 z-10 -translate-y-1/2 text-[10px] font-light lowercase leading-none tracking-wide text-[var(--walls-sky)]">
+                            <span className="absolute right-4 top-1/2 z-10 -translate-y-1/2 text-[10px] font-light lowercase leading-none tracking-wide text-[var(--kenoo-sky)]">
                               selected
                             </span>
                           )}
@@ -882,7 +882,7 @@ const AgentSettingsPage = () => {
                                               </div>
                                             </div>
                                             {isSelected && (
-                                              <span className="absolute right-4 top-1/2 z-10 -translate-y-1/2 text-[10px] font-light lowercase leading-none tracking-wide text-[var(--walls-sky)]">
+                                              <span className="absolute right-4 top-1/2 z-10 -translate-y-1/2 text-[10px] font-light lowercase leading-none tracking-wide text-[var(--kenoo-sky)]">
                                                 selected
                                               </span>
                                             )}
@@ -930,7 +930,7 @@ const AgentSettingsPage = () => {
                         }}
                         className="absolute left-4 flex items-center pointer-events-none"
                       >
-                        <Check className="h-4 w-4 text-walls-yellow" />
+                        <Check className="h-4 w-4 text-kenoo-yellow" />
                       </motion.div>
                     )}
                   </AnimatePresence>

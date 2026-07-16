@@ -1,27 +1,13 @@
-"use client";
+import type { Metadata } from "next";
 
-import { useInView } from "react-intersection-observer";
+import ContactPage from "@/components/kenoo/contact-page";
 
-import { ContactForm } from "@/components/contactPage/contact-page";
-import { PublicHeader } from "@/components/public-header";
-import FooterContainer from "@/components/footer-container";
+export const metadata: Metadata = {
+  title: "Contact",
+  description: "Contact the Kenoo team about sales, partnerships, or a product walkthrough.",
 
-export default function ContactPage() {
-  const { ref, inView } = useInView({
-    threshold: 0,
-    initialInView: true,
-  });
+};
 
-  return (
-    <main className="min-h-screen w-full bg-gray-50">
-      <div ref={ref} className="absolute top-0 h-1 w-full" />
-      <PublicHeader inView={inView} />
-
-      <div className="mx-auto max-w-7xl px-4 pt-28 pb-16 md:px-6">
-        <ContactForm />
-      </div>
-
-      <FooterContainer />
-    </main>
-  );
+export default function Page() {
+  return <ContactPage />;
 }

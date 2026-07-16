@@ -193,9 +193,9 @@ function AddressAutoCompleteInput(props: CommonProps) {
             className={cn(
               "w-full pl-6 pr-3 py-2 text-sm bg-transparent border-0 border-b focus:outline-none focus-visible:outline-none transition-colors placeholder:text-neutral-300 font-light rounded-none",
               searchInput.trim()
-                ? "border-b-[var(--walls-sky)]"
+                ? "border-b-[var(--kenoo-sky)]"
                 : "border-neutral-200",
-              "focus:border-b-[var(--walls-sky)]",
+              "focus:border-b-[var(--kenoo-sky)]",
             )}
           />
         </div>
@@ -249,7 +249,7 @@ function AddressAutoCompleteInput(props: CommonProps) {
                             close(); // Close dropdown when address is selected
                             // Dialog removed - address will be set automatically when place details are fetched
                           }}
-                          className="flex select-text flex-row cursor-pointer gap-3 h-max p-3 px-4 rounded-lg transition-all duration-200 aria-selected:bg-black aria-selected:text-walls-yellow hover:!bg-neutral-200 hover:!text-black data-[selected=true]:bg-neutral-300 data-[selected=true]:text-black items-center group"
+                          className="flex select-text flex-row cursor-pointer gap-3 h-max p-3 px-4 rounded-lg transition-all duration-200 aria-selected:bg-black aria-selected:text-kenoo-yellow hover:!bg-neutral-200 hover:!text-black data-[selected=true]:bg-neutral-300 data-[selected=true]:text-black items-center group"
                           key={prediction.placePrediction.placeId}
                           onMouseDown={(e) => e.preventDefault()}
                         >

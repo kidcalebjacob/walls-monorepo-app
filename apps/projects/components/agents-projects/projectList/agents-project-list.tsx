@@ -196,7 +196,7 @@ function ColumnHeaders({
   );
 
   return (
-    <div className="sticky top-0 z-10 flex items-center gap-8 border-b border-neutral-100 bg-walls-white px-5 py-2">
+    <div className="sticky top-0 z-10 flex items-center gap-8 border-b border-neutral-100 bg-kenoo-white px-5 py-2">
       <div className="w-1 flex-shrink-0" />
       <div className="flex-1 min-w-0">{headerBtn("name", "Name")}</div>
       <div className="mr-36 hidden w-40 shrink-0 pl-1 sm:flex">{headerBtn("progress", "Progress")}</div>
@@ -315,7 +315,7 @@ function ProjectRow({ project, index, onEdit }: ProjectRowProps) {
           <div
             className={cn(
               "h-full rounded-full transition-all duration-500",
-              pct === 100 ? "bg-walls-yellow" : "bg-walls-sky/50"
+              pct === 100 ? "bg-kenoo-yellow" : "bg-kenoo-sky/50"
             )}
             style={{ width: `${pct}%` }}
           />
@@ -473,8 +473,8 @@ function SearchToolbar({
           onChange={(e) => onSearch(e.target.value)}
           className={cn(
             "w-full pl-6 pr-3 py-2 text-sm bg-transparent border-0 border-b focus:outline-none transition-colors placeholder:text-neutral-300 font-light rounded-none",
-            search ? "border-b-[var(--walls-sky)]" : "border-neutral-200",
-            "focus:border-b-[var(--walls-sky)]"
+            search ? "border-b-[var(--kenoo-sky)]" : "border-neutral-200",
+            "focus:border-b-[var(--kenoo-sky)]"
           )}
         />
       </div>

@@ -50,7 +50,7 @@ import {
 const popupButtonOuterClass =
   "w-10 h-10 p-0 text-slate-600 hover:bg-transparent flex items-center justify-center shadow-none relative group flex-shrink-0 disabled:opacity-50 disabled:cursor-not-allowed";
 const popupButtonInnerClass =
-  "relative z-10 p-3 rounded-full transition-all duration-300 ease-in-out group-hover:bg-walls-white group-hover:border group-hover:border-neutral-200 group-hover:shadow-[inset_0_4px_8px_rgba(0,0,0,0.15)] group-hover:scale-95";
+  "relative z-10 p-3 rounded-full transition-all duration-300 ease-in-out group-hover:bg-kenoo-white group-hover:border group-hover:border-neutral-200 group-hover:shadow-[inset_0_4px_8px_rgba(0,0,0,0.15)] group-hover:scale-95";
 const fieldLabelClass =
   "text-[11px] font-normal uppercase tracking-[0.16em] text-neutral-500";
 const fieldValueClass = "truncate text-[15px] font-light text-neutral-900";
@@ -402,7 +402,7 @@ export function CreateProjectsPopup({
               onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
               placeholder="Add project name"
               disabled={saving}
-              className="border-0 border-b-2 rounded-none bg-transparent shadow-none focus:ring-0 focus-visible:ring-0 px-0 border-b-[var(--walls-sky)] focus:border-b-[var(--walls-sky)] placeholder:text-neutral-300"
+              className="border-0 border-b-2 rounded-none bg-transparent shadow-none focus:ring-0 focus-visible:ring-0 px-0 border-b-[var(--kenoo-sky)] focus:border-b-[var(--kenoo-sky)] placeholder:text-neutral-300"
             />
 
             <SimpleMarkdownEditor

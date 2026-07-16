@@ -450,7 +450,7 @@ export default function AddStepPopup({
                                     isDisabled
                                       ? '!bg-transparent backdrop-blur-none opacity-50 cursor-not-allowed'
                                       : selectedStep === step.id
-                                      ? 'ring-1 ring-walls-yellow bg-white/70 backdrop-blur-sm shadow-[inset_0_4px_8px_rgba(0,0,0,0.12)]'
+                                      ? 'ring-1 ring-kenoo-yellow bg-white/70 backdrop-blur-sm shadow-[inset_0_4px_8px_rgba(0,0,0,0.12)]'
                                       : '!bg-transparent backdrop-blur-none hover:bg-gray-50/70 hover:shadow-[inset_0_4px_8px_rgba(0,0,0,0.12)] hover:scale-[0.99]'
                                   }`}
                                 >

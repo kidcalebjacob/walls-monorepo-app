@@ -43,11 +43,11 @@ import {
 const invoiceFieldWrapperClass =
   "border-0 border-b border-neutral-200 rounded-none px-0 py-0 bg-transparent";
 const invoiceInputInnerClass =
-  "border-0 bg-transparent px-0 py-2 font-light focus:outline-none focus-visible:outline-none focus-visible:ring-0 focus:ring-0 focus:border-b-[var(--walls-sky)] w-full min-w-0 placeholder:text-neutral-300";
+  "border-0 bg-transparent px-0 py-2 font-light focus:outline-none focus-visible:outline-none focus-visible:ring-0 focus:ring-0 focus:border-b-[var(--kenoo-sky)] w-full min-w-0 placeholder:text-neutral-300";
 const invoiceSelectTriggerClass =
-  "w-full border-0 border-b border-neutral-200 rounded-none px-0 py-2 font-light bg-transparent justify-between shadow-none focus:outline-none focus-visible:outline-none focus-visible:ring-0 focus:ring-0 focus:border-b-[var(--walls-sky)] hover:bg-transparent [&_[data-placeholder]]:text-neutral-300";
+  "w-full border-0 border-b border-neutral-200 rounded-none px-0 py-2 font-light bg-transparent justify-between shadow-none focus:outline-none focus-visible:outline-none focus-visible:ring-0 focus:ring-0 focus:border-b-[var(--kenoo-sky)] hover:bg-transparent [&_[data-placeholder]]:text-neutral-300";
 const invoiceDateButtonClass =
-  "w-full border-0 border-b border-neutral-200 rounded-none px-0 py-2 bg-transparent text-left transition-colors hover:border-b-[var(--walls-sky)] focus:outline-none focus-visible:outline-none focus-visible:ring-0 focus:ring-0";
+  "w-full border-0 border-b border-neutral-200 rounded-none px-0 py-2 bg-transparent text-left transition-colors hover:border-b-[var(--kenoo-sky)] focus:outline-none focus-visible:outline-none focus-visible:ring-0 focus:ring-0";
 const lineItemHeaderClass =
   "text-left pb-3 pr-4 text-[11px] font-normal uppercase tracking-[0.16em] text-neutral-500 whitespace-nowrap";
 
@@ -846,7 +846,7 @@ export function InvoiceDetailsCard({
                         <button
                           type="button"
                           onClick={onApplyRecommendedTax}
-                          className="text-xs font-medium text-[var(--walls-sky)] hover:underline"
+                          className="text-xs font-medium text-[var(--kenoo-sky)] hover:underline"
                         >
                           Apply recommended tax
                         </button>
@@ -1139,7 +1139,7 @@ export function InvoiceDetailsCard({
                                         className={cn(
                                           "text-xs font-light underline underline-offset-4 decoration-dotted cursor-pointer",
                                           row.deal_deliverable_id
-                                            ? "text-[var(--walls-sky)]"
+                                            ? "text-[var(--kenoo-sky)]"
                                             : "text-neutral-400"
                                         )}
                                         title={lineItemDeliverableLabel(deliverables, row.deal_deliverable_id)}

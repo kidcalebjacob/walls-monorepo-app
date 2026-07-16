@@ -65,8 +65,8 @@ function TableToolbar({
             }}
             className={cn(
               "w-full pl-6 pr-3 py-2 text-sm bg-transparent border-0 border-b focus:outline-none focus-visible:outline-none transition-colors placeholder:text-neutral-300 font-light rounded-none",
-              searchTerm ? "border-b-[var(--walls-sky)]" : "border-neutral-200",
-              "focus:border-b-[var(--walls-sky)]"
+              searchTerm ? "border-b-[var(--kenoo-sky)]" : "border-neutral-200",
+              "focus:border-b-[var(--kenoo-sky)]"
             )}
           />
         </div>
@@ -341,24 +341,24 @@ const EnrichmentStatus = ({ status, website, userId, contact, person, companyId,
               <>
                 <div
                   className={`w-5 h-[3px] rounded-sm transition-all duration-300 ${
-                    isSuccess ? 'bg-walls-sky/60' :
+                    isSuccess ? 'bg-kenoo-sky/60' :
                     isLoading ? 'bg-blue-500' :
-                    status === 'fresh' ? 'bg-walls-sky/60' : 'bg-gray-300'
+                    status === 'fresh' ? 'bg-kenoo-sky/60' : 'bg-gray-300'
                   }`}
                 />
                 <div
                   className={`w-4 h-[3px] rounded-sm transition-all duration-300 ${
-                    isSuccess ? 'bg-walls-sky/60' :
+                    isSuccess ? 'bg-kenoo-sky/60' :
                     isLoading ? 'bg-blue-400 delay-100' :
-                    status === 'fresh' ? 'bg-walls-sky/60' :
+                    status === 'fresh' ? 'bg-kenoo-sky/60' :
                     status === 'moderate' ? 'bg-yellow-500' : 'bg-gray-300'
                   }`}
                 />
                 <div
                   className={`w-3 h-[3px] rounded-sm transition-all duration-300 ${
-                    isSuccess ? 'bg-walls-sky/60' :
+                    isSuccess ? 'bg-kenoo-sky/60' :
                     isLoading ? 'bg-blue-300 delay-200' :
-                    status === 'fresh' ? 'bg-walls-sky/60' :
+                    status === 'fresh' ? 'bg-kenoo-sky/60' :
                     status === 'moderate' ? 'bg-yellow-500' : 'bg-red-500'
                   }`}
                 />
@@ -784,7 +784,7 @@ export default function DepartmentHeadcount({ formData, handleInputChange, compa
                   {/* Hold-to-fill overlay */}
                   <motion.div
                     aria-hidden
-                    className="pointer-events-none absolute inset-0 z-0 rounded-md bg-walls-yellow"
+                    className="pointer-events-none absolute inset-0 z-0 rounded-md bg-kenoo-yellow"
                     style={{ scaleY: holdFill, transformOrigin: "50% 100%" }}
                   />
                   <div className="relative z-10 flex items-center gap-2">
@@ -839,7 +839,7 @@ export default function DepartmentHeadcount({ formData, handleInputChange, compa
                             className={cn(
                               "border-b border-neutral-50",
                               "transition-colors duration-700",
-                              newlyAddedPersonIds.has(person.id) ? "bg-walls-yellow/15 hover:bg-walls-yellow/35" : "hover:bg-neutral-50/80"
+                              newlyAddedPersonIds.has(person.id) ? "bg-kenoo-yellow/15 hover:bg-kenoo-yellow/35" : "hover:bg-neutral-50/80"
                             )}
                           >
                             <td className="py-4 pr-4 min-w-0 overflow-hidden">
@@ -1030,7 +1030,7 @@ export default function DepartmentHeadcount({ formData, handleInputChange, compa
                                       <div className="flex flex-col min-w-0 overflow-hidden">
                                         <span className={cn(
                                           "text-neutral-700 font-light text-xs truncate",
-                                          contact.isTopCandidate ? "text-black bg-walls-yellow/70 px-2 py-1 rounded inline-block" : ""
+                                          contact.isTopCandidate ? "text-black bg-kenoo-yellow/70 px-2 py-1 rounded inline-block" : ""
                                         )}>
                                           {contact.firstName} {contact.lastName}
                                         </span>
@@ -1068,7 +1068,7 @@ export default function DepartmentHeadcount({ formData, handleInputChange, compa
                                       <div className="flex flex-col min-w-0 overflow-hidden">
                                         <span className={cn(
                                           "text-neutral-700 font-light text-xs truncate",
-                                          contact.isTopCandidate ? "text-black bg-walls-yellow/70 px-2 py-1 rounded inline-block" : ""
+                                          contact.isTopCandidate ? "text-black bg-kenoo-yellow/70 px-2 py-1 rounded inline-block" : ""
                                         )}>
                                           {contact.firstName} {contact.lastName}
                                         </span>

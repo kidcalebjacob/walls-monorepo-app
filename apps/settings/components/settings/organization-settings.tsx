@@ -33,7 +33,7 @@ import type { OrganizationRecord } from "@/lib/organizations-shared";
 import { OrganizationMembers } from "@/components/settings/organization-members";
 
 const fieldClass =
-  "border-0 border-b border-neutral-200 rounded-none px-0 py-2 font-light focus:outline-none focus-visible:outline-none focus-visible:ring-0 focus:ring-0 focus:border-b-[var(--walls-sky)] bg-transparent w-full placeholder:text-neutral-300";
+  "border-0 border-b border-neutral-200 rounded-none px-0 py-2 font-light focus:outline-none focus-visible:outline-none focus-visible:ring-0 focus:ring-0 focus:border-b-[var(--kenoo-sky)] bg-transparent w-full placeholder:text-neutral-300";
 const labelClass =
   "text-xs font-normal text-neutral-400 tracking-wide block mb-1";
 const readonlyFieldClass =
@@ -97,7 +97,7 @@ function OrganizationSwitcher({
         <button
           type="button"
           className={cn(
-            "flex min-w-0 max-w-[min(100vw-8rem,280px)] items-center gap-3 rounded-xl bg-walls-white px-3 py-2.5 text-left transition",
+            "flex min-w-0 max-w-[min(100vw-8rem,280px)] items-center gap-3 rounded-xl bg-kenoo-white px-3 py-2.5 text-left transition",
             "hover:bg-neutral-50",
             "focus:outline-none",
             open && "bg-neutral-50",
@@ -125,7 +125,7 @@ function OrganizationSwitcher({
       <DropdownMenuContent
         align="start"
         sideOffset={8}
-        className="z-[110] w-[min(100vw-2rem,320px)] rounded-2xl border-0 bg-walls-white p-2 shadow-xl"
+        className="z-[110] w-[min(100vw-2rem,320px)] rounded-2xl border-0 bg-kenoo-white p-2 shadow-xl"
       >
         <p className="px-2 pb-1 pt-1 text-sm font-medium text-neutral-500">
           Choose an organization
@@ -165,7 +165,7 @@ function OrganizationSwitcher({
                   </div>
                   {organization.isDefault ? (
                     <Star
-                      className="h-4 w-4 shrink-0 fill-[var(--walls-sky)] text-[var(--walls-sky)]"
+                      className="h-4 w-4 shrink-0 fill-[var(--kenoo-sky)] text-[var(--kenoo-sky)]"
                       strokeWidth={2}
                     />
                   ) : (
@@ -663,7 +663,7 @@ export default function OrganizationSettingsPage() {
 
   if (loading) {
     return (
-      <div className="flex h-full flex-col overflow-y-auto overscroll-none bg-walls-white">
+      <div className="flex h-full flex-col overflow-y-auto overscroll-none bg-kenoo-white">
         <div className="mx-auto w-full max-w-5xl px-8 pb-8">
           <Skeleton className="mb-8 mt-8 h-10 w-64" />
           <Skeleton className="mb-4 h-[120px] w-[120px] rounded-2xl" />
@@ -679,7 +679,7 @@ export default function OrganizationSettingsPage() {
     editable ? fieldClass : readonlyFieldClass;
 
   return (
-    <div className="flex h-full flex-col overflow-y-auto overscroll-none bg-walls-white">
+    <div className="flex h-full flex-col overflow-y-auto overscroll-none bg-kenoo-white">
       <div className="mx-auto w-full max-w-5xl px-8 pb-8">
         <Toaster />
 
@@ -766,7 +766,7 @@ export default function OrganizationSettingsPage() {
               <Button
                 type="button"
                 disabled={creating}
-                className="rounded-none border border-neutral-200/50 bg-walls-yellow px-8 py-6 font-normal text-black hover:bg-walls-yellow"
+                className="rounded-none border border-neutral-200/50 bg-kenoo-yellow px-8 py-6 font-normal text-black hover:bg-kenoo-yellow"
                 onClick={() => void handleCreate()}
               >
                 {creating ? (
@@ -822,7 +822,7 @@ export default function OrganizationSettingsPage() {
                     )}
                   </Button>
                 ) : (
-                  <p className="mt-3 inline-flex w-[120px] items-center justify-center gap-1 text-[10px] font-medium uppercase tracking-wide text-[var(--walls-sky)]">
+                  <p className="mt-3 inline-flex w-[120px] items-center justify-center gap-1 text-[10px] font-medium uppercase tracking-wide text-[var(--kenoo-sky)]">
                     <Star className="h-3 w-3 fill-current" />
                     Default
                   </p>

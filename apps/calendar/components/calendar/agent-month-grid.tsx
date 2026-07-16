@@ -185,13 +185,13 @@ export function AgentMonthGrid({
                 className={cn(
                   "bg-white min-h-0 h-full p-2 pt-2 flex flex-col items-center transition-all relative hover:bg-neutral-50 overflow-hidden",
                   cornerClass,
-                  isSelected && "ring-1 ring-inset ring-walls-sky/60"
+                  isSelected && "ring-1 ring-inset ring-kenoo-sky/60"
                 )}
               >
                 <span
                   className={cn(
                     "shrink-0 text-xs font-light text-neutral-500 inline-flex items-center justify-center w-6 h-6 rounded-full",
-                    isToday && "bg-walls-yellow/60"
+                    isToday && "bg-kenoo-yellow/60"
                   )}
                 >
                   {day}

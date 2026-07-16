@@ -26,7 +26,7 @@ export function MobileFAB({ onClick, className, disabled = false }: MobileFABPro
           className
         )}
       >
-        <Plus className="w-8 h-8 text-walls-yellow flex-none" />
+        <Plus className="w-8 h-8 text-kenoo-yellow flex-none" />
       </button>
     </div>
   );

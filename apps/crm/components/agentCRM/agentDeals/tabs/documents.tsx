@@ -421,7 +421,7 @@ export default function Documents({ formData, setFormData }: DocumentsProps) {
               "transition-all duration-200 ease-out",
               isUploading ? "opacity-75 cursor-not-allowed" : "",
               isDragActive
-                ? "ring-2 ring-[var(--walls-sky)]/35 border-[var(--walls-sky)]/35 bg-white/55 shadow-[inset_0_10px_24px_rgba(0,0,0,0.10)] backdrop-blur-md"
+                ? "ring-2 ring-[var(--kenoo-sky)]/35 border-[var(--kenoo-sky)]/35 bg-white/55 shadow-[inset_0_10px_24px_rgba(0,0,0,0.10)] backdrop-blur-md"
                 : "hover:bg-neutral-100/70 hover:backdrop-blur-md hover:border-neutral-300/70 hover:shadow-[inset_0_10px_24px_rgba(0,0,0,0.10)]",
             ].join(" ")}
             aria-disabled={isUploading}

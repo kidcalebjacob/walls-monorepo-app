@@ -52,7 +52,7 @@ export default function AppHeader({
   return (
     <header
       className={cn(
-        "fixed inset-x-0 top-0 z-[100] flex h-16 items-center justify-between bg-walls-white px-4 transition-transform duration-300 sm:px-6",
+        "fixed inset-x-0 top-0 z-[100] flex h-16 items-center justify-between bg-kenoo-white px-4 transition-transform duration-300 sm:px-6",
         isHidden ? "-translate-y-full" : "translate-y-0",
         className,
       )}

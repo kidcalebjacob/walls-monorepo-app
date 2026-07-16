@@ -1130,7 +1130,7 @@ function AgentsProjectsTimelineContent({
                   >
                     <div className="relative z-10 flex h-7 items-center gap-2 rounded-full border border-transparent px-3 text-xs font-medium uppercase tracking-wider text-neutral-500 transition-all duration-300 ease-in-out group-hover:scale-95 group-hover:border-neutral-200 group-hover:bg-neutral-50 group-hover:shadow-[inset_0_2px_4px_rgba(0,0,0,0.10)]">
                       <span
-                        className="h-1.5 w-1.5 shrink-0 rounded-full bg-walls-yellow"
+                        className="h-1.5 w-1.5 shrink-0 rounded-full bg-kenoo-yellow"
                         aria-hidden
                       />
                       Today

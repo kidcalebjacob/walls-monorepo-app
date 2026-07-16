@@ -95,8 +95,8 @@ export function DetailSection({
           className="relative flex h-2 w-2 shrink-0"
           aria-label={`${collapsedBadgeCount} active instruction${collapsedBadgeCount === 1 ? "" : "s"}`}
         >
-          <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[var(--walls-sky)] opacity-60 motion-reduce:animate-none" />
-          <span className="relative inline-flex h-2 w-2 rounded-full bg-[var(--walls-sky)] shadow-[0_0_8px_var(--walls-sky)]" />
+          <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[var(--kenoo-sky)] opacity-60 motion-reduce:animate-none" />
+          <span className="relative inline-flex h-2 w-2 rounded-full bg-[var(--kenoo-sky)] shadow-[0_0_8px_var(--kenoo-sky)]" />
         </span>
       ) : null}
       <span className="text-2xl font-black tracking-tight text-black sm:text-3xl">
@@ -219,8 +219,8 @@ export function isActiveStatus(status: string | null) {
 }
 
 const ENTITY_METRIC_ACCENTS = [
-  "var(--walls-sky)",
-  "var(--walls-blue)",
+  "var(--kenoo-sky)",
+  "var(--kenoo-blue)",
   "#00d1c1",
   "#7a04eb",
 ] as const;
@@ -539,7 +539,7 @@ function ReachSaturationBar({
 
 export function AdPilotBadge() {
   return (
-    <span className="inline-flex items-center gap-1.5 rounded-full border border-walls-yellow/40 bg-walls-yellow/15 px-3 py-1 text-xs font-medium text-neutral-800">
+    <span className="inline-flex items-center gap-1.5 rounded-full border border-kenoo-yellow/40 bg-kenoo-yellow/15 px-3 py-1 text-xs font-medium text-neutral-800">
       <Bot className="h-3.5 w-3.5" />
       AdPilot active
     </span>
@@ -648,7 +648,7 @@ export function AdPilotEnableToggle({
           </motion.span>
         ) : null}
       </AnimatePresence>
-      <div className="relative inline-flex items-center gap-4 rounded-[14.5px] bg-walls-white px-4 py-2.5">
+      <div className="relative inline-flex items-center gap-4 rounded-[14.5px] bg-kenoo-white px-4 py-2.5">
         <div className="flex flex-col leading-tight">
           <span className="text-[11px] font-medium uppercase tracking-wider text-neutral-400">
             AdPilot

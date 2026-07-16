@@ -19,7 +19,7 @@ function AppSidebarContent({ children, className }: AppSidebarLayoutProps) {
       <AppSidebar headerVisible={false} />
       <div
         className={cn(
-          "flex h-screen min-w-0 flex-col overflow-hidden bg-walls-white transition-[margin-left] duration-300",
+          "flex h-screen min-w-0 flex-col overflow-hidden bg-kenoo-white transition-[margin-left] duration-300",
           isExpanded ? "md:ml-40" : "md:ml-16",
           className,
         )}

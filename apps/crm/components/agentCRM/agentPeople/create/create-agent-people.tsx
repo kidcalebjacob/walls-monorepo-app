@@ -461,7 +461,7 @@ export default function CreateAgentLeads({ analyticsData, isOpen, onClose, onSuc
               <Avatar className="h-16 w-16">
                 {isLoadingPhoto ? (
                   <div className="absolute inset-0 flex items-center justify-center bg-black/60 backdrop-blur-sm rounded-full before:absolute before:inset-0 before:rounded-full before:bg-gradient-to-r before:from-black/40 before:via-transparent before:to-black/40 before:animate-gradient-x">
-                    <span className="text-lg font-bold text-walls-yellow ai-text-glow relative z-10">AI</span>
+                    <span className="text-lg font-bold text-kenoo-yellow ai-text-glow relative z-10">AI</span>
                   </div>
                 ) : null}
                 <input
@@ -490,7 +490,7 @@ export default function CreateAgentLeads({ analyticsData, isOpen, onClose, onSuc
                   alt={formData.leadName} 
                   className="object-cover"
                 />
-                <AvatarFallback className="bg-walls-light/5">
+                <AvatarFallback className="bg-kenoo-light/5">
                   <User className="h-10 w-10 text-gray-400" />
                 </AvatarFallback>
               </Avatar>

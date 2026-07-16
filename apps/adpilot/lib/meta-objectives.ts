@@ -103,19 +103,19 @@ export function getProgressMetricColor(
 ): string {
   switch (key) {
     case "spend":
-      // Softer neon red for chart readability (not brand walls-red)
+      // Softer neon red for chart readability (not brand kenoo-red)
       return "#ff5c6a";
     case "earnings":
-      return "var(--walls-yellow)";
+      return "var(--kenoo-yellow)";
     case "reach":
     case "impressions":
-      return "var(--walls-sky)";
+      return "var(--kenoo-sky)";
     case "clicks":
-      return "var(--walls-blue)";
+      return "var(--kenoo-blue)";
     case "ctr":
-      return "var(--walls-emerald)";
+      return "var(--kenoo-emerald)";
     case "roas":
-      return "var(--walls-sky)";
+      return "var(--kenoo-sky)";
   }
 }
 

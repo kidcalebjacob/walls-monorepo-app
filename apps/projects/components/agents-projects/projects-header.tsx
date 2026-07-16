@@ -398,7 +398,7 @@ export function ProjectsHeader({
                 className="w-10 h-10 p-0 text-slate-600 hover:bg-transparent flex items-center justify-center shadow-none relative group flex-shrink-0 focus-visible:ring-0 focus-visible:ring-offset-0 focus:outline-none"
               >
                 <div className="relative">
-                  <div className="relative z-10 p-3 rounded-full transition-all duration-300 ease-in-out group-hover:bg-walls-white group-hover:border group-hover:border-neutral-200 group-hover:shadow-[inset_0_4px_8px_rgba(0,0,0,0.15)] group-hover:scale-95">
+                  <div className="relative z-10 p-3 rounded-full transition-all duration-300 ease-in-out group-hover:bg-kenoo-white group-hover:border group-hover:border-neutral-200 group-hover:shadow-[inset_0_4px_8px_rgba(0,0,0,0.15)] group-hover:scale-95">
                     <Plus className="h-[18px] w-[18px] stroke-[1.5] text-neutral-500" />
                   </div>
                 </div>

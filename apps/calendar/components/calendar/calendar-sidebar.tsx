@@ -102,7 +102,7 @@ export function CalendarSidebar({
               id="events" 
               checked={filters.events}
               onCheckedChange={() => handleFilterChange('events')}
-              className="data-[state=checked]:bg-walls-light data-[state=checked]:border-walls-light" 
+              className="data-[state=checked]:bg-kenoo-light data-[state=checked]:border-kenoo-light" 
             />
             <Label htmlFor="events" className="text-sm">Events</Label>
           </div>
@@ -112,7 +112,7 @@ export function CalendarSidebar({
               id="tasks" 
               checked={filters.tasks}
               onCheckedChange={() => handleFilterChange('tasks')}
-              className="data-[state=checked]:bg-walls-lime data-[state=checked]:border-walls-lime" 
+              className="data-[state=checked]:bg-kenoo-lime data-[state=checked]:border-kenoo-lime" 
             />
             <Label htmlFor="tasks" className="text-sm">Tasks</Label>
           </div>
@@ -122,7 +122,7 @@ export function CalendarSidebar({
               id="deals" 
               checked={filters.deals}
               onCheckedChange={() => handleFilterChange('deals')}
-              className="data-[state=checked]:bg-walls-red data-[state=checked]:border-walls-red"
+              className="data-[state=checked]:bg-kenoo-red data-[state=checked]:border-kenoo-red"
             />
             <Label htmlFor="deals" className="text-sm">Deals</Label>
           </div>

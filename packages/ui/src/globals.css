@@ -1,6 +1,6 @@
 /* Shared WALLS monorepo base styles — import after `tailwindcss` in each app. */
 
-@import "./walls-theme.css";
+@import "./kenoo-theme.css";
 
 @layer base {
   html {

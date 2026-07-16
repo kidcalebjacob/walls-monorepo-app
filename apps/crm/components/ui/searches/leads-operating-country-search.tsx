@@ -268,7 +268,7 @@ export function LeadOperatingCountrySelect({ value = [], onValueChange, classNam
                       if (selectionState) {
                         return (
                           <div 
-                            className="w-5 h-5 rounded-full bg-walls-yellow flex items-center justify-center cursor-pointer hover:bg-walls-yellow/90"
+                            className="w-5 h-5 rounded-full bg-kenoo-yellow flex items-center justify-center cursor-pointer hover:bg-kenoo-yellow/90"
                             onClick={(e) => {
                               e.stopPropagation();
                               handleRegionSelect(region, regionCountries);

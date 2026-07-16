@@ -7,7 +7,8 @@ import {
   logMeal,
   type LogMealInput,
 } from "@/lib/meals-server";
-import { formatDateKey } from "@/lib/time-range";
+import { resolveHealthTimezone } from "@/lib/profile-server";
+import { todayDateKey } from "@/lib/time-range";
 
 export async function GET(request: Request) {
   const scope = await getHealthDataScope();
@@ -16,7 +17,8 @@ export async function GET(request: Request) {
   }
 
   const { searchParams } = new URL(request.url);
-  const mealDate = searchParams.get("date") ?? formatDateKey(new Date());
+  const timeZone = await resolveHealthTimezone(scope);
+  const mealDate = searchParams.get("date") ?? todayDateKey(timeZone);
   const meals = await listMealsForDate(scope, mealDate);
   return NextResponse.json({ meals, mealDate });
 }

@@ -19,8 +19,14 @@ const publicEnv = {
   NEXT_PUBLIC_CALENDAR_URL: process.env.NEXT_PUBLIC_CALENDAR_URL,
   NEXT_PUBLIC_PROJECTS_URL: process.env.NEXT_PUBLIC_PROJECTS_URL,
   NEXT_PUBLIC_ADMIN_URL: process.env.NEXT_PUBLIC_ADMIN_URL,
+  NEXT_PUBLIC_BASE_URL:
+    process.env.NEXT_PUBLIC_BASE_URL ??
+    process.env.NEXT_PUBLIC_WALLS_PUBLIC_SITE_URL ??
+    process.env.APP_BASE_URL ??
+    "https://wallsentertainment.com",
   NEXT_PUBLIC_WALLS_PUBLIC_SITE_URL:
     process.env.NEXT_PUBLIC_WALLS_PUBLIC_SITE_URL ??
+    process.env.NEXT_PUBLIC_BASE_URL ??
     process.env.APP_BASE_URL ??
     "https://wallsentertainment.com",
 };

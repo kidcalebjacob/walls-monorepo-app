@@ -280,7 +280,7 @@ function AdPilotGenerateButton({
             : "Generate AdPilot decision"
       }
       className={cn(
-        "group relative inline-flex shrink-0 overflow-hidden rounded-2xl bg-walls-white p-[1.5px]",
+        "group relative inline-flex shrink-0 overflow-hidden rounded-2xl bg-kenoo-white p-[1.5px]",
         "transition-[filter] duration-300 hover:brightness-[1.03]",
         "focus-visible:outline-none",
         "disabled:cursor-wait disabled:opacity-80",
@@ -292,7 +292,7 @@ function AdPilotGenerateButton({
       >
         <span className="adpilot-chrome-orbit absolute inset-0" />
       </span>
-      <span className="relative inline-flex items-center gap-2 rounded-[14.5px] bg-walls-white px-3.5 py-2 text-sm font-medium text-neutral-700">
+      <span className="relative inline-flex items-center gap-2 rounded-[14.5px] bg-kenoo-white px-3.5 py-2 text-sm font-medium text-neutral-700">
         {loading ? (
           <>
             <Loader2 className="h-3.5 w-3.5 animate-spin" />

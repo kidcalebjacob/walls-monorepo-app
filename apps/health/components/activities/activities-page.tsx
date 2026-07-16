@@ -54,7 +54,7 @@ export function ActivitiesPage() {
   }
 
   return (
-    <div className="min-h-full bg-walls-white px-6 py-8 md:px-10">
+    <div className="min-h-full bg-kenoo-white px-6 py-8 md:px-10">
       <div className="mx-auto max-w-4xl space-y-8">
         <div>
           <h1 className="text-2xl font-light tracking-tight text-neutral-900">

@@ -26,7 +26,7 @@ const SETTINGS_URL =
 function AccountSwitcherSkeleton() {
   return (
     <div
-      className="mt-2 flex min-w-0 max-w-[min(100vw-8rem,280px)] items-center gap-3 rounded-xl bg-walls-white px-3 py-2.5"
+      className="mt-2 flex min-w-0 max-w-[min(100vw-8rem,280px)] items-center gap-3 rounded-xl bg-kenoo-white px-3 py-2.5"
       aria-busy="true"
       aria-label="Loading accounts"
     >
@@ -89,11 +89,11 @@ export function AccountSwitcher() {
           type="button"
           disabled={switching}
           className={cn(
-            "mt-2 flex min-w-0 max-w-[min(100vw-8rem,280px)] items-center gap-3 rounded-xl bg-walls-white px-3 py-2.5 text-left transition",
-            "hover:bg-walls-white",
+            "mt-2 flex min-w-0 max-w-[min(100vw-8rem,280px)] items-center gap-3 rounded-xl bg-kenoo-white px-3 py-2.5 text-left transition",
+            "hover:bg-kenoo-white",
             "focus:outline-none",
             "disabled:opacity-60",
-            open && "bg-walls-white",
+            open && "bg-kenoo-white",
           )}
         >
           <AccountAvatar account={activeAccount} size="md" />
@@ -115,7 +115,7 @@ export function AccountSwitcher() {
       <DropdownMenuContent
         align="start"
         sideOffset={8}
-        className="z-[110] w-[min(100vw-2rem,320px)] rounded-2xl border-0 bg-walls-white p-2 shadow-xl"
+        className="z-[110] w-[min(100vw-2rem,320px)] rounded-2xl border-0 bg-kenoo-white p-2 shadow-xl"
       >
         <p className="px-2 pb-1 pt-1 text-sm font-medium text-neutral-500">
           Choose an account
@@ -133,7 +133,7 @@ export function AccountSwitcher() {
                 }}
                 className={cn(
                   "cursor-pointer rounded-xl p-2 transition-colors focus:bg-transparent",
-                  isActive ? "bg-neutral-100" : "hover:bg-walls-white",
+                  isActive ? "bg-neutral-100" : "hover:bg-kenoo-white",
                 )}
               >
                 <div className="flex w-full items-center gap-3">
@@ -170,9 +170,9 @@ export function AccountSwitcher() {
             <DropdownMenuItem asChild className="rounded-xl p-0 focus:bg-transparent">
               <a
                 href={`${SETTINGS_URL}/organization`}
-                className="flex cursor-pointer items-center gap-3 rounded-xl px-2.5 py-2.5 text-sm text-foreground hover:bg-walls-white"
+                className="flex cursor-pointer items-center gap-3 rounded-xl px-2.5 py-2.5 text-sm text-foreground hover:bg-kenoo-white"
               >
-                <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-walls-white text-neutral-500">
+                <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-kenoo-white text-neutral-500">
                   <Plus className="h-5 w-5" />
                 </span>
                 <span className="font-medium">Manage accounts</span>

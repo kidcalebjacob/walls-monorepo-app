@@ -551,7 +551,7 @@ export function DeepQueryChat({ messages, isLoading, loadingStatus = null, setMe
         {isLoading && (
           <div className="flex justify-start items-center gap-2">
             <span
-              className="h-2 w-2 rounded-full bg-walls-yellow animate-pulse flex-shrink-0"
+              className="h-2 w-2 rounded-full bg-kenoo-yellow animate-pulse flex-shrink-0"
               aria-hidden
             />
             <ShiningText

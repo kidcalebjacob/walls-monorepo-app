@@ -216,7 +216,7 @@ export function ConnectForm() {
   };
 
   return (
-    <div className="flex flex-col h-full overflow-y-auto overscroll-none bg-walls-white">
+    <div className="flex flex-col h-full overflow-y-auto overscroll-none bg-kenoo-white">
       <div className="w-full">
         <div className="max-w-4xl mx-auto px-8 pt-20 pb-8">
           <div className="space-y-12">
@@ -250,7 +250,7 @@ export function ConnectForm() {
                   height: (gmailChecking || isGmailConnected === null) ? 36 : "auto"
                 }}
                 transition={{ duration: 0.3, ease: "easeOut" }}
-                className="px-0 py-0 text-sm font-medium text-gray-800 bg-walls-yellow hover:bg-walls-yellow/90 rounded z-10 flex items-center justify-center gap-1.5 transition-colors disabled:opacity-50 disabled:cursor-not-allowed overflow-hidden"
+                className="px-0 py-0 text-sm font-medium text-gray-800 bg-kenoo-yellow hover:bg-kenoo-yellow/90 rounded z-10 flex items-center justify-center gap-1.5 transition-colors disabled:opacity-50 disabled:cursor-not-allowed overflow-hidden"
                 style={{
                   paddingLeft: (gmailChecking || isGmailConnected === null) ? 0 : 16,
                   paddingRight: (gmailChecking || isGmailConnected === null) ? 0 : 16,
@@ -319,7 +319,7 @@ export function ConnectForm() {
                   height: (calendarChecking || isCalendarConnected === null) ? 36 : "auto"
                 }}
                 transition={{ duration: 0.3, ease: "easeOut" }}
-                className="px-0 py-0 text-sm font-medium text-gray-800 bg-walls-yellow hover:bg-walls-yellow/90 rounded z-10 flex items-center justify-center gap-1.5 transition-colors disabled:opacity-50 disabled:cursor-not-allowed overflow-hidden"
+                className="px-0 py-0 text-sm font-medium text-gray-800 bg-kenoo-yellow hover:bg-kenoo-yellow/90 rounded z-10 flex items-center justify-center gap-1.5 transition-colors disabled:opacity-50 disabled:cursor-not-allowed overflow-hidden"
                 style={{
                   paddingLeft: (calendarChecking || isCalendarConnected === null) ? 0 : 16,
                   paddingRight: (calendarChecking || isCalendarConnected === null) ? 0 : 16,

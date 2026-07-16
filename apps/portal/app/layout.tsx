@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Geist, Geist_Mono, Instrument_Sans } from "next/font/google";
 
 import { createWallsMetadata } from "@walls/config/metadata";
 import { Providers } from "@/components/providers";
@@ -16,12 +16,19 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
+const instrumentSans = Instrument_Sans({
+  variable: "--font-instrument-sans",
+  subsets: ["latin"],
+  weight: ["400", "500", "600", "700"],
+});
+
 export const metadata: Metadata = createWallsMetadata({
   title: {
-    default: "WALLS Portal",
-    template: "%s | WALLS Portal",
+    default: "Kenoo",
+    template: "%s | Kenoo",
   },
-  description: "Sign in to the WALLS Entertainment agency portal.",
+  description: "Sign in to Kenoo, your business OS.",
+  metadataBase: new URL("https://kenoo.io"),
 });
 
 export default function RootLayout({
@@ -32,9 +39,9 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+      className={`${geistSans.variable} ${geistMono.variable} ${instrumentSans.variable} h-full antialiased`}
     >
-      <body className="min-h-full bg-background text-foreground">
+      <body className="min-h-full bg-kenoo-canvas text-kenoo-ink">
         <Providers>{children}</Providers>
       </body>
     </html>

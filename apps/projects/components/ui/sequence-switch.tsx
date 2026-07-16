@@ -14,8 +14,8 @@ const SequenceSwitch = React.forwardRef<
 >(({ className, checked, ...props }, ref) => (
   <SwitchPrimitives.Root
     className={cn(
-      "peer inline-flex h-5 w-9 shrink-0 cursor-pointer items-center rounded-full border border-neutral-300/40 bg-walls-white/70 shadow-[inset_0_4px_8px_rgba(0,0,0,0.12)] transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:cursor-not-allowed disabled:opacity-50",
-      checked ? "bg-walls-sky/40 shadow-[inset_0_4px_8px_rgba(0,0,0,0.16)]" : "",
+      "peer inline-flex h-5 w-9 shrink-0 cursor-pointer items-center rounded-full border border-neutral-300/40 bg-kenoo-white/70 shadow-[inset_0_4px_8px_rgba(0,0,0,0.12)] transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:cursor-not-allowed disabled:opacity-50",
+      checked ? "bg-kenoo-sky/40 shadow-[inset_0_4px_8px_rgba(0,0,0,0.16)]" : "",
       className
     )}
     checked={checked}

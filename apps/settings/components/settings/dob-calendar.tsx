@@ -116,7 +116,7 @@ export function CalendarForm({
                   <FormControl>
                     <Button
                       className={cn(
-                        "w-full justify-start text-left font-light bg-transparent hover:bg-transparent border-0 border-b border-neutral-200 rounded-none px-0 py-2 h-auto focus:outline-none focus-visible:outline-none focus-visible:ring-0 focus:border-b-[var(--walls-sky)] shadow-none",
+                        "w-full justify-start text-left font-light bg-transparent hover:bg-transparent border-0 border-b border-neutral-200 rounded-none px-0 py-2 h-auto focus:outline-none focus-visible:outline-none focus-visible:ring-0 focus:border-b-[var(--kenoo-sky)] shadow-none",
                         !dob && !existingDob && "text-neutral-300",
                         (dob || existingDob) && "text-neutral-900",
                       )}

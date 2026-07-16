@@ -76,7 +76,7 @@ export function SettingsPage() {
   };
 
   return (
-    <main className="min-h-full w-full bg-walls-white px-6 py-8 md:px-10 md:py-12">
+    <main className="min-h-full w-full bg-kenoo-white px-6 py-8 md:px-10 md:py-12">
       <div className="mx-auto flex w-full max-w-3xl flex-col gap-14">
         <header>
           <p className="text-xs font-medium uppercase tracking-widest text-neutral-500">
@@ -112,7 +112,7 @@ export function SettingsPage() {
           {loading ? (
             <p className="text-sm font-light text-neutral-500">Loading…</p>
           ) : metaConnection ? (
-            <div className="rounded-3xl border border-neutral-200/70 bg-walls-white p-5 shadow-sm">
+            <div className="rounded-3xl border border-neutral-200/70 bg-kenoo-white p-5 shadow-sm">
               <div className="flex items-start gap-3">
                 <MetaIcon className="h-8 w-8 shrink-0" />
                 <div>
@@ -141,7 +141,7 @@ export function SettingsPage() {
               </div>
             </div>
           ) : (
-            <div className="rounded-3xl border border-dashed border-neutral-300 bg-walls-white p-6">
+            <div className="rounded-3xl border border-dashed border-neutral-300 bg-kenoo-white p-6">
               <div className="flex items-start gap-3">
                 <MetaIcon className="h-8 w-8 shrink-0" />
                 <div className="flex-1">

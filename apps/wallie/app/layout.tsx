@@ -35,7 +35,7 @@ export default function RootLayout({
       data-app="wallie"
       className={`${geistSans.variable} ${geistMono.variable} h-full overflow-hidden bg-background antialiased`}
     >
-      <body className="h-screen overflow-hidden bg-walls-white text-foreground">
+      <body className="h-screen overflow-hidden bg-kenoo-white text-foreground">
         <div className="h-full overscroll-none overflow-hidden">
           <Providers>{children}</Providers>
         </div>

@@ -9,6 +9,7 @@ import { type HealthDataScope, withHealthScope } from "@/lib/health-scope";
 import { listMealsInRange } from "@/lib/meals-server";
 import {
   ensureHealthProfile,
+  resolveHealthTimezone,
   type HealthProfile,
 } from "@/lib/profile-server";
 import {
@@ -17,10 +18,16 @@ import {
   type DashboardCalorieDay,
 } from "@/lib/dashboard-defaults";
 import {
-  addDays,
+  buildScienceInsights,
+  type DashboardInsight,
+} from "@/lib/science-insights";
+import {
+  addDaysToDateKey,
   formatDateKey,
-  startOfDay,
+  labelForDateKey,
   timeRangeLabel,
+  todayDateKey,
+  zonedStartOfDayUtc,
   type TimeRangeValue,
 } from "@/lib/time-range";
 
@@ -56,6 +63,7 @@ export type DashboardAnalytics = {
   caloriesByDay: DashboardCalorieDay[];
   todayMeals: DashboardMealRow[];
   macros: DashboardMacroRow[];
+  insights: DashboardInsight[];
   profile: Pick<
     HealthProfile,
     | "goal_type"
@@ -100,7 +108,7 @@ function sumMeals(meals: MealRow[]) {
 }
 
 function buildDaySeries(
-  startDate: Date,
+  startKey: string,
   days: number,
   meals: MealRow[],
   burnedByDate: Map<string, number>,
@@ -115,8 +123,7 @@ function buildDaySeries(
 
   const points: DashboardCalorieDay[] = [];
   for (let index = 0; index < days; index += 1) {
-    const date = addDays(startDate, index);
-    const key = formatDateKey(date);
+    const key = addDaysToDateKey(startKey, index);
     const dayMeals = mealsByDate.get(key) ?? [];
     const totals = sumMeals(dayMeals);
     const burned = burnedByDate.get(key) ?? 0;
@@ -125,10 +132,7 @@ function buildDaySeries(
 
     points.push({
       date: key,
-      label: date.toLocaleDateString("en-US", {
-        month: "short",
-        day: "numeric",
-      }),
+      label: labelForDateKey(key),
       consumed: totals.calories,
       burned,
       target,
@@ -147,31 +151,41 @@ export async function getDashboardAnalytics(
   scope: HealthDataScope,
   options: { rangeDays: number; timeRange: TimeRangeValue },
 ): Promise<DashboardAnalytics> {
-  const profile = await ensureHealthProfile(scope);
-  const todayKey = formatDateKey(new Date());
-  const rangeStart = addDays(startOfDay(new Date()), -(options.rangeDays - 1));
-  const startKey = formatDateKey(rangeStart);
+  const [profile, timeZone] = await Promise.all([
+    ensureHealthProfile(scope),
+    resolveHealthTimezone(scope),
+  ]);
+
+  const todayKey = todayDateKey(timeZone);
+  const startKey = addDaysToDateKey(todayKey, -(options.rangeDays - 1));
   const endKey = todayKey;
+
+  const rangeStartUtc = zonedStartOfDayUtc(startKey, timeZone);
+  const rangeEndExclusiveUtc = zonedStartOfDayUtc(
+    addDaysToDateKey(todayKey, 1),
+    timeZone,
+  );
+  const rangeEndInclusiveUtc = new Date(rangeEndExclusiveUtc.getTime() - 1);
 
   const [meals, activities] = await Promise.all([
     listMealsInRange(scope, startKey, endKey),
     listActivitiesInRange(
       scope,
-      rangeStart.toISOString(),
-      new Date().toISOString(),
+      rangeStartUtc.toISOString(),
+      rangeEndInclusiveUtc.toISOString(),
     ),
   ]);
 
   const burnedByDate = new Map<string, number>();
   for (const activity of activities) {
-    const key = formatDateKey(new Date(activity.started_at));
+    const key = formatDateKey(new Date(activity.started_at), timeZone);
     const burned = activity.calories_burned ?? 0;
     burnedByDate.set(key, (burnedByDate.get(key) ?? 0) + burned);
   }
 
   const calorieTarget = profile.calorie_target_daily ?? profile.tdee_calories;
   const caloriesByDay = buildDaySeries(
-    rangeStart,
+    startKey,
     options.rangeDays,
     meals as MealRow[],
     burnedByDate,
@@ -257,23 +271,41 @@ export async function getDashboardAnalytics(
       value: formatGrams(todayTotals.protein_g),
       current: todayTotals.protein_g,
       target: profile.protein_target_g ? Number(profile.protein_target_g) : null,
-      color: "var(--walls-sky)",
+      color: "var(--kenoo-sky)",
     },
     {
       label: "Carbs",
       value: formatGrams(todayTotals.carbs_g),
       current: todayTotals.carbs_g,
       target: profile.carbs_target_g ? Number(profile.carbs_target_g) : null,
-      color: "var(--walls-yellow)",
+      color: "var(--kenoo-yellow)",
     },
     {
       label: "Fat",
       value: formatGrams(todayTotals.fat_g),
       current: todayTotals.fat_g,
       target: profile.fat_target_g ? Number(profile.fat_target_g) : null,
-      color: "var(--walls-blue)",
+      color: "var(--kenoo-blue)",
     },
   ];
+
+  const insights = hasData
+    ? buildScienceInsights({
+        profile,
+        todayCalories: todayTotals.calories,
+        todayProteinG: todayTotals.protein_g,
+        todayCarbsG: todayTotals.carbs_g,
+        todayFatG: todayTotals.fat_g,
+        todayBurned,
+        caloriesByDay,
+        activities: activities.map((activity) => ({
+          distance_meters: activity.distance_meters,
+          calories_burned: activity.calories_burned,
+          duration_seconds: activity.duration_seconds,
+        })),
+        periodLabel: timeRangeLabel(options.timeRange),
+      })
+    : [];
 
   return {
     periodLabel: timeRangeLabel(options.timeRange),
@@ -284,6 +316,7 @@ export async function getDashboardAnalytics(
     caloriesByDay: hasData ? caloriesByDay : PREVIEW_CALORIES_BY_DAY,
     todayMeals,
     macros,
+    insights,
     profile: {
       goal_type: profile.goal_type,
       calorie_target_daily: profile.calorie_target_daily,

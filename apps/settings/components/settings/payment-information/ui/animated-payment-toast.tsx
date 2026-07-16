@@ -12,8 +12,8 @@ interface AnimatedPaymentToastProps {
 
 export const AnimatedPaymentToast = ({ message, description, isSuccess }: AnimatedPaymentToastProps) => {
   const Icon = isSuccess ? Check : X;
-  const iconColor = isSuccess ? "bg-walls-yellow" : "bg-red-400";
-  const sparkleColor = isSuccess ? "text-walls-yellow" : "text-red-400";
+  const iconColor = isSuccess ? "bg-kenoo-yellow" : "bg-red-400";
+  const sparkleColor = isSuccess ? "text-kenoo-yellow" : "text-red-400";
 
   return (
     <div className="flex items-center gap-3">

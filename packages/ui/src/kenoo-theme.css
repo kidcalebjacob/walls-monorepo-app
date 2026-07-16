@@ -1,0 +1,93 @@
+/**
+ * Kenoo brand colors — import via `@walls/ui/globals.css` or `@walls/ui/kenoo-theme.css`
+ * after `@import "tailwindcss"` in each app.
+ *
+ * Enables Tailwind utilities: bg-kenoo-yellow, bg-kenoo-white, text-kenoo-sky, border-kenoo-sky,
+ * decoration-kenoo-yellow, from-kenoo-yellow, bg-kenoo-orange, ease-kenoo-spring, etc.
+ * Also exposes CSS variables: var(--kenoo-yellow), var(--kenoo-sky), var(--kenoo-orange), …
+ */
+
+:root {
+  --kenoo-blue: #0066b2;
+  --kenoo-blue-hover: #005091;
+  --kenoo-beige: #f5e6d3;
+  --kenoo-beige-hover: #ebd5bb;
+  --kenoo-light: #30a1f4;
+  --kenoo-light-hover: #0066b2;
+  --kenoo-yellow: #e2f85c;
+  --kenoo-yellow-hover: #e2f85c;
+  --kenoo-dark-yellow: #e0ea00;
+  --kenoo-dark-yellow-hover: #c8d100;
+  --kenoo-lime: #ceff00;
+  --kenoo-lime-hover: #5bd424;
+  --kenoo-black: #000000;
+  --kenoo-black-hover: #0a0b0d;
+  --kenoo-red: #d82727;
+  --kenoo-red-hover: #b91f1f;
+  --kenoo-sky: #6eadc0;
+  --kenoo-sky-hover: #5a9ba8;
+  --kenoo-orange: #ff7130;
+  --kenoo-orange-hover: #e86320;
+  --kenoo-emerald: #8dcf76;
+  --kenoo-emerald-hover: #75b85f;
+  --kenoo-forest: #2b5b00;
+  --kenoo-forest-hover: #234a00;
+  --kenoo-white: #fcfcfc;
+  --kenoo-white-hover: #fcfcfc;
+
+  /* Shared app canvas — overscroll / page backdrop on every app */
+  --background: var(--kenoo-yellow);
+  --foreground: var(--kenoo-black);
+
+  /* Shadcn-style tokens used by @walls/ui form components */
+  --border: #e5e5e5;
+  --input: #e5e5e5;
+  --muted-foreground: #737373;
+  --accent: #f5f5f5;
+  --accent-foreground: #171717;
+  --ring: var(--kenoo-blue);
+  --muted: #f5f5f5;
+  --ring-offset-background: var(--background);
+}
+
+@theme inline {
+  --color-kenoo-blue: var(--kenoo-blue);
+  --color-kenoo-blue-hover: var(--kenoo-blue-hover);
+  --color-kenoo-beige: var(--kenoo-beige);
+  --color-kenoo-beige-hover: var(--kenoo-beige-hover);
+  --color-kenoo-light: var(--kenoo-light);
+  --color-kenoo-light-hover: var(--kenoo-light-hover);
+  --color-kenoo-yellow: var(--kenoo-yellow);
+  --color-kenoo-yellow-hover: var(--kenoo-yellow-hover);
+  --color-kenoo-dark-yellow: var(--kenoo-dark-yellow);
+  --color-kenoo-dark-yellow-hover: var(--kenoo-dark-yellow-hover);
+  --color-kenoo-lime: var(--kenoo-lime);
+  --color-kenoo-lime-hover: var(--kenoo-lime-hover);
+  --color-kenoo-black: var(--kenoo-black);
+  --color-kenoo-black-hover: var(--kenoo-black-hover);
+  --color-kenoo-red: var(--kenoo-red);
+  --color-kenoo-red-hover: var(--kenoo-red-hover);
+  --color-kenoo-sky: var(--kenoo-sky);
+  --color-kenoo-sky-hover: var(--kenoo-sky-hover);
+  --color-kenoo-orange: var(--kenoo-orange);
+  --color-kenoo-orange-hover: var(--kenoo-orange-hover);
+  --color-kenoo-emerald: var(--kenoo-emerald);
+  --color-kenoo-emerald-hover: var(--kenoo-emerald-hover);
+  --color-kenoo-forest: var(--kenoo-forest);
+  --color-kenoo-forest-hover: var(--kenoo-forest-hover);
+  --color-kenoo-white: var(--kenoo-white);
+  --color-kenoo-white-hover: var(--kenoo-white-hover);
+
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-ring: var(--ring);
+  --color-muted: var(--muted);
+  --color-ring-offset-background: var(--ring-offset-background);
+
+  --ease-kenoo-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+}

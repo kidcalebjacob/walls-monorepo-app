@@ -3,14 +3,18 @@
 import * as React from "react";
 import { useLoadingCallback } from "react-loading-hook";
 import { Loader2, ChevronLeft } from "lucide-react";
-import Image from "next/image";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 
 import { getSupabaseClient } from "@walls/auth";
 import { Button } from "@walls/ui/button";
 import { Input } from "@walls/ui/input";
-import { Separator } from "@walls/ui/separator";
+
+import {
+  authGhostLinkClassName,
+  authInputClassName,
+  authPrimaryButtonClassName,
+} from "@/components/kenoo/auth-field";
+import { AuthHeading, AuthShell } from "@/components/kenoo/auth-shell";
 
 export default function ResetPasswordPage() {
   const router = useRouter();
@@ -80,7 +84,7 @@ export default function ResetPasswordPage() {
         return;
       }
 
-      setSuccess("Password reset email sent! Please check your inbox.");
+      setSuccess("Password reset email sent. Please check your inbox.");
     } catch (err) {
       setError(
         err instanceof Error
@@ -113,7 +117,7 @@ export default function ResetPasswordPage() {
         return;
       }
 
-      setSuccess("Password reset successfully! Redirecting to login...");
+      setSuccess("Password reset successfully. Redirecting to login...");
 
       setTimeout(() => {
         router.push("/login");
@@ -128,161 +132,131 @@ export default function ResetPasswordPage() {
   });
 
   return (
-    <div className="flex h-screen bg-walls-white">
-      <div className="absolute top-4 right-4 pr-6">
+    <AuthShell
+      topRight={
         <Button
           onClick={() => router.push("/login")}
           variant="ghost"
-          className="group flex items-center gap-2 text-black hover:bg-transparent hover:text-black transition-colors"
+          className={authGhostLinkClassName}
         >
-          <ChevronLeft className="w-4 h-4 text-black group-hover:-translate-x-1 transition-transform duration-200" />
-          <span className="text-black font-light">Back to login</span>
+          <ChevronLeft className="h-4 w-4 transition-transform duration-200 group-hover:-translate-x-1" />
+          <span>Back to login</span>
         </Button>
-      </div>
+      }
+    >
+      <AuthHeading
+        title="Reset password"
+        description={
+          isResetMode
+            ? "Choose a new password for your account."
+            : "We’ll email you a link to reset your password."
+        }
+      />
 
-      <div className="hidden md:flex w-1/2 relative bg-walls-yellow rounded-r-[150px] items-center justify-center shadow-inner border border-neutral-200/50">
-        <Image
-          src="https://assets.wallsentertainment.com/logo-variations/black-gradient-indented.png"
-          alt="WALLS Logo"
-          width={400}
-          height={400}
-          className="object-contain"
-        />
-      </div>
-
-      <div className="md:hidden flex justify-center">
-        <Separator orientation="horizontal" className="w-full bg-border/50" />
-      </div>
-
-      <div className="w-full md:w-1/2 flex items-center justify-center p-8">
-        <div className="text-center max-w-md w-full space-y-8">
-          <div className="space-y-2 flex items-center justify-center">
-            <Image
-              src="https://assets.wallsentertainment.com/logo-variations/black-gradient-indented.png"
-              alt="WALLS Logo"
-              width={65}
-              height={65}
-              className="mr-4 mt-2 md:hidden"
-            />
-            <h1 className="text-6xl font-bold tracking-tight">
-              Reset Password.
-            </h1>
+      <div className="w-full space-y-4">
+        {error && (
+          <div className="rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-700">
+            {error}
           </div>
+        )}
 
-          <div className="space-y-4 w-full">
-            {error && (
-              <div className="p-3 rounded-md bg-destructive/10 border border-destructive/20 text-destructive text-sm">
-                {error}
-              </div>
-            )}
+        {success && (
+          <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-3 text-sm text-emerald-800">
+            {success}
+          </div>
+        )}
 
-            {success && (
-              <div className="p-3 rounded-md bg-green-500/10 border border-green-500/20 text-green-700 text-sm">
-                {success}
-              </div>
-            )}
-
-            {isResetMode ? (
-              <>
-                <div className="space-y-4">
-                  <Input
-                    type="password"
-                    placeholder="New Password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    disabled={isResetLoading}
-                    className="h-12 bg-walls-white backdrop-blur-md shadow-inner border border-neutral-200/50 transition-all duration-300"
-                    onKeyDown={(e) => {
-                      if (
-                        e.key === "Enter" &&
-                        !isResetLoading &&
-                        password.trim() &&
-                        confirmPassword.trim()
-                      ) {
-                        handleResetPassword();
-                      }
-                    }}
-                  />
-                  <Input
-                    type="password"
-                    placeholder="Confirm Password"
-                    value={confirmPassword}
-                    onChange={(e) => setConfirmPassword(e.target.value)}
-                    disabled={isResetLoading}
-                    className="h-12 bg-walls-white backdrop-blur-md shadow-inner border border-neutral-200/50 transition-all duration-300"
-                    onKeyDown={(e) => {
-                      if (
-                        e.key === "Enter" &&
-                        !isResetLoading &&
-                        password.trim() &&
-                        confirmPassword.trim()
-                      ) {
-                        handleResetPassword();
-                      }
-                    }}
-                  />
-                </div>
-
-                <Button
-                  onClick={handleResetPassword}
-                  className="w-full rounded-full font-bold text-xl h-16 bg-walls-yellow/80 hover:bg-walls-yellow/90 text-black transition-all duration-300 shadow-inner border border-neutral-200/50 relative z-10"
-                  disabled={
-                    isResetLoading || !password.trim() || !confirmPassword.trim()
+        {isResetMode ? (
+          <>
+            <div className="space-y-3">
+              <Input
+                type="password"
+                placeholder="New password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                disabled={isResetLoading}
+                className={authInputClassName}
+                onKeyDown={(e) => {
+                  if (
+                    e.key === "Enter" &&
+                    !isResetLoading &&
+                    password.trim() &&
+                    confirmPassword.trim()
+                  ) {
+                    handleResetPassword();
                   }
-                >
-                  {isResetLoading ? (
-                    <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Resetting...
-                    </>
-                  ) : (
-                    "Reset Password"
-                  )}
-                </Button>
-              </>
-            ) : (
-              <>
-                <div className="space-y-4">
-                  <Input
-                    type="email"
-                    placeholder="Email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    disabled={isRequestLoading}
-                    className="h-12 bg-walls-white backdrop-blur-md shadow-inner border border-neutral-200/50 transition-all duration-300"
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter" && !isRequestLoading && email.trim()) {
-                        handleRequestReset();
-                      }
-                    }}
-                  />
-                </div>
+                }}
+              />
+              <Input
+                type="password"
+                placeholder="Confirm password"
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                disabled={isResetLoading}
+                className={authInputClassName}
+                onKeyDown={(e) => {
+                  if (
+                    e.key === "Enter" &&
+                    !isResetLoading &&
+                    password.trim() &&
+                    confirmPassword.trim()
+                  ) {
+                    handleResetPassword();
+                  }
+                }}
+              />
+            </div>
 
-                <Button
-                  onClick={handleRequestReset}
-                  className="w-full rounded-full font-bold text-xl h-16 bg-walls-yellow/80 hover:bg-walls-yellow/90 text-black transition-all duration-300 shadow-inner border border-neutral-200/50 relative z-10"
-                  disabled={isRequestLoading || !email.trim()}
-                >
-                  {isRequestLoading ? (
-                    <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Sending...
-                    </>
-                  ) : (
-                    "Send Reset Link"
-                  )}
-                </Button>
-              </>
-            )}
+            <Button
+              onClick={handleResetPassword}
+              className={authPrimaryButtonClassName}
+              disabled={
+                isResetLoading || !password.trim() || !confirmPassword.trim()
+              }
+            >
+              {isResetLoading ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Resetting...
+                </>
+              ) : (
+                "Reset password"
+              )}
+            </Button>
+          </>
+        ) : (
+          <>
+            <Input
+              type="email"
+              placeholder="Email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              disabled={isRequestLoading}
+              className={authInputClassName}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" && !isRequestLoading && email.trim()) {
+                  handleRequestReset();
+                }
+              }}
+            />
 
-            {isResetMode && (
-              <p className="text-xs text-muted-foreground">
-                Enter your new password below.
-              </p>
-            )}
-          </div>
-        </div>
+            <Button
+              onClick={handleRequestReset}
+              className={authPrimaryButtonClassName}
+              disabled={isRequestLoading || !email.trim()}
+            >
+              {isRequestLoading ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Sending...
+                </>
+              ) : (
+                "Send reset link"
+              )}
+            </Button>
+          </>
+        )}
       </div>
-    </div>
+    </AuthShell>
   );
 }

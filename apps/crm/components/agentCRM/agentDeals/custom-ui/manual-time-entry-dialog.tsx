@@ -323,7 +323,7 @@ export function ManualTimeEntryDialog({
               placeholder="What did you work on?"
               value={manualDescription}
               onChange={(e) => setManualDescription(e.target.value)}
-              className="w-full border-0 border-b-2 rounded-none bg-transparent focus:ring-0 focus-visible:ring-0 outline-none px-0 pb-2 text-sm text-neutral-700 border-b-neutral-200 focus:border-b-[var(--walls-sky)] placeholder:text-neutral-300 transition-colors"
+              className="w-full border-0 border-b-2 rounded-none bg-transparent focus:ring-0 focus-visible:ring-0 outline-none px-0 pb-2 text-sm text-neutral-700 border-b-neutral-200 focus:border-b-[var(--kenoo-sky)] placeholder:text-neutral-300 transition-colors"
             />
 
             <div className="space-y-3 pt-1">
@@ -337,7 +337,7 @@ export function ManualTimeEntryDialog({
               >
                 <motion.div
                   aria-hidden
-                  className="pointer-events-none absolute inset-y-1 left-0 z-0 rounded-full bg-walls-sky shadow-sm ring-1 ring-walls-sky/70"
+                  className="pointer-events-none absolute inset-y-1 left-0 z-0 rounded-full bg-kenoo-sky shadow-sm ring-1 ring-kenoo-sky/70"
                   initial={false}
                   animate={{
                     left: modeSlider.left,
@@ -495,8 +495,8 @@ export function ManualTimeEntryDialog({
                     className={cn(
                       "w-full h-8 pl-4 pr-0 py-1 text-sm font-light placeholder:text-neutral-300 bg-transparent border-0 border-b rounded-none shadow-none",
                       "focus:outline-none focus-visible:outline-none focus-visible:ring-0 focus:ring-0 transition-colors",
-                      manualHourlyRate ? "border-b-[var(--walls-sky)]" : "border-neutral-200",
-                      "focus:border-b-[var(--walls-sky)]"
+                      manualHourlyRate ? "border-b-[var(--kenoo-sky)]" : "border-neutral-200",
+                      "focus:border-b-[var(--kenoo-sky)]"
                     )}
                   />
                 </div>

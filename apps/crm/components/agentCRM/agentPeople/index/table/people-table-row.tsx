@@ -157,7 +157,7 @@ export const PeopleTableRow = ({
                   </p>
                   {lead.isVerified && (
                     <DynamicTooltip content="Verified">
-                      <MdVerified className="h-4 w-4 text-walls-sky flex-shrink-0" />
+                      <MdVerified className="h-4 w-4 text-kenoo-sky flex-shrink-0" />
                     </DynamicTooltip>
                   )}
                 </div>

@@ -242,9 +242,9 @@ export function AdminViewTeam({ group }: AdminViewTeamProps) {
               className={cn(
                 "w-full border-0 border-b bg-transparent py-2 pl-6 pr-3 text-sm font-light transition-colors placeholder:text-neutral-300 focus:outline-none focus-visible:outline-none",
                 memberSearch.trim()
-                  ? "border-b-[var(--walls-sky)]"
+                  ? "border-b-[var(--kenoo-sky)]"
                   : "border-neutral-200",
-                "rounded-none focus:border-b-[var(--walls-sky)]",
+                "rounded-none focus:border-b-[var(--kenoo-sky)]",
               )}
               aria-label="Search members"
             />

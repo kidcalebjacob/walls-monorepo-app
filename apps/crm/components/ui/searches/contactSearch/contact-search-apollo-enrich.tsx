@@ -14,7 +14,7 @@ const fieldActionClass =
   "cursor-pointer px-0.5 text-[10px] font-light lowercase leading-none tracking-wide text-neutral-500 transition-colors hover:text-neutral-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-neutral-400 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-40";
 
 const underlineInputBaseClass =
-  "w-full rounded-none border-0 border-b bg-transparent py-2 pl-0 text-sm font-light transition-colors placeholder:text-neutral-300 focus:border-b-[var(--walls-sky)] focus:outline-none focus-visible:outline-none";
+  "w-full rounded-none border-0 border-b bg-transparent py-2 pl-0 text-sm font-light transition-colors placeholder:text-neutral-300 focus:border-b-[var(--kenoo-sky)] focus:outline-none focus-visible:outline-none";
 
 interface ContactSearchApolloEnrichProps {
   onSuccess?: (payload: { personName?: string; personId?: string }) => void;
@@ -73,7 +73,7 @@ export function ContactSearchApolloEnrich({ onSuccess, onClose }: ContactSearchA
       aria-label="Syncing"
       className="pointer-events-none inline-flex h-[10px] w-[10px] shrink-0 items-center justify-center leading-none"
     >
-      <span className="h-[10px] w-[10px] animate-spin rounded-full border-[1.5px] border-neutral-200 border-t-[var(--walls-sky)]" aria-hidden />
+      <span className="h-[10px] w-[10px] animate-spin rounded-full border-[1.5px] border-neutral-200 border-t-[var(--kenoo-sky)]" aria-hidden />
     </span>
   );
 
@@ -102,7 +102,7 @@ export function ContactSearchApolloEnrich({ onSuccess, onClose }: ContactSearchA
       ) : (
         <button
           type="button"
-          className={cn(fieldActionClass, "hover:text-[var(--walls-sky)]")}
+          className={cn(fieldActionClass, "hover:text-[var(--kenoo-sky)]")}
           disabled={!preview}
           onClick={() => void sync()}
         >
@@ -116,7 +116,7 @@ export function ContactSearchApolloEnrich({ onSuccess, onClose }: ContactSearchA
     <div onMouseDown={(e) => e.stopPropagation()} onPointerDown={(e) => e.stopPropagation()}>
       <div className="relative w-full">
         {preview ? (
-          <div className={cn("relative min-h-[2.125rem] w-full border-b border-[var(--walls-sky)] py-2", padRight)}>
+          <div className={cn("relative min-h-[2.125rem] w-full border-b border-[var(--kenoo-sky)] py-2", padRight)}>
             <div className="flex min-h-[1.375rem] w-full items-center">
               {showParsedResult ? (
                 <motion.div
@@ -135,7 +135,7 @@ export function ContactSearchApolloEnrich({ onSuccess, onClose }: ContactSearchA
                 </motion.div>
               ) : (
                 <div className="flex w-full justify-center py-0.5">
-                  <div className="h-4 w-4 animate-spin rounded-full border-2 border-neutral-300 border-t-[var(--walls-sky)]" />
+                  <div className="h-4 w-4 animate-spin rounded-full border-2 border-neutral-300 border-t-[var(--kenoo-sky)]" />
                 </div>
               )}
             </div>
@@ -158,7 +158,7 @@ export function ContactSearchApolloEnrich({ onSuccess, onClose }: ContactSearchA
               className={cn(
                 underlineInputBaseClass,
                 padRight,
-                enrichInput.trim() ? "border-b-[var(--walls-sky)]" : "border-neutral-200"
+                enrichInput.trim() ? "border-b-[var(--kenoo-sky)]" : "border-neutral-200"
               )}
               onKeyDown={(e) => {
                 if (e.key === "Enter" && enrichInput.trim() && !isSyncing) void sync();

@@ -328,7 +328,7 @@ const InvoicePreview = forwardRef<InvoicePreviewHandle, InvoicePreviewProps>(fun
             <p>Calgary, AB, T2X 0N6</p>
             <p>Canada</p>
             <p>
-              <a href="mailto:ar@wallsentertainment.com" className="text-walls-sky hover:opacity-80 no-underline">
+              <a href="mailto:ar@wallsentertainment.com" className="text-kenoo-sky hover:opacity-80 no-underline">
                 ar@wallsentertainment.com
               </a>
             </p>
@@ -354,7 +354,7 @@ const InvoicePreview = forwardRef<InvoicePreviewHandle, InvoicePreviewProps>(fun
               <p>
                 <a
                   href={`mailto:${vendorInfo.vendor_email.trim()}`}
-                  className="text-walls-sky no-underline hover:underline"
+                  className="text-kenoo-sky no-underline hover:underline"
                 >
                   {vendorInfo.vendor_email.trim()}
                 </a>

@@ -126,7 +126,7 @@ function FlipDigit({
         "relative w-12 h-16 md:w-16 md:h-20 overflow-hidden rounded-xl border flex items-center justify-center",
         "font-mono text-3xl md:text-5xl font-bold tabular-nums",
         isRunning
-          ? "bg-gray-50/85 text-neutral-900 border-[var(--walls-sky)]/45 shadow-[inset_0_4px_8px_rgba(0,0,0,0.14),0_0_0_1px_rgba(82,175,236,0.18)]"
+          ? "bg-gray-50/85 text-neutral-900 border-[var(--kenoo-sky)]/45 shadow-[inset_0_4px_8px_rgba(0,0,0,0.14),0_0_0_1px_rgba(82,175,236,0.18)]"
           : "bg-gray-50/70 text-neutral-500 border-neutral-200/80 shadow-[inset_0_4px_8px_rgba(0,0,0,0.12)]"
       )}
     >
@@ -414,7 +414,7 @@ export default function TimeEntries({ dealId }: TimeEntriesProps) {
                 value={description}
                 disabled={isRunning}
                 onChange={(e) => setDescription(e.target.value)}
-                className="w-full bg-transparent text-sm text-neutral-700 placeholder:text-neutral-400 outline-none border-b border-neutral-200 pb-2 disabled:opacity-60 focus:border-[var(--walls-sky)] transition-colors"
+                className="w-full bg-transparent text-sm text-neutral-700 placeholder:text-neutral-400 outline-none border-b border-neutral-200 pb-2 disabled:opacity-60 focus:border-[var(--kenoo-sky)] transition-colors"
               />
             </div>
 
@@ -450,8 +450,8 @@ export default function TimeEntries({ dealId }: TimeEntriesProps) {
                           className={cn(
                             "w-full h-8 pl-4 pr-0 py-1 text-sm font-light placeholder:text-neutral-300 bg-transparent border-0 border-b rounded-none shadow-none",
                             "focus:outline-none focus-visible:outline-none focus-visible:ring-0 focus:ring-0 transition-colors",
-                            hourlyRateDollars ? "border-b-[var(--walls-sky)]" : "border-neutral-200",
-                            "focus:border-b-[var(--walls-sky)]"
+                            hourlyRateDollars ? "border-b-[var(--kenoo-sky)]" : "border-neutral-200",
+                            "focus:border-b-[var(--kenoo-sky)]"
                           )}
                         />
                       </div>
@@ -488,7 +488,7 @@ export default function TimeEntries({ dealId }: TimeEntriesProps) {
                   </div>
                   <span className="text-[10px] md:text-xs uppercase tracking-[0.18em] text-neutral-500">Hours</span>
                 </div>
-                <span className={cn("text-3xl md:text-5xl font-bold px-1 mt-3", isRunning ? "text-[var(--walls-sky)]" : "text-neutral-400")}>:</span>
+                <span className={cn("text-3xl md:text-5xl font-bold px-1 mt-3", isRunning ? "text-[var(--kenoo-sky)]" : "text-neutral-400")}>:</span>
                 <div className="flex flex-col items-center gap-2">
                   <div className="flex items-center gap-2 md:gap-3">
                     {elapsedParts.minutes.split("").map((digit, i) => (
@@ -497,7 +497,7 @@ export default function TimeEntries({ dealId }: TimeEntriesProps) {
                   </div>
                   <span className="text-[10px] md:text-xs uppercase tracking-[0.18em] text-neutral-500">Minutes</span>
                 </div>
-                <span className={cn("text-3xl md:text-5xl font-bold px-1 mt-3", isRunning ? "text-[var(--walls-sky)]" : "text-neutral-400")}>:</span>
+                <span className={cn("text-3xl md:text-5xl font-bold px-1 mt-3", isRunning ? "text-[var(--kenoo-sky)]" : "text-neutral-400")}>:</span>
                 <div className="flex flex-col items-center gap-2">
                   <div className="flex items-center gap-2 md:gap-3">
                     {elapsedParts.seconds.split("").map((digit, i) => (
@@ -516,7 +516,7 @@ export default function TimeEntries({ dealId }: TimeEntriesProps) {
                   aria-label="Start timer"
                   className="h-16 w-16 md:h-20 md:w-20 rounded-full border border-[rgba(110,173,192,0.5)] bg-gray-50/80 backdrop-blur-sm backdrop-saturate-150 text-neutral-900 flex items-center justify-center transition-all duration-300 ease-in-out shadow-[0_6px_18px_-8px_rgba(0,0,0,0.16),0_0_0_1px_rgba(110,173,192,0.36),0_0_10px_rgba(110,173,192,0.32)] hover:scale-[0.98]"
                 >
-                  <Play className="h-8 w-8 fill-[var(--walls-sky)] stroke-[0] opacity-60" />
+                  <Play className="h-8 w-8 fill-[var(--kenoo-sky)] stroke-[0] opacity-60" />
                 </button>
               ) : (
                 <button
@@ -524,7 +524,7 @@ export default function TimeEntries({ dealId }: TimeEntriesProps) {
                   onClick={handleStop}
                   disabled={isSaving}
                   aria-label="Pause timer"
-                  className="h-16 w-16 md:h-20 md:w-20 rounded-full border border-neutral-300/40 bg-walls-sky/40 text-neutral-900 flex items-center justify-center transition-all duration-200 shadow-[inset_0_4px_8px_rgba(0,0,0,0.16)] hover:scale-[0.98] disabled:opacity-60"
+                  className="h-16 w-16 md:h-20 md:w-20 rounded-full border border-neutral-300/40 bg-kenoo-sky/40 text-neutral-900 flex items-center justify-center transition-all duration-200 shadow-[inset_0_4px_8px_rgba(0,0,0,0.16)] hover:scale-[0.98] disabled:opacity-60"
                 >
                   {isSaving ? (
                     <Loader2 className="h-6 w-6 animate-spin text-white" />
@@ -697,7 +697,7 @@ export default function TimeEntries({ dealId }: TimeEntriesProps) {
                   <div className="flex items-center gap-7 md:gap-10 flex-shrink-0">
                     {entry.is_billable && (
                       <div className="flex items-center gap-4 md:gap-5">
-                        <span className="text-xs text-[var(--walls-sky)] uppercase tracking-wide">
+                        <span className="text-xs text-[var(--kenoo-sky)] uppercase tracking-wide">
                           Billable
                         </span>
                         {typeof entry.hourly_rate_cents === "number" && (

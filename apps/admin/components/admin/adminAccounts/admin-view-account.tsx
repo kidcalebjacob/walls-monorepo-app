@@ -139,7 +139,7 @@ function AppAccessPopoutContent({
             className={cn(
               "flex w-full items-center gap-4 rounded-xl bg-neutral-100/80 backdrop-blur-md shadow-inner border-2 px-5 py-5 min-h-[72px] text-left transition-colors hover:bg-neutral-100",
               selectedIds.has(app.id)
-                ? "border-walls-yellow ring-1 ring-walls-yellow/30"
+                ? "border-kenoo-yellow ring-1 ring-kenoo-yellow/30"
                 : "border-neutral-200/50",
             )}
           >
@@ -273,7 +273,7 @@ export function AdminAccountDetail({ account }: AdminAccountDetailProps) {
                   className={cn(
                     "rounded-none",
                     isOrg
-                      ? "bg-walls-sky/20 text-zinc-900 hover:bg-walls-sky/30"
+                      ? "bg-kenoo-sky/20 text-zinc-900 hover:bg-kenoo-sky/30"
                       : "bg-neutral-100 text-neutral-700 hover:bg-neutral-100",
                   )}
                 >
@@ -404,7 +404,7 @@ export function AdminAccountDetail({ account }: AdminAccountDetailProps) {
                         href={account.website}
                         target="_blank"
                         rel="noreferrer"
-                        className="text-walls-sky underline decoration-dotted underline-offset-2"
+                        className="text-kenoo-sky underline decoration-dotted underline-offset-2"
                       >
                         {account.website}
                       </a>

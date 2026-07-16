@@ -4,13 +4,50 @@
 @source "../../../packages/ui/src";
 @source "../components";
 
+/* Kenoo portal overrides */
+:root {
+  --background: var(--kenoo-white);
+  --foreground: #111111;
+  --kenoo-canvas: var(--kenoo-white);
+  --kenoo-surface: #ffffff;
+  --kenoo-ink: #111111;
+  --kenoo-muted: #6b6b6b;
+  --kenoo-accent: #111111;
+  --kenoo-accent-hover: #000000;
+  --kenoo-border: #e8e8e8;
+  --kenoo-subtle: #efefef;
+  --border: #e8e8e8;
+  --input: #e8e8e8;
+  --muted-foreground: #6b6b6b;
+  --accent: #efefef;
+  --accent-foreground: #111111;
+  --ring: #111111;
+  --muted: #efefef;
+  --ring-offset-background: var(--kenoo-white);
+}
+
 @theme inline {
   --font-sans: var(--font-geist-sans);
+  --font-display: var(--font-instrument-sans);
   --font-mono: var(--font-geist-mono);
+  --color-kenoo-canvas: var(--kenoo-canvas);
+  --color-kenoo-surface: var(--kenoo-surface);
+  --color-kenoo-ink: var(--kenoo-ink);
+  --color-kenoo-muted: var(--kenoo-muted);
+  --color-kenoo-accent: var(--kenoo-accent);
+  --color-kenoo-accent-hover: var(--kenoo-accent-hover);
+  --color-kenoo-border: var(--kenoo-border);
+  --color-kenoo-subtle: var(--kenoo-subtle);
 }
 
 body {
   font-family: var(--font-sans), Arial, Helvetica, sans-serif;
+  background: var(--background);
+  color: var(--foreground);
+}
+
+.font-display {
+  font-family: var(--font-display), var(--font-sans), sans-serif;
 }
 
 @keyframes caret-blink {

@@ -182,7 +182,7 @@ function renderMarkdownPreview(
 
 /* ─── Plus icon button (matches ProjectsHeader — no bg at rest, inset ring on hover) ─ */
 const KANBAN_PLUS_HOVER_RING =
-  "relative z-10 flex items-center justify-center rounded-full transition-all duration-300 ease-in-out group-hover:bg-walls-white group-hover:border group-hover:border-neutral-200 group-hover:shadow-[inset_0_4px_8px_rgba(0,0,0,0.15)] group-hover:scale-95";
+  "relative z-10 flex items-center justify-center rounded-full transition-all duration-300 ease-in-out group-hover:bg-kenoo-white group-hover:border group-hover:border-neutral-200 group-hover:shadow-[inset_0_4px_8px_rgba(0,0,0,0.15)] group-hover:scale-95";
 
 function KanbanPlusButton({
   onClick,
@@ -1172,8 +1172,8 @@ function AgentsProjectsKanbanContent({
                   onChange={(e) => setSearch(e.target.value)}
                   className={cn(
                     "w-full pl-6 pr-3 py-2 text-sm bg-transparent border-0 border-b focus:outline-none transition-colors placeholder:text-neutral-300 font-light rounded-none",
-                    search ? "border-b-[var(--walls-sky)]" : "border-neutral-200",
-                    "focus:border-b-[var(--walls-sky)]"
+                    search ? "border-b-[var(--kenoo-sky)]" : "border-neutral-200",
+                    "focus:border-b-[var(--kenoo-sky)]"
                   )}
                 />
               </div>

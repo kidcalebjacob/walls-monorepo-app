@@ -116,7 +116,7 @@ export function StepDelayPopup({
                 value="immediately"
                 id="immediately"
                 className="border-neutral-500"
-                indicatorClassName="bg-walls-sky"
+                indicatorClassName="bg-kenoo-sky"
               />
               <Label htmlFor="immediately" className="text-sm font-normal text-gray-700 cursor-pointer">
                 Immediately after contact is added
@@ -129,7 +129,7 @@ export function StepDelayPopup({
                   value="after"
                   id="after"
                   className="border-neutral-500"
-                  indicatorClassName="bg-walls-sky"
+                  indicatorClassName="bg-kenoo-sky"
                 />
                 <Label htmlFor="after" className="text-sm font-normal text-gray-700 cursor-pointer">
                   Execute step after

@@ -38,7 +38,7 @@ function FormattedNumberInput({ label, value, onChange, formatValue, placeholder
     <div className="min-h-[48px] flex items-center">
       <div className="border-0 rounded-full bg-transparent hover:bg-gray-100 px-4 py-2 w-full">
         <div className="flex items-center">
-          <span className="text-2xl font-black text-black bg-walls-yellow/70 px-2 py-1 rounded">{label}</span>
+          <span className="text-2xl font-black text-black bg-kenoo-yellow/70 px-2 py-1 rounded">{label}</span>
           <div className="relative flex-1">
             <input
               type="number"
@@ -134,7 +134,7 @@ export default function EmployeeCount({ formData, handleInputChange }: EmployeeC
             <div className="grid grid-cols-2 gap-6 pt-6">
               {departments.map((dept, index) => (
                 <div key={index} className="flex items-center gap-4">
-                  <h3 className="text-lg font-semibold text-black bg-walls-yellow/70 px-2 py-1 rounded">
+                  <h3 className="text-lg font-semibold text-black bg-kenoo-yellow/70 px-2 py-1 rounded">
                     {dept.name}
                   </h3>
                   <div className="flex-1 border-t border-black h-[1px]" />

@@ -326,8 +326,8 @@ export function SenderSearch({
                 }}
                 placeholder="Search senders…"
                 className={cn(
-                  "w-full rounded-none border-0 border-b bg-transparent py-2 pl-6 pr-2 text-sm font-light transition-colors placeholder:text-neutral-300 focus:border-b-[var(--walls-sky)] focus:outline-none focus-visible:outline-none",
-                  searchQuery.trim() ? "border-b-[var(--walls-sky)]" : "border-neutral-200"
+                  "w-full rounded-none border-0 border-b bg-transparent py-2 pl-6 pr-2 text-sm font-light transition-colors placeholder:text-neutral-300 focus:border-b-[var(--kenoo-sky)] focus:outline-none focus-visible:outline-none",
+                  searchQuery.trim() ? "border-b-[var(--kenoo-sky)]" : "border-neutral-200"
                 )}
                 onClick={(e) => e.stopPropagation()}
               />
@@ -388,7 +388,7 @@ export function SenderSearch({
                       <button
                         type="button"
                         onClick={handleConnectClick}
-                        className="absolute right-4 top-1/2 z-10 flex -translate-y-1/2 items-center gap-1 rounded px-2 py-1 text-[10px] font-light lowercase tracking-wide text-[var(--walls-sky)] hover:underline focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--walls-sky)] focus-visible:ring-offset-1"
+                        className="absolute right-4 top-1/2 z-10 flex -translate-y-1/2 items-center gap-1 rounded px-2 py-1 text-[10px] font-light lowercase tracking-wide text-[var(--kenoo-sky)] hover:underline focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--kenoo-sky)] focus-visible:ring-offset-1"
                       >
                         <Plus className="h-3 w-3" />
                         connect

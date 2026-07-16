@@ -36,7 +36,7 @@ export function TimezoneAlert({ isOpen, onClose, browserTimezone, userTimezone }
           >
             <CardContent className="p-8 flex flex-col items-center justify-center gap-4">
               <div className="relative">
-                <RiTimeZoneLine className="h-28 w-28 text-gray-500 relative z-10 group-hover:scale-110 group-hover:text-walls-light transition-all duration-300" />
+                <RiTimeZoneLine className="h-28 w-28 text-gray-500 relative z-10 group-hover:scale-110 group-hover:text-kenoo-light transition-all duration-300" />
               </div>
               <div className="flex flex-col items-center text-center">
                 <span className="font-light text-lg text-gray-500">Switch to</span>

@@ -158,13 +158,13 @@ export function CampaignDetailPage() {
                   {detail.adSets.map((adSet) => (
                     <tr
                       key={adSet.id}
-                      className="border-b border-neutral-100 transition-colors hover:bg-walls-white"
+                      className="border-b border-neutral-100 transition-colors hover:bg-kenoo-white"
                     >
                       <td className="py-4 pr-4">
                         <div className="flex min-w-0 items-center gap-2">
                           <Link
                             href={`/campaigns/${campaignId}/ad-sets/${adSet.id}`}
-                            className="truncate text-sm font-medium text-neutral-800 transition-colors hover:text-[var(--walls-sky)]"
+                            className="truncate text-sm font-medium text-neutral-800 transition-colors hover:text-[var(--kenoo-sky)]"
                           >
                             {adSet.name}
                           </Link>
@@ -176,7 +176,7 @@ export function CampaignDetailPage() {
                         <span className="inline-flex items-center gap-1.5">
                           {isActiveStatus(adSet.status) ? (
                             <span
-                              className="h-2 w-2 flex-shrink-0 rounded-full bg-[var(--walls-sky)]"
+                              className="h-2 w-2 flex-shrink-0 rounded-full bg-[var(--kenoo-sky)]"
                               aria-hidden
                             />
                           ) : null}

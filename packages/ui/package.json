@@ -5,7 +5,8 @@
   "type": "module",
   "exports": {
     "./globals.css": "./src/globals.css",
-    "./walls-theme.css": "./src/walls-theme.css",
+    "./kenoo-theme.css": "./src/kenoo-theme.css",
+    "./walls-theme.css": "./src/kenoo-theme.css",
     "./colors": "./src/colors.ts",
     "./button": "./src/components/button.tsx",
     "./card": "./src/components/card.tsx",

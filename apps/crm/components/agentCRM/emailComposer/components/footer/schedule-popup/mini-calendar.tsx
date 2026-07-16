@@ -25,7 +25,7 @@ function MiniCalendar({
       <div className="relative flex items-center justify-center h-full w-full">
         <div className="font-light">{day.getDate()}</div>
         {hasDeal && (
-          <div className="absolute bottom-0.5 w-1 h-1 rounded-full bg-walls-red"></div>
+          <div className="absolute bottom-0.5 w-1 h-1 rounded-full bg-kenoo-red"></div>
         )}
       </div>
     );
@@ -59,7 +59,7 @@ function MiniCalendar({
         day_range_end: "day-range-end",
         day_selected:
           "bg-blue-500 text-white rounded-full hover:bg-blue-500 hover:text-white focus:bg-blue-500 focus:text-white",
-        day_today: "[&:not([aria-selected])]:bg-transparent border border-walls-sky text-foreground rounded-full [&[aria-selected]]:text-white",
+        day_today: "[&:not([aria-selected])]:bg-transparent border border-kenoo-sky text-foreground rounded-full [&[aria-selected]]:text-white",
         day_outside:
           "day-outside text-muted-foreground opacity-50 aria-selected:bg-accent/50 aria-selected:text-muted-foreground aria-selected:opacity-30",
         day_disabled: "text-muted-foreground opacity-50",

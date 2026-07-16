@@ -206,7 +206,7 @@ export function ContactOwnerSelect({
               value={UNASSIGNED_VALUE}
               className={cn(
                 "rounded-none hover:bg-neutral-300/30 focus:bg-neutral-500/10 pr-4 pl-2 [&>span:first-child]:hidden",
-                !value ? "bg-walls-yellow/40" : ""
+                !value ? "bg-kenoo-yellow/40" : ""
               )}
             >
               <span className="text-sm font-light text-muted-foreground">Unassigned</span>
@@ -220,7 +220,7 @@ export function ContactOwnerSelect({
                   value={agent.id}
                   className={cn(
                     "rounded-none hover:bg-neutral-300/30 focus:bg-neutral-500/10 pr-4 pl-2 [&>span:first-child]:hidden",
-                    value === agent.id ? "bg-walls-yellow/40" : ""
+                    value === agent.id ? "bg-kenoo-yellow/40" : ""
                   )}
                 >
                   <div className="flex items-center gap-2 flex-1 min-w-0">

@@ -158,9 +158,9 @@ export function AdminAccounts() {
               className={cn(
                 "w-full pl-6 pr-3 py-2 text-sm bg-transparent border-0 border-b focus:outline-none focus-visible:outline-none transition-colors placeholder:text-neutral-300 font-light rounded-none",
                 search.trim()
-                  ? "border-b-[var(--walls-sky)]"
+                  ? "border-b-[var(--kenoo-sky)]"
                   : "border-neutral-200",
-                "focus:border-b-[var(--walls-sky)]",
+                "focus:border-b-[var(--kenoo-sky)]",
               )}
               aria-label="Search accounts"
             />

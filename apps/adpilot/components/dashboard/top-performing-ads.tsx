@@ -142,7 +142,7 @@ function AdPerformanceRow({
         {href ? (
           <Link
             href={href}
-            className="block truncate text-sm font-medium text-neutral-800 transition-colors hover:text-[var(--walls-sky)]"
+            className="block truncate text-sm font-medium text-neutral-800 transition-colors hover:text-[var(--kenoo-sky)]"
           >
             {ad.name}
           </Link>
@@ -258,7 +258,7 @@ function AdHighlightsTimeRangePicker({
               <span
                 className={cn(
                   "h-2 w-2 flex-shrink-0 rounded-full",
-                  value === option.value ? "bg-[var(--walls-sky)]" : "bg-neutral-200",
+                  value === option.value ? "bg-[var(--kenoo-sky)]" : "bg-neutral-200",
                 )}
                 aria-hidden
               />
@@ -372,7 +372,7 @@ export function TopPerformingAds({
         <>
           <div className="relative my-5">
             <div className="border-t border-dashed border-rose-400" />
-            <p className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 bg-walls-white px-3 text-[10px] font-medium uppercase tracking-wider text-rose-500">
+            <p className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 bg-kenoo-white px-3 text-[10px] font-medium uppercase tracking-wider text-rose-500">
               Bottom performers
             </p>
           </div>

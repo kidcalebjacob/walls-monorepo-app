@@ -160,7 +160,7 @@ function AppAccessPopoutContent({
             className={cn(
               "flex w-full items-center gap-4 rounded-xl bg-neutral-100/80 backdrop-blur-md shadow-inner border-2 px-5 py-5 min-h-[72px] text-left transition-colors hover:bg-neutral-100",
               selectedIds.has(app.id)
-                ? "border-walls-yellow ring-1 ring-walls-yellow/30"
+                ? "border-kenoo-yellow ring-1 ring-kenoo-yellow/30"
                 : "border-neutral-200/50"
             )}
           >
@@ -280,7 +280,7 @@ export function AdminUserDetail({ user }: AdminUserDetailProps) {
                   {name}
                 </h1>
                 {user.is_admin && (
-                  <Badge className="rounded-none bg-walls-yellow text-zinc-900 hover:bg-walls-yellow/90">
+                  <Badge className="rounded-none bg-kenoo-yellow text-zinc-900 hover:bg-kenoo-yellow/90">
                     Admin
                   </Badge>
                 )}

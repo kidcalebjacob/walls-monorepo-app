@@ -425,7 +425,7 @@ export function SequenceSelect({ value, onValueChange, className, personId }: Se
                 value={sequence.id}
                 disabled={isPersonInSequence}
                 className={`rounded-none hover:bg-neutral-300/30 focus:bg-neutral-500/10 pl-4 pr-8 [&>span:first-child]:hidden relative ${
-                  value === sequence.id ? 'bg-walls-yellow/40' : ''
+                  value === sequence.id ? 'bg-kenoo-yellow/40' : ''
                 } ${isPersonInSequence ? 'cursor-not-allowed opacity-60' : 'cursor-pointer'}`}
               >
                 <div className="flex items-center w-full">

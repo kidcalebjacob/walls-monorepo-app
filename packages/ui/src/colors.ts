@@ -1,8 +1,8 @@
 /**
- * WALLS brand color values for JS/TS (inline styles, Framer Motion, charts, etc.).
- * Keep in sync with `walls-theme.css`.
+ * Kenoo brand color values for JS/TS (inline styles, Framer Motion, charts, etc.).
+ * Keep in sync with `kenoo-theme.css`.
  */
-export const wallsColors = {
+export const kenooColors = {
   blue: { DEFAULT: "#0066b2", hover: "#005091" },
   beige: { DEFAULT: "#f5e6d3", hover: "#ebd5bb" },
   light: { DEFAULT: "#30a1f4", hover: "#0066b2" },
@@ -18,33 +18,33 @@ export const wallsColors = {
   white: { DEFAULT: "#FCFCFC", hover: "#FCFCFC" },
 } as const;
 
-export type WallsColorName = keyof typeof wallsColors;
+export type KenooColorName = keyof typeof kenooColors;
 
-const cssVarNames: Record<WallsColorName, string> = {
-  blue: "--walls-blue",
-  beige: "--walls-beige",
-  light: "--walls-light",
-  yellow: "--walls-yellow",
-  darkYellow: "--walls-dark-yellow",
-  lime: "--walls-lime",
-  black: "--walls-black",
-  red: "--walls-red",
-  sky: "--walls-sky",
-  orange: "--walls-orange",
-  emerald: "--walls-emerald",
-  forest: "--walls-forest",
-  white: "--walls-white",
+const cssVarNames: Record<KenooColorName, string> = {
+  blue: "--kenoo-blue",
+  beige: "--kenoo-beige",
+  light: "--kenoo-light",
+  yellow: "--kenoo-yellow",
+  darkYellow: "--kenoo-dark-yellow",
+  lime: "--kenoo-lime",
+  black: "--kenoo-black",
+  red: "--kenoo-red",
+  sky: "--kenoo-sky",
+  orange: "--kenoo-orange",
+  emerald: "--kenoo-emerald",
+  forest: "--kenoo-forest",
+  white: "--kenoo-white",
 };
 
-/** CSS custom property reference, e.g. `wallsCssVar("yellow")` → `var(--walls-yellow)` */
-export function wallsCssVar(name: WallsColorName): string {
+/** CSS custom property reference, e.g. `kenooCssVar("yellow")` → `var(--kenoo-yellow)` */
+export function kenooCssVar(name: KenooColorName): string {
   return `var(${cssVarNames[name]})`;
 }
 
 /** Hex value for a brand color */
-export function wallsColor(
-  name: WallsColorName,
+export function kenooColor(
+  name: KenooColorName,
   variant: "DEFAULT" | "hover" = "DEFAULT",
 ): string {
-  return wallsColors[name][variant];
+  return kenooColors[name][variant];
 }

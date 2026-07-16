@@ -557,7 +557,7 @@ export function CalendarGrid({ selectedDate, onDateSelect, allEvents, onTaskDrop
                   </span>
                   <span className={cn(
                     "flex items-center justify-center w-10 h-10 mt-1 rounded-full text-lg font-medium",
-                    isToday && "bg-walls-yellow/60 text-black font-semibold",
+                    isToday && "bg-kenoo-yellow/60 text-black font-semibold",
                     isSelected && !isToday && "text-neutral-900 font-semibold"
                   )}>
                     {format(date, 'd')}
@@ -677,7 +677,7 @@ export function CalendarGrid({ selectedDate, onDateSelect, allEvents, onTaskDrop
               {HOURS.map((hour) => (
                 <div key={hour} className="relative border-b border-slate-100" style={{ height: `${pixelsPerHour}px` }}>
                   {hour !== 0 && (
-                    <span className="absolute top-[-10px] right-2 text-[10px] text-walls-sky">
+                    <span className="absolute top-[-10px] right-2 text-[10px] text-kenoo-sky">
                       {format(new Date().setHours(hour, 0), 'ha')}
                     </span>
                   )}
@@ -721,7 +721,7 @@ export function CalendarGrid({ selectedDate, onDateSelect, allEvents, onTaskDrop
               {dragPreview && dragPreview.visible && (
                 <div
                   className={cn(
-                    'absolute rounded-md border-2 border-dashed border-walls-yellow bg-walls-yellow/5 opacity-90'
+                    'absolute rounded-md border-2 border-dashed border-kenoo-yellow bg-kenoo-yellow/5 opacity-90'
                   )}
                   style={{
                     left: `${(dragPreview.dayIndex * (100 / numDays))}%`,
@@ -732,7 +732,7 @@ export function CalendarGrid({ selectedDate, onDateSelect, allEvents, onTaskDrop
                   }}
                 >
                   <div className="flex h-full min-w-0">
-                    <span className="w-[3px] shrink-0 self-stretch bg-walls-yellow" />
+                    <span className="w-[3px] shrink-0 self-stretch bg-kenoo-yellow" />
                     <div className="min-w-0 flex-1 p-2 pl-2">
                       <div className="text-xs font-normal truncate">{dragPreview.title}</div>
                       <div className="text-[10px] text-muted-foreground mt-0.5">

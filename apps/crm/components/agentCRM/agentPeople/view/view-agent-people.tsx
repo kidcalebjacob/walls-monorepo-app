@@ -391,7 +391,7 @@ export default function EditAgentPeople({ analyticsData, personId, initialData, 
                     }
                   }}
                 />
-                <AvatarFallback className="bg-walls-light/5">
+                <AvatarFallback className="bg-kenoo-light/5">
                   <User className="h-10 w-10 text-gray-400" />
                 </AvatarFallback>
               </Avatar>
@@ -479,7 +479,7 @@ export default function EditAgentPeople({ analyticsData, personId, initialData, 
               <div className="flex items-center gap-3 flex-shrink-0">
                 {(formData.title || formData.company) && (
                   <span className="bg-white/50 backdrop-blur-sm shadow-inner border border-neutral-200/50 text-neutral-600 font-light text-sm pl-9 pr-4 py-1 rounded-[50px] flex items-center relative">
-                    <span className="bg-walls-yellow rounded-full flex items-center justify-center absolute left-0 top-0 bottom-0 h-full aspect-square overflow-hidden p-0">
+                    <span className="bg-kenoo-yellow rounded-full flex items-center justify-center absolute left-0 top-0 bottom-0 h-full aspect-square overflow-hidden p-0">
                       {formData.companyPhotoUrl ? (
                         <Image
                           src={formData.companyPhotoUrl}
@@ -512,7 +512,7 @@ export default function EditAgentPeople({ analyticsData, personId, initialData, 
                     rel="noopener noreferrer"
                     className="text-2xl text-black hover:opacity-80 transition-opacity relative group"
                   >
-                    <div className="absolute inset-0 -m-2 rounded-[25px] bg-walls-yellow scale-0 transition-transform duration-300 ease-in-out group-hover:scale-100" />
+                    <div className="absolute inset-0 -m-2 rounded-[25px] bg-kenoo-yellow scale-0 transition-transform duration-300 ease-in-out group-hover:scale-100" />
                     <FaLinkedin className="relative z-10" />
                   </a>
                 )}
@@ -523,7 +523,7 @@ export default function EditAgentPeople({ analyticsData, personId, initialData, 
                     rel="noopener noreferrer"
                     className="text-2xl text-black hover:opacity-80 transition-opacity relative group"
                   >
-                    <div className="absolute inset-0 -m-2 rounded-[25px] bg-walls-yellow scale-0 transition-transform duration-300 ease-in-out group-hover:scale-100" />
+                    <div className="absolute inset-0 -m-2 rounded-[25px] bg-kenoo-yellow scale-0 transition-transform duration-300 ease-in-out group-hover:scale-100" />
                     <FaTwitter className="relative z-10" />
                   </a>
                 )}
@@ -534,7 +534,7 @@ export default function EditAgentPeople({ analyticsData, personId, initialData, 
                     rel="noopener noreferrer"
                     className="text-2xl text-black hover:opacity-80 transition-opacity relative group"
                   >
-                    <div className="absolute inset-0 -m-2 rounded-[25px] bg-walls-yellow scale-0 transition-transform duration-300 ease-in-out group-hover:scale-100" />
+                    <div className="absolute inset-0 -m-2 rounded-[25px] bg-kenoo-yellow scale-0 transition-transform duration-300 ease-in-out group-hover:scale-100" />
                     <FaFacebook className="relative z-10" />
                   </a>
                 )}
@@ -545,7 +545,7 @@ export default function EditAgentPeople({ analyticsData, personId, initialData, 
                     rel="noopener noreferrer"
                     className="text-2xl text-black hover:opacity-80 transition-opacity relative group"
                   >
-                    <div className="absolute inset-0 -m-2 rounded-[25px] bg-walls-yellow scale-0 transition-transform duration-300 ease-in-out group-hover:scale-100" />
+                    <div className="absolute inset-0 -m-2 rounded-[25px] bg-kenoo-yellow scale-0 transition-transform duration-300 ease-in-out group-hover:scale-100" />
                     <FaGithub className="relative z-10" />
                   </a>
                 )}

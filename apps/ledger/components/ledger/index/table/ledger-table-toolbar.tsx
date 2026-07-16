@@ -49,7 +49,7 @@ export function LedgerTableToolbar({
               `}
               >
                 <Filter
-                  className={`h-[18px] w-[18px] stroke-[1.5] ${hasActiveFilters() ? "text-walls-yellow" : ""}`}
+                  className={`h-[18px] w-[18px] stroke-[1.5] ${hasActiveFilters() ? "text-kenoo-yellow" : ""}`}
                 />
               </div>
             </div>

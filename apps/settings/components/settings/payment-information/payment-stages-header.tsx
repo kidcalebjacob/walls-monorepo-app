@@ -46,7 +46,7 @@ export default function PaymentStagesHeader({
         
         {/* Animated fill bar */}
         <motion.div
-          className="absolute left-[10%] top-[32px] h-1 bg-walls-yellow z-0"
+          className="absolute left-[10%] top-[32px] h-1 bg-kenoo-yellow z-0"
           initial={{ width: "0%" }}
           animate={{ width: `${fillPercentage}%` }}
           transition={{ duration: 0.5, ease: "easeInOut" }}

@@ -37,7 +37,7 @@ export const AnimatedEnrichmentToast = ({ personName, isSuccess }: AnimatedEnric
             duration: 0.8,
             ease: "easeOut"
           }}
-          className={`absolute inset-0 rounded-full ${isSuccess ? "bg-walls-yellow" : "bg-red-500"}`}
+          className={`absolute inset-0 rounded-full ${isSuccess ? "bg-kenoo-yellow" : "bg-red-500"}`}
         />
         
         {/* Main icon with glow */}
@@ -45,7 +45,7 @@ export const AnimatedEnrichmentToast = ({ personName, isSuccess }: AnimatedEnric
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.2, duration: 0.3 }}
-          className={`relative z-10 rounded-full p-2 ${isSuccess ? "bg-walls-yellow" : "bg-red-500"}`}
+          className={`relative z-10 rounded-full p-2 ${isSuccess ? "bg-kenoo-yellow" : "bg-red-500"}`}
         >
           <Sparkles className={`h-4 w-4 ${isSuccess ? "text-neutral-800" : "text-white"}`} />
         </motion.div>
@@ -88,7 +88,7 @@ export const AnimatedEnrichmentToast = ({ personName, isSuccess }: AnimatedEnric
         }}
         className="absolute right-2"
       >
-        <div className={`text-lg ${isSuccess ? "text-walls-yellow" : "text-red-500"}`}>✨</div>
+        <div className={`text-lg ${isSuccess ? "text-kenoo-yellow" : "text-red-500"}`}>✨</div>
       </motion.div>
     </div>
   );

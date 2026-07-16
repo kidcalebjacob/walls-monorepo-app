@@ -152,7 +152,7 @@ function LeadsSearchContent({ analyticsData }: LeadsSearchProps) {
                   className={`font-normal text-md px-6 py-6 rounded-full transition-all duration-300 relative group shadow-inner border flex items-center justify-center
                     ${loading
                       ? "bg-transparent border-transparent shadow-none"
-                      : "bg-walls-yellow/50 hover:bg-walls-yellow/90 border-walls-yellow/50 text-neutral-700"
+                      : "bg-kenoo-yellow/50 hover:bg-kenoo-yellow/90 border-kenoo-yellow/50 text-neutral-700"
                     }`}
                 >
                   <motion.div
@@ -240,7 +240,7 @@ function LeadsSearchContent({ analyticsData }: LeadsSearchProps) {
                                     href={lead.linkedinUrl}
                                     target="_blank"
                                     rel="noopener noreferrer"
-                                    className="text-walls-light hover:text-walls-blue transition-colors duration-300"
+                                    className="text-kenoo-light hover:text-kenoo-blue transition-colors duration-300"
                                     onClick={(e) => {
                                       e.preventDefault();
                                       e.stopPropagation();

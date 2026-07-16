@@ -29,7 +29,7 @@ export function FallbackEmailAvatar({ name, className }: FallbackEmailAvatarProp
     <div
       className={cn(
         "w-full h-full rounded-full flex items-center justify-center text-[13px] font-normal tracking-wide select-none",
-        "bg-walls-white text-neutral-300 border border-neutral-200 shadow-[inset_0_4px_8px_rgba(0,0,0,0.15)]",
+        "bg-kenoo-white text-neutral-300 border border-neutral-200 shadow-[inset_0_4px_8px_rgba(0,0,0,0.15)]",
         className
       )}
       aria-label={`${safeName} avatar`}

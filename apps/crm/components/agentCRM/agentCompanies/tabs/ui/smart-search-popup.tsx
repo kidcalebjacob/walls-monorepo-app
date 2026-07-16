@@ -300,7 +300,7 @@ export function SmartSearchPopup({
                       <CountrySelect
                         value={countryCode}
                         onValueChange={handleCountryChange}
-                        className="w-full h-9 border-0 border-b border-neutral-200 rounded-none bg-transparent px-0 py-1 text-[15px] font-light text-neutral-900 shadow-none focus:outline-none focus:ring-0 focus-visible:ring-0 focus:border-b-[var(--walls-sky)] data-[state=open]:border-b-[var(--walls-sky)] [&_[data-placeholder]]:text-neutral-300 transition-colors"
+                        className="w-full h-9 border-0 border-b border-neutral-200 rounded-none bg-transparent px-0 py-1 text-[15px] font-light text-neutral-900 shadow-none focus:outline-none focus:ring-0 focus-visible:ring-0 focus:border-b-[var(--kenoo-sky)] data-[state=open]:border-b-[var(--kenoo-sky)] [&_[data-placeholder]]:text-neutral-300 transition-colors"
                       />
                       {countryCode && (
                         <button
@@ -335,7 +335,7 @@ export function SmartSearchPopup({
                         onKeyDown={(e) => {
                           if (e.key === "Enter") handleSearch();
                         }}
-                        className="w-full border-0 border-b border-neutral-200 bg-transparent py-1 text-[15px] font-light text-neutral-900 placeholder:text-neutral-300 focus:border-[var(--walls-sky)] focus:outline-none transition-colors"
+                        className="w-full border-0 border-b border-neutral-200 bg-transparent py-1 text-[15px] font-light text-neutral-900 placeholder:text-neutral-300 focus:border-[var(--kenoo-sky)] focus:outline-none transition-colors"
                       />
                     </div>
                   </motion.div>
@@ -482,8 +482,8 @@ export function SmartSearchPopup({
                 onClick={handleSearch}
                 className={footerButtonClass}
               >
-                <Search className="h-4 w-4 text-neutral-400 transition-colors group-hover:text-walls-sky" />
-                <span className="text-sm font-normal text-neutral-800 transition-colors group-hover:text-walls-sky">
+                <Search className="h-4 w-4 text-neutral-400 transition-colors group-hover:text-kenoo-sky" />
+                <span className="text-sm font-normal text-neutral-800 transition-colors group-hover:text-kenoo-sky">
                   Search
                 </span>
               </button>

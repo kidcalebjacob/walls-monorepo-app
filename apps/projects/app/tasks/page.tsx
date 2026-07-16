@@ -4,7 +4,7 @@ import AgentsTaskKanban from "@/components/agents-projects/taskKanban/agents-tas
 
 function BoardFallback() {
   return (
-    <div className="flex h-full min-h-0 items-center justify-center bg-walls-white text-sm font-light text-neutral-400">
+    <div className="flex h-full min-h-0 items-center justify-center bg-kenoo-white text-sm font-light text-neutral-400">
       Loading board…
     </div>
   );
@@ -12,7 +12,7 @@ function BoardFallback() {
 
 export default function TasksPage() {
   return (
-    <div className="h-full min-h-0 overflow-hidden overscroll-none bg-walls-white">
+    <div className="h-full min-h-0 overflow-hidden overscroll-none bg-kenoo-white">
       <Suspense fallback={<BoardFallback />}>
         <AgentsTaskKanban analyticsData={null} />
       </Suspense>

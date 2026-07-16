@@ -20,7 +20,7 @@ export const toggleChipBaseClass =
 export const glassToggleChipBaseClass =
   "relative rounded-full px-5 py-2 text-sm tracking-tight transition-colors duration-200";
 
-export const toggleChipActiveClass = "font-semibold text-walls-forest";
+export const toggleChipActiveClass = "font-semibold text-kenoo-forest";
 
 export const glassToggleChipActiveClass = "font-medium text-neutral-700";
 
@@ -33,7 +33,7 @@ export const toggleCardBaseClass =
   "relative rounded-2xl px-4 py-3.5 text-left ring-1 ring-inset transition-all duration-200 ease-out";
 
 export const toggleCardActiveClass =
-  "bg-gradient-to-br from-[#eafb87] to-[#d2ef3a] text-walls-forest ring-[#bcd63a]";
+  "bg-gradient-to-br from-[#eafb87] to-[#d2ef3a] text-kenoo-forest ring-[#bcd63a]";
 
 export const toggleCardInactiveClass =
   "bg-white ring-neutral-200/70 hover:bg-neutral-50 hover:ring-neutral-300";

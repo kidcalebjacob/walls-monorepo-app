@@ -208,7 +208,7 @@ export function CRMPagination({
                 currentPage === page &&
                   (buttonVariant === "scouter"
                     ? scouterPaginationActiveClass
-                    : "!bg-walls-yellow/50 text-neutral-700 hover:!bg-walls-yellow/40")
+                    : "!bg-kenoo-yellow/50 text-neutral-700 hover:!bg-kenoo-yellow/40")
               )}
             >
               {formatNumber(page as number)}
