@@ -322,5 +322,4 @@ export const metadata = createWallsMetadata({
   icons: { icon: "/custom-icon.png" }, // optional override
 });
 ```
-
 `@/lib/utils` in any app resolves to `@walls/utils` via each app's `tsconfig.json` — no per-app `lib/utils.ts` file needed. App-specific helpers (e.g. `lib/urls.ts` on the public site) can still live under that app's `lib/` folder.

@@ -1,5 +1,6 @@
 "use client";
 
+import { KenooWordmark } from "@walls/ui/kenoo-wordmark";
 import { motion } from "framer-motion";
 import { Menu, X } from "lucide-react";
 import Link from "next/link";
@@ -69,11 +70,8 @@ export function SiteHeader() {
       )}
     >
       <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-5 md:h-[4.25rem] md:px-8">
-        <Link
-          href="/"
-          className="font-display text-[1.35rem] font-semibold tracking-[-0.04em] text-kenoo-ink"
-        >
-          Kenoo
+        <Link href="/" className="flex items-center" aria-label="Kenoo home">
+          <KenooWordmark priority className="h-6 md:h-7" />
         </Link>
 
         <nav className="hidden items-center gap-8 md:flex">

@@ -1,17 +1,14 @@
 "use client";
 
-import Image from "next/image";
 import Link from "next/link";
 
 import { cn } from "@walls/utils";
 
 import { useAppHeaderVisible } from "./app-header-context";
+import { KenooWordmark } from "./kenoo-wordmark";
 import UserProfileButton, {
   type UserProfileButtonProps,
 } from "./user-profile-button";
-
-const WALLS_LOGO_URL =
-  "https://assets.wallsentertainment.com/logo-variations/black-logo.png";
 
 export interface AppHeaderProps extends UserProfileButtonProps {
   logoHref?: string;
@@ -36,16 +33,9 @@ export default function AppHeader({
     <Link
       href={homeHref}
       className="flex items-center"
-      aria-label="WALLS home"
+      aria-label="Kenoo home"
     >
-      <Image
-        src={WALLS_LOGO_URL}
-        alt="WALLS Entertainment logo"
-        width={48}
-        height={48}
-        className="h-10 w-10 flex-none"
-        priority
-      />
+      <KenooWordmark priority />
     </Link>
   );
 
