@@ -3,11 +3,12 @@
 import React, { useState, useEffect, useRef, useMemo } from "react";
 import { createClient } from "@walls/supabase/client";
 import { useAuth } from "@walls/auth";
-import { Save, Trash2 } from "lucide-react";
+import { Plus, Save, Trash2, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
   Project,
   ProjectTask,
+  ProjectTaskSchedule,
   TaskStatus,
   TASK_STATUS_CONFIG,
   KANBAN_COLUMNS,
@@ -43,7 +44,7 @@ import {
 import { MiniCalendar } from "@/components/ui/mini-calendar";
 import { SequenceSwitch as Switch } from "@/components/ui/sequence-switch";
 import { motion } from "framer-motion";
-import { format, isValid, parseISO } from "date-fns";
+import { format, isValid, parseISO, setHours, setMinutes } from "date-fns";
 import { AgentSearch } from "@/components/ui/searches/agent-search";
 import { SimpleMarkdownEditor } from "@/components/agents-projects/simple-markdown-editor";
 import {
@@ -51,6 +52,76 @@ import {
   resolveActorDisplayName,
 } from "@/lib/user-notifications";
 import { loadAccessibleProjects as fetchAccessibleProjects } from "./load-accessible-projects";
+
+/* ─── Schedule drafts (optional time chunks, separate from due date) ───── */
+interface ScheduleDraft {
+  key: string;
+  date: string;
+  start: string;
+  end: string;
+}
+
+const TIME_OPTIONS = (() => {
+  const options: { label: string; value: string }[] = [];
+  for (let hour = 0; hour < 24; hour++) {
+    for (let minute = 0; minute < 60; minute += 15) {
+      const value = `${String(hour).padStart(2, "0")}:${String(minute).padStart(2, "0")}`;
+      const labelDate = setMinutes(setHours(new Date(), hour), minute);
+      options.push({ label: format(labelDate, "h:mm a"), value });
+    }
+  }
+  return options;
+})();
+
+function nextHalfHourTime(from = new Date()): string {
+  const d = new Date(from);
+  d.setSeconds(0, 0);
+  const mins = d.getMinutes();
+  const rounded = mins === 0 || mins === 30 ? mins : mins < 30 ? 30 : 60;
+  if (rounded === 60) {
+    d.setHours(d.getHours() + 1, 0, 0, 0);
+  } else {
+    d.setMinutes(rounded, 0, 0);
+  }
+  return format(d, "HH:mm");
+}
+
+function addHoursToTime(time: string, hours: number): string {
+  const [h, m] = time.split(":").map(Number);
+  const total = h * 60 + m + hours * 60;
+  const wrapped = ((total % (24 * 60)) + 24 * 60) % (24 * 60);
+  return `${String(Math.floor(wrapped / 60)).padStart(2, "0")}:${String(wrapped % 60).padStart(2, "0")}`;
+}
+
+function createScheduleDraft(baseDate?: Date | null): ScheduleDraft {
+  const date = baseDate && isValid(baseDate) ? baseDate : new Date();
+  const start = nextHalfHourTime();
+  return {
+    key: crypto.randomUUID(),
+    date: format(date, "yyyy-MM-dd"),
+    start,
+    end: addHoursToTime(start, 1),
+  };
+}
+
+function scheduleToDraft(schedule: ProjectTaskSchedule): ScheduleDraft {
+  const start = parseISO(schedule.start_time);
+  const end = parseISO(schedule.end_time);
+  return {
+    key: schedule.id,
+    date: format(start, "yyyy-MM-dd"),
+    start: format(start, "HH:mm"),
+    end: format(end, "HH:mm"),
+  };
+}
+
+function draftToIsoRange(draft: ScheduleDraft): { start_time: string; end_time: string } | null {
+  if (!draft.date || !draft.start || !draft.end) return null;
+  const start = parseISO(`${draft.date}T${draft.start}:00`);
+  const end = parseISO(`${draft.date}T${draft.end}:00`);
+  if (!isValid(start) || !isValid(end) || end <= start) return null;
+  return { start_time: start.toISOString(), end_time: end.toISOString() };
+}
 
 /* ─── Form config ────────────────────────────────────────────────────────── */
 const popupButtonOuterClass =
@@ -121,6 +192,8 @@ export interface CreateTasksPopupProps {
   defaultStatus?: TaskStatus;
   threadId?: string | null;
   defaultProjectId?: string | null;
+  /** Prefill date for new schedule blocks (e.g. currently selected calendar day). */
+  defaultScheduleDate?: Date | null;
   existing?: ProjectTask | null;
 }
 
@@ -133,10 +206,13 @@ export function CreateTasksPopup({
   defaultStatus = "todo",
   threadId,
   defaultProjectId,
+  defaultScheduleDate,
   existing,
 }: CreateTasksPopupProps) {
   const { user: authUser } = useAuth();
   const [form, setForm] = useState<TaskFormState>(EMPTY_TASK_FORM);
+  const [schedules, setSchedules] = useState<ScheduleDraft[]>([]);
+  const [scheduleDatePopoverKey, setScheduleDatePopoverKey] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [assigneeDisplayName, setAssigneeDisplayName] = useState<string | null>(null);
@@ -225,6 +301,7 @@ export function CreateTasksPopup({
   useEffect(() => {
     if (!open) {
       setForm(EMPTY_TASK_FORM);
+      setSchedules([]);
       setError(null);
     }
   }, [open]);
@@ -250,6 +327,11 @@ export function CreateTasksPopup({
         assignee_id: existing.assignee_id ?? "",
         is_public: existing.is_private === false,
       });
+      const loaded = (existing.schedules ?? [])
+        .slice()
+        .sort((a, b) => a.position - b.position || a.start_time.localeCompare(b.start_time))
+        .map(scheduleToDraft);
+      setSchedules(loaded);
     } else {
       const firstSelectable =
         projectsForSelect.find((p) =>
@@ -270,6 +352,7 @@ export function CreateTasksPopup({
         project_id: initialProjectId,
         assignee_id: currentUserId ?? "",
       });
+      setSchedules([]);
     }
     setError(null);
   }, [
@@ -283,6 +366,31 @@ export function CreateTasksPopup({
     loadingAccessibleProjects,
     accessibleProjects.length,
   ]);
+
+  // When editing, load schedules if the parent passed a task without nested rows
+  useEffect(() => {
+    if (!open || !existing?.id) return;
+    if (existing.schedules !== undefined) return;
+
+    let cancelled = false;
+    const load = async () => {
+      const supabase = createClient();
+      const { data, error: err } = await supabase
+        .from("project_task_schedules")
+        .select(
+          "id, created_at, updated_at, task_id, start_time, end_time, position, notes, created_by"
+        )
+        .eq("task_id", existing.id)
+        .order("position", { ascending: true })
+        .order("start_time", { ascending: true });
+      if (cancelled || err) return;
+      setSchedules((data ?? []).map((row) => scheduleToDraft(row as ProjectTaskSchedule)));
+    };
+    void load();
+    return () => {
+      cancelled = true;
+    };
+  }, [open, existing?.id, existing?.schedules]);
 
   // Default project once accessible options are ready (new task only)
   useEffect(() => {
@@ -452,6 +560,43 @@ export function CreateTasksPopup({
     return () => observer.disconnect();
   }, [selectedProjectName, open]);
 
+  const syncSchedules = async (
+    supabase: ReturnType<typeof createClient>,
+    taskId: string,
+    actorUserId: string | null
+  ) => {
+    const rows = schedules
+      .map((draft, index) => {
+        const range = draftToIsoRange(draft);
+        if (!range) return null;
+        return {
+          task_id: taskId,
+          start_time: range.start_time,
+          end_time: range.end_time,
+          position: index,
+          created_by: actorUserId,
+        };
+      })
+      .filter((row): row is NonNullable<typeof row> => row !== null);
+
+    if (rows.length !== schedules.length) {
+      throw new Error("Each schedule needs a date and an end time after the start.");
+    }
+
+    const { error: deleteError } = await supabase
+      .from("project_task_schedules")
+      .delete()
+      .eq("task_id", taskId);
+    if (deleteError) throw deleteError;
+
+    if (rows.length === 0) return;
+
+    const { error: insertError } = await supabase
+      .from("project_task_schedules")
+      .insert(rows);
+    if (insertError) throw insertError;
+  };
+
   const handleDelete = async () => {
     if (!existing) return;
     setSaving(true);
@@ -509,6 +654,8 @@ export function CreateTasksPopup({
         payload.assigned_by = resolveAssignedBy(assigneeId, actorUserId);
       }
 
+      let taskId = existing?.id ?? null;
+
       if (existing) {
         const { error: err } = await supabase
           .from("project_tasks")
@@ -535,6 +682,7 @@ export function CreateTasksPopup({
           .select("id")
           .single();
         if (err) throw err;
+        taskId = newTask?.id ?? null;
 
         if (shouldNotifyAssignee && assigneeId && newTask?.id) {
           await notifyTaskAssignee(supabase, {
@@ -548,6 +696,10 @@ export function CreateTasksPopup({
           });
         }
       }
+
+      if (!taskId) throw new Error("Failed to resolve task id.");
+      await syncSchedules(supabase, taskId, actorUserId);
+
       onSaved();
       onClose();
     } catch (e: unknown) {
@@ -562,7 +714,7 @@ export function CreateTasksPopup({
 
   return (
     <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
-      <DialogContent className="sm:max-w-[900px] [&>button]:focus:outline-none [&>button]:focus:ring-0 [&>button]:focus-visible:ring-0 [&>button]:ring-0" onOpenAutoFocus={(e) => e.preventDefault()}>
+      <DialogContent className="sm:max-w-[900px] max-h-[90vh] overflow-y-auto [&>button]:focus:outline-none [&>button]:focus:ring-0 [&>button]:focus-visible:ring-0 [&>button]:ring-0" onOpenAutoFocus={(e) => e.preventDefault()}>
         <DialogHeader />
 
         <div className="grid grid-cols-[2fr_1fr] divide-x divide-gray-200 gap-6 py-4">
@@ -592,7 +744,7 @@ export function CreateTasksPopup({
           </div>
 
           {/* Right Column */}
-          <div className="space-y-2 pl-6 min-w-0">
+          <div className="space-y-2 pl-6 min-w-0 max-h-[min(70vh,640px)] overflow-y-auto">
             {/* Project */}
             <Select
               value={form.project_id}
@@ -806,6 +958,195 @@ export function CreateTasksPopup({
                 />
               </PopoverContent>
             </Popover>
+
+            {/* Schedule time blocks — optional, independent of due date */}
+            <div className="space-y-1.5 px-1 pt-1">
+              <div className="flex h-10 items-center justify-between gap-2 rounded-full px-3 hover:bg-gray-100">
+                <span className={fieldLabelClass}>Schedule:</span>
+                <button
+                  type="button"
+                  disabled={saving}
+                  onClick={() =>
+                    setSchedules((prev) => [
+                      ...prev,
+                      createScheduleDraft(
+                        form.due_date
+                          ? parseISO(form.due_date)
+                          : defaultScheduleDate ?? null
+                      ),
+                    ])
+                  }
+                  className="inline-flex items-center gap-1 rounded-full px-2 py-1 text-[12px] font-light text-neutral-600 hover:bg-white/80 disabled:opacity-50"
+                >
+                  <Plus className="h-3.5 w-3.5 stroke-[1.5]" />
+                  Add block
+                </button>
+              </div>
+
+              {schedules.length > 0 && (
+                <div className="space-y-2 px-1 pb-1">
+                  {schedules.map((draft) => {
+                    const draftDate = draft.date ? parseISO(draft.date) : null;
+                    const validDraftDate =
+                      draftDate && isValid(draftDate) ? draftDate : null;
+                    const startLabel =
+                      TIME_OPTIONS.find((o) => o.value === draft.start)?.label ??
+                      draft.start;
+                    const endLabel =
+                      TIME_OPTIONS.find((o) => o.value === draft.end)?.label ??
+                      draft.end;
+
+                    return (
+                      <div
+                        key={draft.key}
+                        className="rounded-2xl border border-neutral-200/70 bg-white/60 px-3 py-2 space-y-1.5"
+                      >
+                        <div className="flex items-center gap-1">
+                          <Popover
+                            open={scheduleDatePopoverKey === draft.key}
+                            onOpenChange={(next) =>
+                              setScheduleDatePopoverKey(next ? draft.key : null)
+                            }
+                          >
+                            <PopoverTrigger asChild>
+                              <button
+                                type="button"
+                                disabled={saving}
+                                className="min-w-0 flex-1 truncate text-left text-[13px] font-light text-neutral-800 hover:underline disabled:opacity-50"
+                              >
+                                {validDraftDate
+                                  ? format(validDraftDate, "MMM d, yyyy")
+                                  : "Pick date"}
+                              </button>
+                            </PopoverTrigger>
+                            <PopoverContent
+                              className="w-auto p-0 border-0 rounded-3xl shadow-[0_14px_32px_rgba(0,0,0,0.18)]"
+                              align="start"
+                            >
+                              <MiniCalendar
+                                selected={validDraftDate ?? undefined}
+                                onSelect={(date) => {
+                                  if (!date) return;
+                                  setSchedules((prev) =>
+                                    prev.map((s) =>
+                                      s.key === draft.key
+                                        ? { ...s, date: format(date, "yyyy-MM-dd") }
+                                        : s
+                                    )
+                                  );
+                                  setScheduleDatePopoverKey(null);
+                                }}
+                                initialFocus
+                              />
+                            </PopoverContent>
+                          </Popover>
+                          <button
+                            type="button"
+                            disabled={saving}
+                            aria-label="Remove schedule block"
+                            onClick={() =>
+                              setSchedules((prev) =>
+                                prev.filter((s) => s.key !== draft.key)
+                              )
+                            }
+                            className="shrink-0 rounded-full p-1 text-neutral-400 hover:bg-neutral-100 hover:text-neutral-600 disabled:opacity-50"
+                          >
+                            <X className="h-3.5 w-3.5" />
+                          </button>
+                        </div>
+
+                        <div className="flex items-center gap-1 text-[13px] font-light text-neutral-700">
+                          <Popover>
+                            <PopoverTrigger asChild>
+                              <button
+                                type="button"
+                                disabled={saving}
+                                className="rounded-full px-2 py-0.5 hover:bg-neutral-100 disabled:opacity-50"
+                              >
+                                {startLabel}
+                              </button>
+                            </PopoverTrigger>
+                            <PopoverContent
+                              className="w-36 max-h-56 overflow-y-auto py-2"
+                              align="start"
+                            >
+                              <div className="flex flex-col">
+                                {TIME_OPTIONS.map((option) => (
+                                  <button
+                                    key={`start-${draft.key}-${option.value}`}
+                                    type="button"
+                                    className="px-2 py-1 text-left text-sm text-neutral-700 hover:bg-gray-100"
+                                    onClick={() => {
+                                      setSchedules((prev) =>
+                                        prev.map((s) => {
+                                          if (s.key !== draft.key) return s;
+                                          const nextEnd =
+                                            option.value >= s.end
+                                              ? addHoursToTime(option.value, 1)
+                                              : s.end;
+                                          return {
+                                            ...s,
+                                            start: option.value,
+                                            end: nextEnd,
+                                          };
+                                        })
+                                      );
+                                    }}
+                                  >
+                                    {option.label}
+                                  </button>
+                                ))}
+                              </div>
+                            </PopoverContent>
+                          </Popover>
+
+                          <span className="text-neutral-400">–</span>
+
+                          <Popover>
+                            <PopoverTrigger asChild>
+                              <button
+                                type="button"
+                                disabled={saving}
+                                className="rounded-full px-2 py-0.5 hover:bg-neutral-100 disabled:opacity-50"
+                              >
+                                {endLabel}
+                              </button>
+                            </PopoverTrigger>
+                            <PopoverContent
+                              className="w-36 max-h-56 overflow-y-auto py-2"
+                              align="start"
+                            >
+                              <div className="flex flex-col">
+                                {TIME_OPTIONS.filter(
+                                  (option) => option.value > draft.start
+                                ).map((option) => (
+                                  <button
+                                    key={`end-${draft.key}-${option.value}`}
+                                    type="button"
+                                    className="px-2 py-1 text-left text-sm text-neutral-700 hover:bg-gray-100"
+                                    onClick={() => {
+                                      setSchedules((prev) =>
+                                        prev.map((s) =>
+                                          s.key === draft.key
+                                            ? { ...s, end: option.value }
+                                            : s
+                                        )
+                                      );
+                                    }}
+                                  >
+                                    {option.label}
+                                  </button>
+                                ))}
+                              </div>
+                            </PopoverContent>
+                          </Popover>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
 
             {/* Visibility */}
             <div className="flex h-10 items-center gap-2.5 rounded-full px-4 hover:bg-gray-100">

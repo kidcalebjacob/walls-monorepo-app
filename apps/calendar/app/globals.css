@@ -7,7 +7,7 @@
 :root {
   --background: var(--kenoo-white);
   --foreground: #111111;
-  --kenoo-canvas: #c5d0dc;
+  --kenoo-canvas: #eef1f5;
   --kenoo-surface: #ffffff;
   --kenoo-ink: #111111;
   --kenoo-muted: #6b6b6b;
@@ -133,25 +133,25 @@
     display: none;
   }
 
-  /* Grey-blue tech atmosphere (Weather-app vibe) */
+  /* Grey-blue tech atmosphere (Weather-app vibe, toned down) */
   .kenoo-calendar-atmosphere {
     background:
       radial-gradient(
         ellipse 90% 70% at 50% -10%,
-        rgba(232, 240, 248, 0.55),
+        rgba(255, 255, 255, 0.9),
         transparent 58%
       ),
       radial-gradient(
         ellipse 70% 55% at 100% 80%,
-        rgba(140, 168, 196, 0.35),
+        rgba(180, 190, 202, 0.07),
         transparent 55%
       ),
       radial-gradient(
         ellipse 60% 50% at 0% 100%,
-        rgba(156, 176, 198, 0.28),
+        rgba(184, 192, 202, 0.05),
         transparent 50%
       ),
-      linear-gradient(180deg, #d5dee8 0%, #c0cbd8 48%, #b4c0cf 100%);
+      linear-gradient(180deg, #f6f7f9 0%, #eef1f5 48%, #e8ecf1 100%);
   }
 
   /* Shared frosted glass for sidebar, top bar, and calendar panel */

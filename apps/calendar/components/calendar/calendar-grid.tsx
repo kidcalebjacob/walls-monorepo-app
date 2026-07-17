@@ -164,7 +164,7 @@ interface Event {
   description?: string;
   startTime: Date | { seconds: number } | string;
   endTime: Date | { seconds: number } | string;
-  type?: 'regular-event' | 'scheduled-task' | 'project-task';
+  type?: 'regular-event' | 'scheduled-task' | 'project-task' | 'project-task-schedule';
   isAllDay?: boolean;
   colorId?: string;
   location?: string;
@@ -175,6 +175,7 @@ interface Event {
   meetingLink?: string;
   status?: string;
   projectTaskId?: string;
+  scheduleId?: string;
 }
 
 interface CalendarGridProps {
@@ -568,9 +569,10 @@ export function CalendarGrid({ selectedDate, onDateSelect, allEvents, onTaskDrop
 
   // Handle event click
   const handleEventClick = (event: Event) => {
-    if (event.type === 'project-task') {
-      const taskId = event.projectTaskId ?? event.id.replace('project-task-', '');
-      onProjectTaskClick?.(taskId);
+    if (event.type === 'project-task' || event.type === 'project-task-schedule') {
+      if (event.projectTaskId) {
+        onProjectTaskClick?.(event.projectTaskId);
+      }
       return;
     }
 
@@ -722,8 +724,8 @@ export function CalendarGrid({ selectedDate, onDateSelect, allEvents, onTaskDrop
 
   return (
     <>
-      <div className="flex min-h-0 flex-1 flex-col overflow-hidden overscroll-none bg-transparent">
-        <div className="flex bg-transparent pb-1 pt-1">
+      <div className="flex h-full min-h-0 flex-1 flex-col overflow-hidden overscroll-none bg-transparent">
+        <div className="flex shrink-0 bg-transparent pb-1 pt-1">
           <div className="w-12" />
           {weekDates.map((date, index) => {
             const isToday = isSameDay(date, new Date());
@@ -756,7 +758,7 @@ export function CalendarGrid({ selectedDate, onDateSelect, allEvents, onTaskDrop
         {allDayLayouts.length > 0 && (
           <div
             className={cn(
-              'flex border-b border-white/40 bg-white/55 transition-[min-height] duration-150',
+              'flex shrink-0 border-b border-white/40 bg-white/55 transition-[min-height] duration-150',
               isAllDayExpanded && 'relative z-20 shadow-sm'
             )}
             style={{ minHeight: `${allDaySectionHeight}px` }}
@@ -851,7 +853,7 @@ export function CalendarGrid({ selectedDate, onDateSelect, allEvents, onTaskDrop
           </div>
         )}
 
-        <ScrollArea ref={viewportRef} className="flex-1 min-h-0 overscroll-contain">
+        <ScrollArea ref={viewportRef} className="h-full min-h-0 flex-1 overscroll-contain">
           <div 
             className="relative" 
             style={{ height: `${gridHeight}px` }}

@@ -34,7 +34,7 @@ export interface CalendarSidebarEvent {
   title: string;
   startTime: Date | { seconds: number } | string;
   endTime: Date | { seconds: number } | string;
-  type?: "regular-event" | "scheduled-task" | "project-task";
+  type?: "regular-event" | "scheduled-task" | "project-task" | "project-task-schedule";
   eventType?: string;
   projectName?: string;
   meetingLink?: string;
@@ -42,6 +42,7 @@ export interface CalendarSidebarEvent {
   location?: string;
   status?: string;
   projectTaskId?: string;
+  scheduleId?: string;
   legacyTaskId?: string;
 }
 
@@ -103,7 +104,7 @@ function formatDuration(
 }
 
 function getEventLabel(event: CalendarSidebarEvent): string {
-  if (event.type === "project-task") {
+  if (event.type === "project-task" || event.type === "project-task-schedule") {
     return event.projectName || "Task";
   }
   if (event.type === "scheduled-task") {
@@ -115,8 +116,11 @@ function getEventLabel(event: CalendarSidebarEvent): string {
 function canMarkTaskComplete(event: CalendarSidebarEvent): boolean {
   if (isCalendarTaskCompleted(event)) return false;
 
-  if (event.type === "project-task") {
-    return !!event.projectTaskId;
+  if (
+    (event.type === "project-task" || event.type === "project-task-schedule") &&
+    event.projectTaskId
+  ) {
+    return true;
   }
 
   if (event.type === "scheduled-task" && event.eventType === "task") {
@@ -162,7 +166,11 @@ export function CalendarDaySidebar({
       setCompletingTaskKey(event.id);
 
       try {
-        if (event.type === "project-task" && event.projectTaskId) {
+        if (
+          (event.type === "project-task" ||
+            event.type === "project-task-schedule") &&
+          event.projectTaskId
+        ) {
           const res = await fetch("/api/project-tasks/mark-complete", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
@@ -238,8 +246,9 @@ export function CalendarDaySidebar({
 
   return (
     <>
-      <aside className="kenoo-glass-chrome flex h-full min-h-0 w-[19rem] shrink-0 flex-col overflow-hidden rounded-[1.75rem] border border-white/40 overscroll-none">
-        <div className="shrink-0 space-y-4 px-4 pb-3 pt-4">
+      <aside className="kenoo-glass-chrome flex h-full min-h-0 w-[19rem] shrink-0 flex-col self-stretch rounded-[1.75rem] border border-white/40 overscroll-none">
+        <div className="flex h-full min-h-0 flex-1 flex-col overflow-hidden rounded-[1.75rem]">
+          <div className="shrink-0 space-y-4 px-4 pb-3 pt-4">
           <ChromeFrame className="w-full" contentClassName="w-full">
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
@@ -314,7 +323,9 @@ export function CalendarDaySidebar({
                 const showMarkComplete = canMarkTaskComplete(event);
                 const isCompleted = isCalendarTaskCompleted(event);
                 const isProjectTask =
-                  event.type === "project-task" && !!event.projectTaskId;
+                  (event.type === "project-task" ||
+                    event.type === "project-task-schedule") &&
+                  !!event.projectTaskId;
 
                 const CardWrapper = showMarkComplete ? motion.div : "div";
 
@@ -493,9 +504,7 @@ export function CalendarDaySidebar({
               })
             ) : (
               <div className="flex flex-col items-center justify-center py-12 text-center">
-                <div className="mb-3 flex h-14 w-14 items-center justify-center rounded-full bg-kenoo-subtle">
-                  <CalendarDays className="h-6 w-6 text-kenoo-muted" />
-                </div>
+                <CalendarDays className="mb-3 h-6 w-6 text-kenoo-muted" />
                 <p className="font-display text-sm font-semibold tracking-[-0.02em] text-kenoo-ink">
                   No items
                 </p>
@@ -505,6 +514,7 @@ export function CalendarDaySidebar({
               </div>
             )}
           </div>
+        </div>
         </div>
       </aside>
 

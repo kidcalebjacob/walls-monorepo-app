@@ -35,6 +35,10 @@ import type { Project, ProjectTask } from '@/components/agents-projects/types';
 
 function mapRowToProjectTask(row: Record<string, unknown>): ProjectTask {
   const projects = row.projects as { id: string; name: string; color: string | null } | null;
+  const schedulesRaw = row.project_task_schedules;
+  const schedules = Array.isArray(schedulesRaw)
+    ? (schedulesRaw as NonNullable<ProjectTask['schedules']>)
+    : [];
   return {
     id: row.id as string,
     created_at: (row.created_at as string) ?? new Date().toISOString(),
@@ -55,6 +59,7 @@ function mapRowToProjectTask(row: Record<string, unknown>): ProjectTask {
     estimated_minutes: (row.estimated_minutes as number | null) ?? null,
     actual_minutes: (row.actual_minutes as number | null) ?? null,
     metadata: (row.metadata as Record<string, unknown> | null) ?? null,
+    schedules,
     project: projects
       ? { id: projects.id, name: projects.name, color: projects.color }
       : undefined,
@@ -126,14 +131,13 @@ function AgentCalendarContent({ calendarData }: AgentCalendarProps) {
     });
 
     const formattedProjectTaskEvents = projectTasks
-      // Only include tasks that have at least one date we can put on the calendar
+      // All-day due/start markers — scheduling is separate timed blocks below
       .filter(task => task.due_date || task.start_date)
       .map(task => {
         const date = task.due_date || task.start_date;
         return {
           id: `project-task-${task.id}`,
           title: task.title,
-          // Show project tasks as all‑day items on whichever date we have
           startTime: `${date}T00:00:00`,
           endTime: `${date}T23:59:59`,
           type: 'project-task' as const,
@@ -144,6 +148,23 @@ function AgentCalendarContent({ calendarData }: AgentCalendarProps) {
           projectColor: task.project?.color || null,
         };
       });
+
+    const formattedProjectScheduleEvents = projectTasks.flatMap((task) =>
+      (task.schedules ?? []).map((schedule) => ({
+        id: `project-task-schedule-${schedule.id}`,
+        title: task.title,
+        description: task.description ?? '',
+        startTime: schedule.start_time,
+        endTime: schedule.end_time,
+        type: 'project-task-schedule' as const,
+        isAllDay: false,
+        status: task.status,
+        projectTaskId: task.id,
+        scheduleId: schedule.id,
+        projectName: task.project?.name || '',
+        projectColor: task.project?.color || null,
+      }))
+    );
 
     const filteredEvents = [];
 
@@ -161,6 +182,7 @@ function AgentCalendarContent({ calendarData }: AgentCalendarProps) {
 
     if (filters.tasks) {
       filteredEvents.push(...formattedProjectTaskEvents);
+      filteredEvents.push(...formattedProjectScheduleEvents);
     }
 
     return filteredEvents;
@@ -449,7 +471,7 @@ function AgentCalendarContent({ calendarData }: AgentCalendarProps) {
     const fetchProjectTasks = async () => {
       const { data, error } = await supabase
         .from('project_tasks')
-        .select('id, title, description, status, start_date, due_date, priority, project_id, assignee_id, assigned_by, is_private, created_at, updated_at, completed_at, parent_task_id, position, estimated_minutes, actual_minutes, metadata, projects(id, name, color)')
+        .select('id, title, description, status, start_date, due_date, priority, project_id, assignee_id, assigned_by, is_private, created_at, updated_at, completed_at, parent_task_id, position, estimated_minutes, actual_minutes, metadata, projects(id, name, color), project_task_schedules(id, created_at, updated_at, task_id, start_time, end_time, position, notes, created_by)')
         .order('due_date', { ascending: true, nullsFirst: false });
 
       if (error) {
@@ -457,9 +479,10 @@ function AgentCalendarContent({ calendarData }: AgentCalendarProps) {
         return;
       }
 
-      setProjectTasks(
-        filterTasksVisibleToUser((data ?? []) as ProjectTask[], viewerUserId),
+      const mapped = (data ?? []).map((row) =>
+        mapRowToProjectTask(row as Record<string, unknown>)
       );
+      setProjectTasks(filterTasksVisibleToUser(mapped, viewerUserId));
     };
 
     fetchProjectTasks();
@@ -472,6 +495,17 @@ function AgentCalendarContent({ calendarData }: AgentCalendarProps) {
           event: '*',
           schema: 'public',
           table: 'project_tasks',
+        },
+        () => {
+          fetchProjectTasks();
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'project_task_schedules',
         },
         () => {
           fetchProjectTasks();
@@ -520,6 +554,26 @@ function AgentCalendarContent({ calendarData }: AgentCalendarProps) {
   const handleTaskFormClose = () => {
     setTaskFormOpen(false);
     setEditProjectTask(null);
+  };
+
+  const handleTaskFormSaved = () => {
+    handleTaskFormClose();
+    if (!user?.id) return;
+    const supabase = createClient();
+    void supabase
+      .from('project_tasks')
+      .select('id, title, description, status, start_date, due_date, priority, project_id, assignee_id, assigned_by, is_private, created_at, updated_at, completed_at, parent_task_id, position, estimated_minutes, actual_minutes, metadata, projects(id, name, color), project_task_schedules(id, created_at, updated_at, task_id, start_time, end_time, position, notes, created_by)')
+      .order('due_date', { ascending: true, nullsFirst: false })
+      .then(({ data, error }) => {
+        if (error) {
+          console.error('Error refreshing project tasks:', error);
+          return;
+        }
+        const mapped = (data ?? []).map((row) =>
+          mapRowToProjectTask(row as Record<string, unknown>)
+        );
+        setProjectTasks(filterTasksVisibleToUser(mapped, user.id));
+      });
   };
 
   // Check for timezone mismatch
@@ -593,7 +647,7 @@ function AgentCalendarContent({ calendarData }: AgentCalendarProps) {
   };
 
   return (
-    <div className="kenoo-calendar-atmosphere flex h-full min-h-0 gap-3 overflow-hidden overscroll-none p-3">
+    <div className="kenoo-calendar-atmosphere flex h-full min-h-0 items-stretch gap-3 overflow-hidden overscroll-none p-4">
       <CalendarDaySidebar
         selectedDate={selectedDate}
         onDateSelect={setSelectedDate}
@@ -602,7 +656,8 @@ function AgentCalendarContent({ calendarData }: AgentCalendarProps) {
         {...sidebarProps}
       />
 
-      <div className="flex min-h-0 min-w-0 flex-1 flex-col gap-2 overflow-hidden">
+      {/* h-full keeps this column flush with the sidebar; no overflow clip so glass shadows paint */}
+      <div className="flex h-full min-h-0 min-w-0 flex-1 flex-col gap-3">
         <CalendarHeader
           selectedDate={selectedDate}
           onTodayClick={() => setSelectedDate(new Date())}
@@ -612,8 +667,10 @@ function AgentCalendarContent({ calendarData }: AgentCalendarProps) {
           onViewChange={setCalendarView}
         />
 
-        <div className="flex min-h-0 flex-1 overflow-hidden overscroll-none">
-          <div className="kenoo-glass-chrome-dense flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden rounded-[1.75rem] border border-white/40">
+        <div className="flex min-h-0 flex-1 flex-col overscroll-none">
+          {/* Shadow on the outer chrome; clip scroll content on the inner shell */}
+          <div className="kenoo-glass-chrome-dense flex h-full min-h-0 min-w-0 flex-1 flex-col rounded-[1.75rem] border border-white/40">
+            <div className="flex h-full min-h-0 min-w-0 flex-1 flex-col overflow-hidden rounded-[1.75rem]">
               {calendarView === 'monthly' ? (
                 <AgentMonthGrid
                   selectedDate={selectedDate}
@@ -633,6 +690,7 @@ function AgentCalendarContent({ calendarData }: AgentCalendarProps) {
                   viewMode={calendarView === 'daily' ? 'day' : 'week'}
                 />
               )}
+            </div>
           </div>
         </div>
 
@@ -646,9 +704,10 @@ function AgentCalendarContent({ calendarData }: AgentCalendarProps) {
         <CreateTasksPopup
           open={taskFormOpen}
           onClose={handleTaskFormClose}
-          onSaved={handleTaskFormClose}
+          onSaved={handleTaskFormSaved}
           projects={projects}
           existing={editProjectTask}
+          defaultScheduleDate={selectedDate}
         />
 
         <Toaster />

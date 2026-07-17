@@ -43,7 +43,7 @@ export function CalendarHeader({
         <button
           type="button"
           onClick={onTodayClick}
-          className="h-10 shrink-0 rounded-full border border-white/70 bg-white/35 px-5 text-base font-medium text-kenoo-ink shadow-[inset_0_1px_0_rgba(255,255,255,0.7)] transition-colors hover:bg-white/55"
+          className="h-10 shrink-0 rounded-full border border-neutral-300/90 bg-white/35 px-5 text-base font-medium text-kenoo-ink shadow-[inset_0_1px_0_rgba(255,255,255,0.7)] transition-colors hover:bg-white/55"
         >
           Today
         </button>
@@ -77,7 +77,7 @@ export function CalendarHeader({
         >
           <SelectTrigger
             aria-label="Calendar view"
-            className="h-10 w-auto min-w-[6.5rem] gap-2 rounded-full border border-white/70 bg-white/35 px-3.5 text-base font-medium text-kenoo-ink shadow-[inset_0_1px_0_rgba(255,255,255,0.7)] ring-offset-0 transition-colors hover:bg-white/55 focus:ring-0 focus:ring-offset-0 [&>svg]:h-4 [&>svg]:w-4 [&>svg]:opacity-60"
+            className="h-10 w-auto min-w-[6.5rem] gap-2 rounded-full border border-neutral-300/90 bg-white/35 px-3.5 text-base font-medium text-kenoo-ink shadow-[inset_0_1px_0_rgba(255,255,255,0.7)] ring-offset-0 transition-colors hover:bg-white/55 focus:ring-0 focus:ring-offset-0 [&>svg]:h-4 [&>svg]:w-4 [&>svg]:opacity-60"
           >
             <SelectValue />
           </SelectTrigger>

@@ -55,7 +55,7 @@ interface CalendarEventItem {
   title: string;
   startTime: Date | { seconds: number } | string;
   endTime: Date | { seconds: number } | string;
-  type?: "regular-event" | "scheduled-task" | "project-task";
+  type?: "regular-event" | "scheduled-task" | "project-task" | "project-task-schedule";
   eventType?: string;
   projectName?: string;
   projectColor?: string | null;
@@ -63,6 +63,8 @@ interface CalendarEventItem {
   attendees?: Array<{ email: string }>;
   location?: string;
   status?: string;
+  projectTaskId?: string;
+  scheduleId?: string;
 }
 
 interface AgentMonthGridProps {

@@ -55,6 +55,19 @@ export interface TaskAssignee {
   avatar_url: string | null;
 }
 
+/** Timed work block for a project task — independent of due_date. */
+export interface ProjectTaskSchedule {
+  id: string;
+  created_at: string;
+  updated_at: string;
+  task_id: string;
+  start_time: string;
+  end_time: string;
+  position: number;
+  notes: string | null;
+  created_by: string | null;
+}
+
 export interface ProjectTask {
   id: string;
   created_at: string;
@@ -76,6 +89,8 @@ export interface ProjectTask {
   estimated_minutes: number | null;
   actual_minutes: number | null;
   metadata: Record<string, unknown> | null;
+  /** Optional calendar time chunks; empty/undefined = unscheduled. */
+  schedules?: ProjectTaskSchedule[];
   project?: {
     id: string;
     name: string;

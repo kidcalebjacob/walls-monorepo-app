@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-07-15T14:23:06.176Z",
+  "generatedAt": "2026-07-17T16:36:15.577Z",
   "source": "packages/supabase/scripts/dump-schema.mjs",
   "schemasIncluded": [
     "public",
@@ -7,11 +7,11 @@
     "storage"
   ],
   "summary": {
-    "tables": 207,
+    "tables": 210,
     "views": 1,
     "materializedViews": 6,
     "enums": 26,
-    "columns": 2197
+    "columns": 2266
   },
   "schemas": {
     "public": {
@@ -4518,6 +4518,17 @@
             {
               "name": "url_redirect",
               "position": 9,
+              "dataType": "text",
+              "udtName": "text",
+              "nullable": true,
+              "default": null,
+              "maxLength": null,
+              "numericPrecision": null,
+              "numericScale": null
+            },
+            {
+              "name": "subdomain",
+              "position": 10,
               "dataType": "text",
               "udtName": "text",
               "nullable": true,
@@ -11890,6 +11901,281 @@
               "maxLength": null,
               "numericPrecision": null,
               "numericScale": null
+            },
+            {
+              "name": "steps",
+              "position": 23,
+              "dataType": "integer",
+              "udtName": "int4",
+              "nullable": true,
+              "default": null,
+              "maxLength": null,
+              "numericPrecision": 32,
+              "numericScale": 0
+            },
+            {
+              "name": "distance_walking_meters",
+              "position": 24,
+              "dataType": "numeric",
+              "udtName": "numeric",
+              "nullable": true,
+              "default": null,
+              "maxLength": null,
+              "numericPrecision": 12,
+              "numericScale": 2
+            },
+            {
+              "name": "flights_climbed",
+              "position": 25,
+              "dataType": "numeric",
+              "udtName": "numeric",
+              "nullable": true,
+              "default": null,
+              "maxLength": null,
+              "numericPrecision": 8,
+              "numericScale": 2
+            },
+            {
+              "name": "active_energy_kcal",
+              "position": 26,
+              "dataType": "integer",
+              "udtName": "int4",
+              "nullable": true,
+              "default": null,
+              "maxLength": null,
+              "numericPrecision": 32,
+              "numericScale": 0
+            },
+            {
+              "name": "basal_energy_kcal",
+              "position": 27,
+              "dataType": "integer",
+              "udtName": "int4",
+              "nullable": true,
+              "default": null,
+              "maxLength": null,
+              "numericPrecision": 32,
+              "numericScale": 0
+            },
+            {
+              "name": "exercise_minutes",
+              "position": 28,
+              "dataType": "integer",
+              "udtName": "int4",
+              "nullable": true,
+              "default": null,
+              "maxLength": null,
+              "numericPrecision": 32,
+              "numericScale": 0
+            },
+            {
+              "name": "stand_minutes",
+              "position": 29,
+              "dataType": "integer",
+              "udtName": "int4",
+              "nullable": true,
+              "default": null,
+              "maxLength": null,
+              "numericPrecision": 32,
+              "numericScale": 0
+            },
+            {
+              "name": "stand_hours",
+              "position": 30,
+              "dataType": "smallint",
+              "udtName": "int2",
+              "nullable": true,
+              "default": null,
+              "maxLength": null,
+              "numericPrecision": 16,
+              "numericScale": 0
+            },
+            {
+              "name": "resting_heart_rate",
+              "position": 31,
+              "dataType": "smallint",
+              "udtName": "int2",
+              "nullable": true,
+              "default": null,
+              "maxLength": null,
+              "numericPrecision": 16,
+              "numericScale": 0
+            },
+            {
+              "name": "avg_heart_rate",
+              "position": 32,
+              "dataType": "smallint",
+              "udtName": "int2",
+              "nullable": true,
+              "default": null,
+              "maxLength": null,
+              "numericPrecision": 16,
+              "numericScale": 0
+            },
+            {
+              "name": "walking_heart_rate_avg",
+              "position": 33,
+              "dataType": "smallint",
+              "udtName": "int2",
+              "nullable": true,
+              "default": null,
+              "maxLength": null,
+              "numericPrecision": 16,
+              "numericScale": 0
+            },
+            {
+              "name": "hrv_sdnn_ms",
+              "position": 34,
+              "dataType": "numeric",
+              "udtName": "numeric",
+              "nullable": true,
+              "default": null,
+              "maxLength": null,
+              "numericPrecision": 8,
+              "numericScale": 2
+            },
+            {
+              "name": "respiratory_rate",
+              "position": 35,
+              "dataType": "numeric",
+              "udtName": "numeric",
+              "nullable": true,
+              "default": null,
+              "maxLength": null,
+              "numericPrecision": 6,
+              "numericScale": 2
+            },
+            {
+              "name": "oxygen_saturation",
+              "position": 36,
+              "dataType": "numeric",
+              "udtName": "numeric",
+              "nullable": true,
+              "default": null,
+              "maxLength": null,
+              "numericPrecision": 5,
+              "numericScale": 4
+            },
+            {
+              "name": "body_temperature_c",
+              "position": 37,
+              "dataType": "numeric",
+              "udtName": "numeric",
+              "nullable": true,
+              "default": null,
+              "maxLength": null,
+              "numericPrecision": 5,
+              "numericScale": 2
+            },
+            {
+              "name": "blood_glucose_mg_dl",
+              "position": 38,
+              "dataType": "numeric",
+              "udtName": "numeric",
+              "nullable": true,
+              "default": null,
+              "maxLength": null,
+              "numericPrecision": 8,
+              "numericScale": 2
+            },
+            {
+              "name": "vo2_max",
+              "position": 39,
+              "dataType": "numeric",
+              "udtName": "numeric",
+              "nullable": true,
+              "default": null,
+              "maxLength": null,
+              "numericPrecision": 6,
+              "numericScale": 2
+            },
+            {
+              "name": "mindfulness_minutes",
+              "position": 40,
+              "dataType": "integer",
+              "udtName": "int4",
+              "nullable": true,
+              "default": null,
+              "maxLength": null,
+              "numericPrecision": 32,
+              "numericScale": 0
+            },
+            {
+              "name": "sleep_asleep_minutes",
+              "position": 41,
+              "dataType": "integer",
+              "udtName": "int4",
+              "nullable": true,
+              "default": null,
+              "maxLength": null,
+              "numericPrecision": 32,
+              "numericScale": 0
+            },
+            {
+              "name": "sleep_in_bed_minutes",
+              "position": 42,
+              "dataType": "integer",
+              "udtName": "int4",
+              "nullable": true,
+              "default": null,
+              "maxLength": null,
+              "numericPrecision": 32,
+              "numericScale": 0
+            },
+            {
+              "name": "sleep_deep_minutes",
+              "position": 43,
+              "dataType": "integer",
+              "udtName": "int4",
+              "nullable": true,
+              "default": null,
+              "maxLength": null,
+              "numericPrecision": 32,
+              "numericScale": 0
+            },
+            {
+              "name": "sleep_rem_minutes",
+              "position": 44,
+              "dataType": "integer",
+              "udtName": "int4",
+              "nullable": true,
+              "default": null,
+              "maxLength": null,
+              "numericPrecision": 32,
+              "numericScale": 0
+            },
+            {
+              "name": "sleep_core_minutes",
+              "position": 45,
+              "dataType": "integer",
+              "udtName": "int4",
+              "nullable": true,
+              "default": null,
+              "maxLength": null,
+              "numericPrecision": 32,
+              "numericScale": 0
+            },
+            {
+              "name": "sleep_awake_minutes",
+              "position": 46,
+              "dataType": "integer",
+              "udtName": "int4",
+              "nullable": true,
+              "default": null,
+              "maxLength": null,
+              "numericPrecision": 32,
+              "numericScale": 0
+            },
+            {
+              "name": "apple_health_synced_at",
+              "position": 47,
+              "dataType": "timestamp with time zone",
+              "udtName": "timestamptz",
+              "nullable": true,
+              "default": null,
+              "maxLength": null,
+              "numericPrecision": null,
+              "numericScale": null
             }
           ],
           "primaryKey": [
@@ -13041,6 +13327,264 @@
             }
           ]
         },
+        "health_metric_samples": {
+          "type": "BASE TABLE",
+          "columns": [
+            {
+              "name": "id",
+              "position": 1,
+              "dataType": "uuid",
+              "udtName": "uuid",
+              "nullable": false,
+              "default": "gen_random_uuid()",
+              "maxLength": null,
+              "numericPrecision": null,
+              "numericScale": null
+            },
+            {
+              "name": "created_at",
+              "position": 2,
+              "dataType": "timestamp with time zone",
+              "udtName": "timestamptz",
+              "nullable": false,
+              "default": "now()",
+              "maxLength": null,
+              "numericPrecision": null,
+              "numericScale": null
+            },
+            {
+              "name": "updated_at",
+              "position": 3,
+              "dataType": "timestamp with time zone",
+              "udtName": "timestamptz",
+              "nullable": true,
+              "default": null,
+              "maxLength": null,
+              "numericPrecision": null,
+              "numericScale": null
+            },
+            {
+              "name": "user_id",
+              "position": 4,
+              "dataType": "uuid",
+              "udtName": "uuid",
+              "nullable": false,
+              "default": null,
+              "maxLength": null,
+              "numericPrecision": null,
+              "numericScale": null
+            },
+            {
+              "name": "user_connection_id",
+              "position": 5,
+              "dataType": "uuid",
+              "udtName": "uuid",
+              "nullable": true,
+              "default": null,
+              "maxLength": null,
+              "numericPrecision": null,
+              "numericScale": null
+            },
+            {
+              "name": "provider",
+              "position": 6,
+              "dataType": "text",
+              "udtName": "text",
+              "nullable": false,
+              "default": "'apple_health'::text",
+              "maxLength": null,
+              "numericPrecision": null,
+              "numericScale": null
+            },
+            {
+              "name": "provider_sample_id",
+              "position": 7,
+              "dataType": "text",
+              "udtName": "text",
+              "nullable": true,
+              "default": null,
+              "maxLength": null,
+              "numericPrecision": null,
+              "numericScale": null
+            },
+            {
+              "name": "metric_type",
+              "position": 8,
+              "dataType": "text",
+              "udtName": "text",
+              "nullable": false,
+              "default": null,
+              "maxLength": null,
+              "numericPrecision": null,
+              "numericScale": null
+            },
+            {
+              "name": "recorded_at",
+              "position": 9,
+              "dataType": "timestamp with time zone",
+              "udtName": "timestamptz",
+              "nullable": false,
+              "default": null,
+              "maxLength": null,
+              "numericPrecision": null,
+              "numericScale": null
+            },
+            {
+              "name": "ended_at",
+              "position": 10,
+              "dataType": "timestamp with time zone",
+              "udtName": "timestamptz",
+              "nullable": true,
+              "default": null,
+              "maxLength": null,
+              "numericPrecision": null,
+              "numericScale": null
+            },
+            {
+              "name": "value",
+              "position": 11,
+              "dataType": "numeric",
+              "udtName": "numeric",
+              "nullable": false,
+              "default": null,
+              "maxLength": null,
+              "numericPrecision": 14,
+              "numericScale": 6
+            },
+            {
+              "name": "unit",
+              "position": 12,
+              "dataType": "text",
+              "udtName": "text",
+              "nullable": false,
+              "default": null,
+              "maxLength": null,
+              "numericPrecision": null,
+              "numericScale": null
+            },
+            {
+              "name": "source_name",
+              "position": 13,
+              "dataType": "text",
+              "udtName": "text",
+              "nullable": true,
+              "default": null,
+              "maxLength": null,
+              "numericPrecision": null,
+              "numericScale": null
+            },
+            {
+              "name": "source_bundle_id",
+              "position": 14,
+              "dataType": "text",
+              "udtName": "text",
+              "nullable": true,
+              "default": null,
+              "maxLength": null,
+              "numericPrecision": null,
+              "numericScale": null
+            },
+            {
+              "name": "raw_payload",
+              "position": 15,
+              "dataType": "jsonb",
+              "udtName": "jsonb",
+              "nullable": false,
+              "default": "'{}'::jsonb",
+              "maxLength": null,
+              "numericPrecision": null,
+              "numericScale": null
+            }
+          ],
+          "primaryKey": [
+            "id"
+          ],
+          "foreignKeys": [
+            {
+              "name": "health_metric_samples_user_connection_id_fkey",
+              "columns": [
+                "user_connection_id"
+              ],
+              "references": {
+                "schema": "public",
+                "table": "user_connections",
+                "columns": [
+                  "id"
+                ]
+              },
+              "onUpdate": "NO ACTION",
+              "onDelete": "SET NULL"
+            },
+            {
+              "name": "health_metric_samples_user_id_fkey",
+              "columns": [
+                "user_id"
+              ],
+              "references": {
+                "schema": "public",
+                "table": "users",
+                "columns": [
+                  "id"
+                ]
+              },
+              "onUpdate": "NO ACTION",
+              "onDelete": "CASCADE"
+            }
+          ],
+          "uniqueConstraints": [],
+          "indexes": [
+            {
+              "name": "health_metric_samples_pkey",
+              "definition": "CREATE UNIQUE INDEX health_metric_samples_pkey ON public.health_metric_samples USING btree (id)"
+            },
+            {
+              "name": "health_metric_samples_provider_sample_key",
+              "definition": "CREATE UNIQUE INDEX health_metric_samples_provider_sample_key ON public.health_metric_samples USING btree (user_id, provider, provider_sample_id) WHERE (provider_sample_id IS NOT NULL)"
+            },
+            {
+              "name": "health_metric_samples_user_metric_time_idx",
+              "definition": "CREATE INDEX health_metric_samples_user_metric_time_idx ON public.health_metric_samples USING btree (user_id, metric_type, recorded_at DESC)"
+            }
+          ],
+          "rls": {
+            "enabled": true,
+            "forced": false
+          },
+          "policies": [
+            {
+              "name": "health_metric_samples_delete_own",
+              "permissive": "PERMISSIVE",
+              "roles": "{authenticated}",
+              "command": "DELETE",
+              "using": "(user_id = auth.uid())",
+              "withCheck": null
+            },
+            {
+              "name": "health_metric_samples_insert_own",
+              "permissive": "PERMISSIVE",
+              "roles": "{authenticated}",
+              "command": "INSERT",
+              "using": null,
+              "withCheck": "(user_id = auth.uid())"
+            },
+            {
+              "name": "health_metric_samples_select_own",
+              "permissive": "PERMISSIVE",
+              "roles": "{authenticated}",
+              "command": "SELECT",
+              "using": "(user_id = auth.uid())",
+              "withCheck": null
+            },
+            {
+              "name": "health_metric_samples_update_own",
+              "permissive": "PERMISSIVE",
+              "roles": "{authenticated}",
+              "command": "UPDATE",
+              "using": "(user_id = auth.uid())",
+              "withCheck": "(user_id = auth.uid())"
+            }
+          ]
+        },
         "health_profiles": {
           "type": "BASE TABLE",
           "columns": [
@@ -13371,6 +13915,286 @@
             },
             {
               "name": "health_profiles_update_own",
+              "permissive": "PERMISSIVE",
+              "roles": "{authenticated}",
+              "command": "UPDATE",
+              "using": "(user_id = auth.uid())",
+              "withCheck": "(user_id = auth.uid())"
+            }
+          ]
+        },
+        "health_sleep_sessions": {
+          "type": "BASE TABLE",
+          "columns": [
+            {
+              "name": "id",
+              "position": 1,
+              "dataType": "uuid",
+              "udtName": "uuid",
+              "nullable": false,
+              "default": "gen_random_uuid()",
+              "maxLength": null,
+              "numericPrecision": null,
+              "numericScale": null
+            },
+            {
+              "name": "created_at",
+              "position": 2,
+              "dataType": "timestamp with time zone",
+              "udtName": "timestamptz",
+              "nullable": false,
+              "default": "now()",
+              "maxLength": null,
+              "numericPrecision": null,
+              "numericScale": null
+            },
+            {
+              "name": "updated_at",
+              "position": 3,
+              "dataType": "timestamp with time zone",
+              "udtName": "timestamptz",
+              "nullable": true,
+              "default": null,
+              "maxLength": null,
+              "numericPrecision": null,
+              "numericScale": null
+            },
+            {
+              "name": "user_id",
+              "position": 4,
+              "dataType": "uuid",
+              "udtName": "uuid",
+              "nullable": false,
+              "default": null,
+              "maxLength": null,
+              "numericPrecision": null,
+              "numericScale": null
+            },
+            {
+              "name": "user_connection_id",
+              "position": 5,
+              "dataType": "uuid",
+              "udtName": "uuid",
+              "nullable": true,
+              "default": null,
+              "maxLength": null,
+              "numericPrecision": null,
+              "numericScale": null
+            },
+            {
+              "name": "provider",
+              "position": 6,
+              "dataType": "text",
+              "udtName": "text",
+              "nullable": false,
+              "default": "'apple_health'::text",
+              "maxLength": null,
+              "numericPrecision": null,
+              "numericScale": null
+            },
+            {
+              "name": "provider_session_id",
+              "position": 7,
+              "dataType": "text",
+              "udtName": "text",
+              "nullable": true,
+              "default": null,
+              "maxLength": null,
+              "numericPrecision": null,
+              "numericScale": null
+            },
+            {
+              "name": "started_at",
+              "position": 8,
+              "dataType": "timestamp with time zone",
+              "udtName": "timestamptz",
+              "nullable": false,
+              "default": null,
+              "maxLength": null,
+              "numericPrecision": null,
+              "numericScale": null
+            },
+            {
+              "name": "ended_at",
+              "position": 9,
+              "dataType": "timestamp with time zone",
+              "udtName": "timestamptz",
+              "nullable": false,
+              "default": null,
+              "maxLength": null,
+              "numericPrecision": null,
+              "numericScale": null
+            },
+            {
+              "name": "asleep_minutes",
+              "position": 10,
+              "dataType": "integer",
+              "udtName": "int4",
+              "nullable": false,
+              "default": "0",
+              "maxLength": null,
+              "numericPrecision": 32,
+              "numericScale": 0
+            },
+            {
+              "name": "in_bed_minutes",
+              "position": 11,
+              "dataType": "integer",
+              "udtName": "int4",
+              "nullable": false,
+              "default": "0",
+              "maxLength": null,
+              "numericPrecision": 32,
+              "numericScale": 0
+            },
+            {
+              "name": "deep_minutes",
+              "position": 12,
+              "dataType": "integer",
+              "udtName": "int4",
+              "nullable": false,
+              "default": "0",
+              "maxLength": null,
+              "numericPrecision": 32,
+              "numericScale": 0
+            },
+            {
+              "name": "rem_minutes",
+              "position": 13,
+              "dataType": "integer",
+              "udtName": "int4",
+              "nullable": false,
+              "default": "0",
+              "maxLength": null,
+              "numericPrecision": 32,
+              "numericScale": 0
+            },
+            {
+              "name": "core_minutes",
+              "position": 14,
+              "dataType": "integer",
+              "udtName": "int4",
+              "nullable": false,
+              "default": "0",
+              "maxLength": null,
+              "numericPrecision": 32,
+              "numericScale": 0
+            },
+            {
+              "name": "awake_minutes",
+              "position": 15,
+              "dataType": "integer",
+              "udtName": "int4",
+              "nullable": false,
+              "default": "0",
+              "maxLength": null,
+              "numericPrecision": 32,
+              "numericScale": 0
+            },
+            {
+              "name": "source_name",
+              "position": 16,
+              "dataType": "text",
+              "udtName": "text",
+              "nullable": true,
+              "default": null,
+              "maxLength": null,
+              "numericPrecision": null,
+              "numericScale": null
+            },
+            {
+              "name": "raw_payload",
+              "position": 17,
+              "dataType": "jsonb",
+              "udtName": "jsonb",
+              "nullable": false,
+              "default": "'{}'::jsonb",
+              "maxLength": null,
+              "numericPrecision": null,
+              "numericScale": null
+            }
+          ],
+          "primaryKey": [
+            "id"
+          ],
+          "foreignKeys": [
+            {
+              "name": "health_sleep_sessions_user_connection_id_fkey",
+              "columns": [
+                "user_connection_id"
+              ],
+              "references": {
+                "schema": "public",
+                "table": "user_connections",
+                "columns": [
+                  "id"
+                ]
+              },
+              "onUpdate": "NO ACTION",
+              "onDelete": "SET NULL"
+            },
+            {
+              "name": "health_sleep_sessions_user_id_fkey",
+              "columns": [
+                "user_id"
+              ],
+              "references": {
+                "schema": "public",
+                "table": "users",
+                "columns": [
+                  "id"
+                ]
+              },
+              "onUpdate": "NO ACTION",
+              "onDelete": "CASCADE"
+            }
+          ],
+          "uniqueConstraints": [],
+          "indexes": [
+            {
+              "name": "health_sleep_sessions_pkey",
+              "definition": "CREATE UNIQUE INDEX health_sleep_sessions_pkey ON public.health_sleep_sessions USING btree (id)"
+            },
+            {
+              "name": "health_sleep_sessions_provider_session_key",
+              "definition": "CREATE UNIQUE INDEX health_sleep_sessions_provider_session_key ON public.health_sleep_sessions USING btree (user_id, provider, provider_session_id) WHERE (provider_session_id IS NOT NULL)"
+            },
+            {
+              "name": "health_sleep_sessions_user_started_idx",
+              "definition": "CREATE INDEX health_sleep_sessions_user_started_idx ON public.health_sleep_sessions USING btree (user_id, started_at DESC)"
+            }
+          ],
+          "rls": {
+            "enabled": true,
+            "forced": false
+          },
+          "policies": [
+            {
+              "name": "health_sleep_sessions_delete_own",
+              "permissive": "PERMISSIVE",
+              "roles": "{authenticated}",
+              "command": "DELETE",
+              "using": "(user_id = auth.uid())",
+              "withCheck": null
+            },
+            {
+              "name": "health_sleep_sessions_insert_own",
+              "permissive": "PERMISSIVE",
+              "roles": "{authenticated}",
+              "command": "INSERT",
+              "using": null,
+              "withCheck": "(user_id = auth.uid())"
+            },
+            {
+              "name": "health_sleep_sessions_select_own",
+              "permissive": "PERMISSIVE",
+              "roles": "{authenticated}",
+              "command": "SELECT",
+              "using": "(user_id = auth.uid())",
+              "withCheck": null
+            },
+            {
+              "name": "health_sleep_sessions_update_own",
               "permissive": "PERMISSIVE",
               "roles": "{authenticated}",
               "command": "UPDATE",
@@ -13736,6 +14560,10 @@
           ],
           "uniqueConstraints": [],
           "indexes": [
+            {
+              "name": "health_weight_logs_apple_sample_key",
+              "definition": "CREATE UNIQUE INDEX health_weight_logs_apple_sample_key ON public.health_weight_logs USING btree (user_id, ((source_metadata ->> 'provider_sample_id'::text))) WHERE ((source = 'apple_health'::text) AND ((source_metadata ->> 'provider_sample_id'::text) IS NOT NULL))"
+            },
             {
               "name": "health_weight_logs_pkey",
               "definition": "CREATE UNIQUE INDEX health_weight_logs_pkey ON public.health_weight_logs USING btree (id)"
@@ -24453,6 +25281,198 @@
             }
           ]
         },
+        "project_task_schedules": {
+          "type": "BASE TABLE",
+          "columns": [
+            {
+              "name": "id",
+              "position": 1,
+              "dataType": "uuid",
+              "udtName": "uuid",
+              "nullable": false,
+              "default": "gen_random_uuid()",
+              "maxLength": null,
+              "numericPrecision": null,
+              "numericScale": null
+            },
+            {
+              "name": "created_at",
+              "position": 2,
+              "dataType": "timestamp with time zone",
+              "udtName": "timestamptz",
+              "nullable": false,
+              "default": "now()",
+              "maxLength": null,
+              "numericPrecision": null,
+              "numericScale": null
+            },
+            {
+              "name": "updated_at",
+              "position": 3,
+              "dataType": "timestamp with time zone",
+              "udtName": "timestamptz",
+              "nullable": false,
+              "default": "now()",
+              "maxLength": null,
+              "numericPrecision": null,
+              "numericScale": null
+            },
+            {
+              "name": "task_id",
+              "position": 4,
+              "dataType": "uuid",
+              "udtName": "uuid",
+              "nullable": false,
+              "default": null,
+              "maxLength": null,
+              "numericPrecision": null,
+              "numericScale": null
+            },
+            {
+              "name": "start_time",
+              "position": 5,
+              "dataType": "timestamp with time zone",
+              "udtName": "timestamptz",
+              "nullable": false,
+              "default": null,
+              "maxLength": null,
+              "numericPrecision": null,
+              "numericScale": null
+            },
+            {
+              "name": "end_time",
+              "position": 6,
+              "dataType": "timestamp with time zone",
+              "udtName": "timestamptz",
+              "nullable": false,
+              "default": null,
+              "maxLength": null,
+              "numericPrecision": null,
+              "numericScale": null
+            },
+            {
+              "name": "position",
+              "position": 7,
+              "dataType": "integer",
+              "udtName": "int4",
+              "nullable": false,
+              "default": "0",
+              "maxLength": null,
+              "numericPrecision": 32,
+              "numericScale": 0
+            },
+            {
+              "name": "notes",
+              "position": 8,
+              "dataType": "text",
+              "udtName": "text",
+              "nullable": true,
+              "default": null,
+              "maxLength": null,
+              "numericPrecision": null,
+              "numericScale": null
+            },
+            {
+              "name": "created_by",
+              "position": 9,
+              "dataType": "uuid",
+              "udtName": "uuid",
+              "nullable": true,
+              "default": null,
+              "maxLength": null,
+              "numericPrecision": null,
+              "numericScale": null
+            }
+          ],
+          "primaryKey": [
+            "id"
+          ],
+          "foreignKeys": [
+            {
+              "name": "project_task_schedules_created_by_fkey",
+              "columns": [
+                "created_by"
+              ],
+              "references": {
+                "schema": "public",
+                "table": "users",
+                "columns": [
+                  "id"
+                ]
+              },
+              "onUpdate": "NO ACTION",
+              "onDelete": "SET NULL"
+            },
+            {
+              "name": "project_task_schedules_task_id_fkey",
+              "columns": [
+                "task_id"
+              ],
+              "references": {
+                "schema": "public",
+                "table": "project_tasks",
+                "columns": [
+                  "id"
+                ]
+              },
+              "onUpdate": "NO ACTION",
+              "onDelete": "CASCADE"
+            }
+          ],
+          "uniqueConstraints": [],
+          "indexes": [
+            {
+              "name": "idx_project_task_schedules_task_id",
+              "definition": "CREATE INDEX idx_project_task_schedules_task_id ON public.project_task_schedules USING btree (task_id)"
+            },
+            {
+              "name": "idx_project_task_schedules_time",
+              "definition": "CREATE INDEX idx_project_task_schedules_time ON public.project_task_schedules USING btree (start_time, end_time)"
+            },
+            {
+              "name": "project_task_schedules_pkey",
+              "definition": "CREATE UNIQUE INDEX project_task_schedules_pkey ON public.project_task_schedules USING btree (id)"
+            }
+          ],
+          "rls": {
+            "enabled": true,
+            "forced": false
+          },
+          "policies": [
+            {
+              "name": "project_task_schedules_delete_accessible",
+              "permissive": "PERMISSIVE",
+              "roles": "{authenticated}",
+              "command": "DELETE",
+              "using": "(EXISTS ( SELECT 1\n   FROM project_tasks t\n  WHERE ((t.id = project_task_schedules.task_id) AND is_project_accessible(t.project_id))))",
+              "withCheck": null
+            },
+            {
+              "name": "project_task_schedules_insert_accessible",
+              "permissive": "PERMISSIVE",
+              "roles": "{authenticated}",
+              "command": "INSERT",
+              "using": null,
+              "withCheck": "(EXISTS ( SELECT 1\n   FROM project_tasks t\n  WHERE ((t.id = project_task_schedules.task_id) AND is_project_accessible(t.project_id))))"
+            },
+            {
+              "name": "project_task_schedules_select_accessible",
+              "permissive": "PERMISSIVE",
+              "roles": "{authenticated}",
+              "command": "SELECT",
+              "using": "(EXISTS ( SELECT 1\n   FROM project_tasks t\n  WHERE ((t.id = project_task_schedules.task_id) AND is_project_accessible(t.project_id))))",
+              "withCheck": null
+            },
+            {
+              "name": "project_task_schedules_update_accessible",
+              "permissive": "PERMISSIVE",
+              "roles": "{authenticated}",
+              "command": "UPDATE",
+              "using": "(EXISTS ( SELECT 1\n   FROM project_tasks t\n  WHERE ((t.id = project_task_schedules.task_id) AND is_project_accessible(t.project_id))))",
+              "withCheck": "(EXISTS ( SELECT 1\n   FROM project_tasks t\n  WHERE ((t.id = project_task_schedules.task_id) AND is_project_accessible(t.project_id))))"
+            }
+          ]
+        },
         "project_tasks": {
           "type": "BASE TABLE",
           "columns": [
@@ -30069,7 +31089,7 @@
               "position": 8,
               "dataType": "text",
               "udtName": "text",
-              "nullable": false,
+              "nullable": true,
               "default": null,
               "maxLength": null,
               "numericPrecision": null,
@@ -30080,7 +31100,7 @@
               "position": 9,
               "dataType": "text",
               "udtName": "text",
-              "nullable": false,
+              "nullable": true,
               "default": null,
               "maxLength": null,
               "numericPrecision": null,
@@ -30795,6 +31815,28 @@
               "udtName": "text",
               "nullable": false,
               "default": "'system'::text",
+              "maxLength": null,
+              "numericPrecision": null,
+              "numericScale": null
+            },
+            {
+              "name": "work_hours_start",
+              "position": 25,
+              "dataType": "time without time zone",
+              "udtName": "time",
+              "nullable": true,
+              "default": null,
+              "maxLength": null,
+              "numericPrecision": null,
+              "numericScale": null
+            },
+            {
+              "name": "work_hours_end",
+              "position": 26,
+              "dataType": "time without time zone",
+              "udtName": "time",
+              "nullable": true,
+              "default": null,
               "maxLength": null,
               "numericPrecision": null,
               "numericScale": null
