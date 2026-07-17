@@ -759,7 +759,7 @@ export function CalendarGrid({ selectedDate, onDateSelect, allEvents, onTaskDrop
           <div
             className={cn(
               'flex shrink-0 border-b border-white/40 bg-white/55 transition-[min-height] duration-150',
-              isAllDayExpanded && 'relative z-20 shadow-sm'
+              isAllDayExpanded && 'relative z-20'
             )}
             style={{ minHeight: `${allDaySectionHeight}px` }}
             onMouseEnter={() => hasAllDayOverflow && setIsAllDayExpanded(true)}

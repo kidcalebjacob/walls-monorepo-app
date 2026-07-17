@@ -26,6 +26,10 @@ import { getSupabaseClient } from "@/lib/auth";
 import { motion, AnimatePresence } from "framer-motion";
 import { ProfileProgressIndicator } from "@/components/settings/talentSettings/profile-progress-indicator";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  UserSchedulesSection,
+  type UserSchedulesHandle,
+} from "@/components/settings/user-schedules-section";
 
 const fieldClass =
   "border-0 border-b border-neutral-200 rounded-none px-0 py-2 font-light focus:outline-none focus-visible:outline-none focus-visible:ring-0 focus:ring-0 focus:border-b-[var(--kenoo-sky)] bg-transparent w-full placeholder:text-neutral-300";
@@ -34,12 +38,6 @@ const readonlyFieldClass =
   "border-0 border-b border-neutral-200 rounded-none px-0 py-2 font-light bg-transparent w-full text-neutral-400 placeholder:text-neutral-300 cursor-not-allowed pr-10";
 const selectTriggerClass =
   "w-full border-0 border-b border-neutral-200 rounded-none px-0 py-2 h-auto min-h-0 font-light shadow-none focus:outline-none focus-visible:outline-none focus-visible:ring-0 focus:ring-0 focus:border-b-[var(--kenoo-sky)] bg-transparent";
-
-/** Normalize Postgres `time` (e.g. "09:00:00") to an HTML time input value ("09:00"). */
-const toTimeInputValue = (value: string | null | undefined): string => {
-  if (!value) return "";
-  return value.slice(0, 5);
-};
 
 const AgentSettingsPage = () => {
   const { user } = useAuth();
@@ -70,10 +68,8 @@ const AgentSettingsPage = () => {
   const [existingPhoneNumber, setExistingPhoneNumber] = useState("");
   const [timezone, setTimezone] = useState("");
   const [existingTimezone, setExistingTimezone] = useState("");
-  const [workHoursStart, setWorkHoursStart] = useState("");
-  const [workHoursEnd, setWorkHoursEnd] = useState("");
-  const [existingWorkHoursStart, setExistingWorkHoursStart] = useState("");
-  const [existingWorkHoursEnd, setExistingWorkHoursEnd] = useState("");
+  const [schedulesDirty, setSchedulesDirty] = useState(false);
+  const schedulesRef = useRef<UserSchedulesHandle>(null);
   const [timezoneOpen, setTimezoneOpen] = useState(false);
   const [timezoneSearchTerm, setTimezoneSearchTerm] = useState("");
   const [expandedGroups, setExpandedGroups] = useState<Record<TimezoneGroup, boolean>>({} as Record<TimezoneGroup, boolean>);
@@ -90,11 +86,9 @@ const AgentSettingsPage = () => {
   const isFirstNameChanged = firstName !== existingFirstName;
   const isLastNameChanged = lastName !== existingLastName;
   const isTimezoneChanged = timezone !== existingTimezone;
-  const isWorkHoursChanged =
-    workHoursStart !== existingWorkHoursStart || workHoursEnd !== existingWorkHoursEnd;
   const isPersonalEmailChanged = personalEmail !== "" && personalEmail !== existingPersonalEmail;
   
-  const savable = isProfilePictureChanged || isAddressChanged || isDobChanged || isLinkedInChanged || isPhoneNumberChanged || isFirstNameChanged || isLastNameChanged || isTimezoneChanged || isWorkHoursChanged || isPersonalEmailChanged;
+  const savable = isProfilePictureChanged || isAddressChanged || isDobChanged || isLinkedInChanged || isPhoneNumberChanged || isFirstNameChanged || isLastNameChanged || isTimezoneChanged || schedulesDirty || isPersonalEmailChanged;
   
   const [showCropDialog, setShowCropDialog] = useState(false);
   const [tempImage, setTempImage] = useState<string | null>(null);
@@ -111,7 +105,7 @@ const AgentSettingsPage = () => {
         // Get user record from users table - users.id now equals user.id directly
         const { data: userData, error: userError } = await supabase
           .from('users')
-          .select('id, address, date_of_birth, avatar_url, first_name, last_name, phone_number, timezone, work_hours_start, work_hours_end, email, personal_email')
+          .select('id, address, date_of_birth, avatar_url, first_name, last_name, phone_number, timezone, email, personal_email')
           .eq('id', user.id)
           .single();
         
@@ -155,12 +149,6 @@ const AgentSettingsPage = () => {
           const savedTimezone = userData.timezone || "";
           setExistingTimezone(savedTimezone);
           setTimezone(savedTimezone);
-          const savedStart = toTimeInputValue(userData.work_hours_start);
-          const savedEnd = toTimeInputValue(userData.work_hours_end);
-          setExistingWorkHoursStart(savedStart);
-          setExistingWorkHoursEnd(savedEnd);
-          setWorkHoursStart(savedStart);
-          setWorkHoursEnd(savedEnd);
           
           // Fetch team data to get LinkedIn URL
           const { data: teamData, error: teamError } = await supabase
@@ -433,48 +421,6 @@ const AgentSettingsPage = () => {
     }
   };
 
-  const updateWorkHours = async () => {
-    if (!userId || !isWorkHoursChanged) return true;
-
-    if ((workHoursStart && !workHoursEnd) || (!workHoursStart && workHoursEnd)) {
-      wallsToast.error("Error", "Set both start and end work hours, or clear both");
-      return false;
-    }
-
-    if (workHoursStart && workHoursEnd && workHoursEnd <= workHoursStart) {
-      wallsToast.error("Error", "Work hours end must be after start");
-      return false;
-    }
-
-    try {
-      const supabase = getSupabaseClient();
-
-      const { error } = await supabase
-        .from("users")
-        .update({
-          work_hours_start: workHoursStart || null,
-          work_hours_end: workHoursEnd || null,
-        })
-        .eq("id", userId);
-
-      if (error) {
-        throw error;
-      }
-
-      setExistingWorkHoursStart(workHoursStart);
-      setExistingWorkHoursEnd(workHoursEnd);
-
-      wallsToast.success("Success", "Work hours updated successfully");
-
-      return true;
-    } catch (error) {
-      console.error("Error updating work hours:", error);
-      wallsToast.error("Error", "Failed to update work hours");
-
-      return false;
-    }
-  };
-
   const updatePersonalEmail = async () => {
     if (!userId || !personalEmail || personalEmail === existingPersonalEmail) return true;
 
@@ -542,9 +488,9 @@ const AgentSettingsPage = () => {
       if (!timezoneSuccess) success = false;
     }
 
-    if (isWorkHoursChanged && userId) {
-      const workHoursSuccess = await updateWorkHours();
-      if (!workHoursSuccess) success = false;
+    if (schedulesDirty && userId) {
+      const schedulesSuccess = await schedulesRef.current?.save();
+      if (!schedulesSuccess) success = false;
     }
     
     if (personalEmail && personalEmail !== existingPersonalEmail && userId) {
@@ -557,7 +503,7 @@ const AgentSettingsPage = () => {
     }
     
     return success;
-  }, [profilePicture, addressNew, existingAddress, dob, existingDob, userId, linkedInUrl, existingLinkedInUrl, phoneNumber, existingPhoneNumber, timezone, existingTimezone, workHoursStart, workHoursEnd, existingWorkHoursStart, existingWorkHoursEnd, isWorkHoursChanged, personalEmail, existingPersonalEmail, uploadMutation, isFirstNameChanged, isLastNameChanged, firstName, lastName]);
+  }, [profilePicture, addressNew, existingAddress, dob, existingDob, userId, linkedInUrl, existingLinkedInUrl, phoneNumber, existingPhoneNumber, timezone, existingTimezone, schedulesDirty, personalEmail, existingPersonalEmail, uploadMutation, isFirstNameChanged, isLastNameChanged, firstName, lastName]);
 
   const handleRevert = useCallback(() => {
     setProfilePicture(null);
@@ -570,13 +516,12 @@ const AgentSettingsPage = () => {
     setLinkedInUrl(existingLinkedInUrl);
     setPhoneNumber(existingPhoneNumber);
     setTimezone(existingTimezone);
-    setWorkHoursStart(existingWorkHoursStart);
-    setWorkHoursEnd(existingWorkHoursEnd);
+    schedulesRef.current?.revert();
     // Reset address field by incrementing key to force remount
     setAddressResetKey(prev => prev + 1);
     
     wallsToast.success("Changes reverted", "All changes have been discarded");
-  }, [existingFirstName, existingLastName, existingPersonalEmail, existingLinkedInUrl, existingPhoneNumber, existingTimezone, existingWorkHoursStart, existingWorkHoursEnd]);
+  }, [existingFirstName, existingLastName, existingPersonalEmail, existingLinkedInUrl, existingPhoneNumber, existingTimezone]);
 
   return (
     <div className="flex flex-col h-full overflow-y-auto overscroll-none bg-kenoo-white">
@@ -795,14 +740,14 @@ const AgentSettingsPage = () => {
                 </div>
               </div>
 
-              {/* Timezone & Work Hours Divider */}
+              {/* Timezone & Schedules Divider */}
               <div className="flex items-center mb-8 mt-8">
-                <span className="text-black font-black text-4xl mr-4">Timezone & work hours</span>
+                <span className="text-black font-black text-4xl mr-4">Timezone & schedules</span>
                 <div className="flex-1 border-t border-black h-[1px]" />
               </div>
 
-              {/* Timezone & Work Hours Section */}
-              <div className="space-y-4">
+              {/* Timezone & Schedules Section */}
+              <div className="space-y-8">
                 <div>
                   <label htmlFor="timezone" className={labelClass}>
                     Timezone
@@ -970,35 +915,13 @@ const AgentSettingsPage = () => {
                   </Select>
                 </div>
 
-                <div>
-                  <label className={labelClass}>Work hours</label>
-                  <div className="flex gap-4">
-                    <div className="flex-1">
-                      <input
-                        id="work-hours-start"
-                        type="time"
-                        value={workHoursStart}
-                        onChange={(e) => setWorkHoursStart(e.target.value)}
-                        className={fieldClass}
-                      />
-                      <label htmlFor="work-hours-start" className={`${labelClass} mt-1 mb-0`}>
-                        Start
-                      </label>
-                    </div>
-                    <div className="flex-1">
-                      <input
-                        id="work-hours-end"
-                        type="time"
-                        value={workHoursEnd}
-                        onChange={(e) => setWorkHoursEnd(e.target.value)}
-                        className={fieldClass}
-                      />
-                      <label htmlFor="work-hours-end" className={`${labelClass} mt-1 mb-0`}>
-                        End
-                      </label>
-                    </div>
-                  </div>
-                </div>
+                <UserSchedulesSection
+                  ref={schedulesRef}
+                  userId={userId}
+                  onDirtyChange={setSchedulesDirty}
+                  labelClass={labelClass}
+                  fieldClass={fieldClass}
+                />
               </div>
 
               {/* Save and Cancel Buttons */}

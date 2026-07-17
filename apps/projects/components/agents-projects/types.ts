@@ -66,6 +66,8 @@ export interface ProjectTaskSchedule {
   position: number;
   notes: string | null;
   created_by: string | null;
+  /** When true, this chunk blocks calendar time (busy). */
+  is_blocking?: boolean;
 }
 
 export interface ProjectTask {

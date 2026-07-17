@@ -471,7 +471,7 @@ function AgentCalendarContent({ calendarData }: AgentCalendarProps) {
     const fetchProjectTasks = async () => {
       const { data, error } = await supabase
         .from('project_tasks')
-        .select('id, title, description, status, start_date, due_date, priority, project_id, assignee_id, assigned_by, is_private, created_at, updated_at, completed_at, parent_task_id, position, estimated_minutes, actual_minutes, metadata, projects(id, name, color), project_task_schedules(id, created_at, updated_at, task_id, start_time, end_time, position, notes, created_by)')
+        .select('id, title, description, status, start_date, due_date, priority, project_id, assignee_id, assigned_by, is_private, created_at, updated_at, completed_at, parent_task_id, position, estimated_minutes, actual_minutes, metadata, projects(id, name, color), project_task_schedules(id, created_at, updated_at, task_id, start_time, end_time, position, notes, created_by, is_blocking)')
         .order('due_date', { ascending: true, nullsFirst: false });
 
       if (error) {
@@ -562,7 +562,7 @@ function AgentCalendarContent({ calendarData }: AgentCalendarProps) {
     const supabase = createClient();
     void supabase
       .from('project_tasks')
-      .select('id, title, description, status, start_date, due_date, priority, project_id, assignee_id, assigned_by, is_private, created_at, updated_at, completed_at, parent_task_id, position, estimated_minutes, actual_minutes, metadata, projects(id, name, color), project_task_schedules(id, created_at, updated_at, task_id, start_time, end_time, position, notes, created_by)')
+      .select('id, title, description, status, start_date, due_date, priority, project_id, assignee_id, assigned_by, is_private, created_at, updated_at, completed_at, parent_task_id, position, estimated_minutes, actual_minutes, metadata, projects(id, name, color), project_task_schedules(id, created_at, updated_at, task_id, start_time, end_time, position, notes, created_by, is_blocking)')
       .order('due_date', { ascending: true, nullsFirst: false })
       .then(({ data, error }) => {
         if (error) {
