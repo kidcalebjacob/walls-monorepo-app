@@ -1024,11 +1024,7 @@ export const UserSchedulesSection = forwardRef<
                           </div>
                         </div>
                         {hoursMode === "different" && (
-                          <p
-                            className={`text-sm font-light text-neutral-500 ${
-                              hoursMode !== "same" ? "pl-[2.75rem]" : ""
-                            }`}
-                          >
+                          <p className="pl-[2.75rem] text-sm font-light text-neutral-500">
                             {formatHoursDescription(dayIntervals)}
                           </p>
                         )}
