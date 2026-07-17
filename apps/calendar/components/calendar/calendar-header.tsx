@@ -1,22 +1,16 @@
 // calendar-header.tsx
 "use client";
 
-import { useState } from "react";
-import { AnimatePresence, motion } from "framer-motion";
-import { ChevronLeft, ChevronRight, Plus, ChevronDown } from "lucide-react";
-import { format, startOfWeek, addDays } from "date-fns";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { CreatePopup, EventType } from "./create/event/create-popup";
-import { Event } from "./create/event/event";
-import { OutOfOffice } from "./create/event/out-of-office";
-import { AppointmentSchedule } from "./create/event/appointment-schedule";
+import { ChevronLeft, ChevronRight } from "lucide-react";
+import { format } from "date-fns";
 import UserProfileButton from "@walls/ui/user-profile-button";
-import { cn } from "@/lib/utils";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 export type CalendarViewMode = "monthly" | "weekly" | "daily";
 
@@ -27,23 +21,13 @@ interface CalendarHeaderProps {
   onNext: () => void;
   calendarView: CalendarViewMode;
   onViewChange: (view: CalendarViewMode) => void;
-  onCreateTask: () => void;
 }
 
-function getHeaderLabel(date: Date, view: CalendarViewMode): string {
-  if (view === "monthly") {
-    return format(date, "MMMM yyyy").toUpperCase();
-  }
-  if (view === "weekly") {
-    const weekStart = startOfWeek(date);
-    const weekEnd = addDays(weekStart, 6);
-    if (weekStart.getMonth() === weekEnd.getMonth()) {
-      return `${format(weekStart, "MMM d")} – ${format(weekEnd, "d, yyyy")}`.toUpperCase();
-    }
-    return `${format(weekStart, "MMM d")} – ${format(weekEnd, "MMM d, yyyy")}`.toUpperCase();
-  }
-  return format(date, "EEE, MMM d yyyy").toUpperCase();
-}
+const VIEW_OPTIONS: { value: CalendarViewMode; label: string }[] = [
+  { value: "daily", label: "Day" },
+  { value: "weekly", label: "Week" },
+  { value: "monthly", label: "Month" },
+];
 
 export function CalendarHeader({
   selectedDate,
@@ -52,150 +36,71 @@ export function CalendarHeader({
   onNext,
   calendarView,
   onViewChange,
-  onCreateTask,
 }: CalendarHeaderProps) {
-  const [selectedEventType, setSelectedEventType] = useState<EventType>("event");
-  const [isEventPopupOpen, setIsEventPopupOpen] = useState(false);
-
-  const headerLabel = getHeaderLabel(selectedDate, calendarView);
-
-  const handleEventTypeSelect = (type: EventType) => {
-    setSelectedEventType(type);
-    setIsEventPopupOpen(true);
-  };
-
-  const VIEW_OPTIONS: { value: CalendarViewMode; label: string }[] = [
-    { value: "daily", label: "Day" },
-    { value: "weekly", label: "Week" },
-    { value: "monthly", label: "Month" },
-  ];
-
   return (
-    <>
-      <div className="px-8 pt-0 pb-2 flex items-center justify-between bg-transparent shrink-0">
-        {/* Left: Create button */}
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <button
-              type="button"
-              className="flex items-center gap-1.5 px-4 h-9 rounded-xl bg-kenoo-yellow text-neutral-900 text-xs font-medium uppercase tracking-wider hover:bg-kenoo-yellow/90 transition-all shadow-sm cursor-pointer"
-            >
-              <Plus className="h-3.5 w-3.5" />
-              Create
-              <ChevronDown className="h-3 w-3" />
-            </button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="start" className="w-[180px] bg-white rounded-xl">
-            <DropdownMenuItem
-              onClick={() => handleEventTypeSelect("event")}
-              className="text-sm font-light text-neutral-700 py-2.5 cursor-pointer"
-            >
-              Event
-            </DropdownMenuItem>
-            <DropdownMenuItem
-              onClick={onCreateTask}
-              className="text-sm font-light text-neutral-700 py-2.5 cursor-pointer"
-            >
-              Task
-            </DropdownMenuItem>
-            <DropdownMenuItem
-              onClick={() => handleEventTypeSelect("outOfOffice")}
-              className="text-sm font-light text-neutral-700 py-2.5 cursor-pointer"
-            >
-              Out of Office
-            </DropdownMenuItem>
-            <DropdownMenuItem
-              onClick={() => handleEventTypeSelect("appointmentSchedule")}
-              className="text-sm font-light text-neutral-700 py-2.5 cursor-pointer"
-            >
-              Appointment Schedule
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-
-        {/* Center: Title */}
-        <div className="relative flex items-center justify-center min-h-[3.5rem]">
-          <AnimatePresence mode="wait">
-            <motion.h1
-              key={headerLabel}
-              className="text-4xl md:text-5xl font-black text-neutral-900 tracking-tight uppercase"
-              initial={{ opacity: 0, y: 8 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -8 }}
-              transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
-            >
-              {headerLabel}
-            </motion.h1>
-          </AnimatePresence>
-        </div>
-
-        {/* Right: Navigation + View Toggle + Profile */}
-        <div className="flex items-center gap-1.5">
+    <div className="kenoo-glass-chrome flex shrink-0 items-center justify-between rounded-[1.25rem] border border-white/40 px-3 py-2.5">
+      <div className="flex items-center gap-2">
+        <button
+          type="button"
+          onClick={onTodayClick}
+          className="h-10 shrink-0 rounded-full border border-white/70 bg-white/35 px-5 text-base font-medium text-kenoo-ink shadow-[inset_0_1px_0_rgba(255,255,255,0.7)] transition-colors hover:bg-white/55"
+        >
+          Today
+        </button>
+        <div className="flex items-center">
           <button
             type="button"
-            className="p-0 bg-transparent border-none hover:bg-transparent flex items-center justify-center group cursor-pointer"
+            aria-label="Previous"
             onClick={onPrev}
+            className="flex h-7 w-7 items-center justify-center rounded-full text-kenoo-ink transition-colors hover:bg-white/45"
           >
-            <div className="relative z-10 p-3 rounded-full border border-transparent transition-all duration-300 ease-in-out group-hover:bg-neutral-50 group-hover:border-neutral-200 group-hover:shadow-[inset_0_2px_4px_rgba(0,0,0,0.10)] group-hover:scale-95 origin-center">
-              <ChevronLeft className="h-4 w-4 text-neutral-500" />
-            </div>
+            <ChevronLeft className="h-4 w-4" />
           </button>
           <button
             type="button"
-            className="p-0 bg-transparent border-none hover:bg-transparent flex items-center justify-center group cursor-pointer"
-            onClick={onTodayClick}
-          >
-            <div className="relative z-10 flex items-center gap-2 px-3 min-h-[2.25rem] py-2.5 rounded-full border border-transparent transition-all duration-300 ease-in-out text-neutral-500 text-xs font-medium uppercase tracking-wider group-hover:bg-neutral-50 group-hover:border-neutral-200 group-hover:shadow-[inset_0_2px_4px_rgba(0,0,0,0.10)] group-hover:scale-95 origin-center">
-              <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-kenoo-yellow" aria-hidden />
-              Today
-            </div>
-          </button>
-          <button
-            type="button"
-            className="p-0 bg-transparent border-none hover:bg-transparent flex items-center justify-center group cursor-pointer"
+            aria-label="Next"
             onClick={onNext}
+            className="flex h-7 w-7 items-center justify-center rounded-full text-kenoo-ink transition-colors hover:bg-white/45"
           >
-            <div className="relative z-10 p-3 rounded-full border border-transparent transition-all duration-300 ease-in-out group-hover:bg-neutral-50 group-hover:border-neutral-200 group-hover:shadow-[inset_0_2px_4px_rgba(0,0,0,0.10)] group-hover:scale-95 origin-center">
-              <ChevronRight className="h-4 w-4 text-neutral-500" />
-            </div>
+            <ChevronRight className="h-4 w-4" />
           </button>
-
-          {/* View toggle */}
-          <div className="flex items-center bg-neutral-100 rounded-xl p-0.5 ml-1">
-            {VIEW_OPTIONS.map((opt) => (
-              <button
-                key={opt.value}
-                type="button"
-                onClick={() => onViewChange(opt.value)}
-                className={cn(
-                  "px-3 py-1.5 rounded-[10px] text-[11px] font-medium uppercase tracking-wider transition-all duration-200 cursor-pointer",
-                  calendarView === opt.value
-                    ? "bg-white text-neutral-900 shadow-sm"
-                    : "text-neutral-400 hover:text-neutral-600"
-                )}
-              >
-                {opt.label}
-              </button>
-            ))}
-          </div>
-
-          <div className="ml-2">
-            <UserProfileButton />
-          </div>
         </div>
+        <span className="truncate text-sm font-medium text-kenoo-ink">
+          {format(selectedDate, "MMMM yyyy")}
+        </span>
       </div>
 
-      <CreatePopup
-        isOpen={isEventPopupOpen}
-        onClose={() => setIsEventPopupOpen(false)}
-        initialType={selectedEventType}
-        onSubmit={() => setIsEventPopupOpen(false)}
-        submitButtonText="Save"
-        eventComponent={<Event />}
-        outOfOfficeComponent={<OutOfOffice />}
-        appointmentScheduleComponent={<AppointmentSchedule />}
-      />
+      <div className="flex items-center gap-1">
+        <Select
+          value={calendarView}
+          onValueChange={(value) => onViewChange(value as CalendarViewMode)}
+        >
+          <SelectTrigger
+            aria-label="Calendar view"
+            className="h-10 w-auto min-w-[6.5rem] gap-2 rounded-full border border-white/70 bg-white/35 px-3.5 text-base font-medium text-kenoo-ink shadow-[inset_0_1px_0_rgba(255,255,255,0.7)] ring-offset-0 transition-colors hover:bg-white/55 focus:ring-0 focus:ring-offset-0 [&>svg]:h-4 [&>svg]:w-4 [&>svg]:opacity-60"
+          >
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent
+            align="end"
+            className="min-w-[7rem] border border-white/60 bg-white/90 text-kenoo-ink shadow-md backdrop-blur-xl"
+          >
+            {VIEW_OPTIONS.map((opt) => (
+              <SelectItem
+                key={opt.value}
+                value={opt.value}
+                className="cursor-pointer py-2 pl-3 pr-9 text-sm font-medium text-kenoo-ink hover:bg-kenoo-subtle focus:bg-kenoo-subtle"
+              >
+                {opt.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
 
-    </>
+        <div className="ml-1.5">
+          <UserProfileButton />
+        </div>
+      </div>
+    </div>
   );
 }

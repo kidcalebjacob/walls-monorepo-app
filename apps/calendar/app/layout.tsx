@@ -1,8 +1,7 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Geist, Geist_Mono, Instrument_Sans } from "next/font/google";
 
 import { createWallsMetadata } from "@walls/config/metadata";
-import { AppSidebarLayout } from "@/components/app-sidebar-layout";
 import { Providers } from "@/components/providers";
 
 import "./globals.css";
@@ -15,6 +14,12 @@ const geistSans = Geist({
 const geistMono = Geist_Mono({
   variable: "--font-geist-mono",
   subsets: ["latin"],
+});
+
+const instrumentSans = Instrument_Sans({
+  variable: "--font-instrument-sans",
+  subsets: ["latin"],
+  weight: ["400", "500", "600", "700"],
 });
 
 export const metadata: Metadata = createWallsMetadata({
@@ -35,12 +40,17 @@ export default function RootLayout({
     <html
       lang="en"
       data-app="calendar"
-      className={`${geistSans.variable} ${geistMono.variable} h-full overflow-hidden bg-background antialiased`}
+      className={`${geistSans.variable} ${geistMono.variable} ${instrumentSans.variable} h-full overflow-hidden bg-background antialiased`}
     >
-      <body className="h-screen overflow-hidden bg-kenoo-white text-foreground">
-        <div className="h-full overscroll-none overflow-hidden">
+      <body className="h-screen overflow-hidden bg-kenoo-canvas text-kenoo-ink">
+        <div className="h-full overflow-hidden overscroll-none">
           <Providers>
-            <AppSidebarLayout>{children}</AppSidebarLayout>
+            <main
+              data-app-scroll-container
+              className="kenoo-calendar-atmosphere h-full min-h-0 overflow-y-auto overscroll-none"
+            >
+              {children}
+            </main>
           </Providers>
         </div>
       </body>

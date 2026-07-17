@@ -1,102 +1,141 @@
 "use client";
 
 import * as React from "react";
+import {
+  addMonths,
+  eachDayOfInterval,
+  endOfMonth,
+  endOfWeek,
+  format,
+  isSameDay,
+  isSameMonth,
+  isToday,
+  startOfMonth,
+  startOfWeek,
+  subMonths,
+} from "date-fns";
 import { ChevronLeft, ChevronRight } from "lucide-react";
-import { DayPicker } from "react-day-picker";
 import { cn } from "@/lib/utils";
-import { isSameDay } from "date-fns";
 
-export type CalendarProps = React.ComponentProps<typeof DayPicker> & {
+const WEEKDAYS = ["S", "M", "T", "W", "T", "F", "S"] as const;
+
+export type MiniCalendarProps = {
+  selected?: Date;
+  onSelect?: (date: Date | undefined) => void;
+  className?: string;
   dealDates?: Date[];
+  mode?: "single";
+  showHeader?: boolean;
 };
 
-function MiniCalendar({
+export function MiniCalendar({
+  selected,
+  onSelect,
   className,
-  classNames,
-  showOutsideDays = true,
   dealDates = [],
-  ...props
-}: CalendarProps) {
-  const renderDayContent = (day: Date) => {
-    const hasDeal = dealDates.some(dealDate => isSameDay(dealDate, day));
+  showHeader = true,
+}: MiniCalendarProps) {
+  const [displayMonth, setDisplayMonth] = React.useState(
+    () => startOfMonth(selected ?? new Date())
+  );
 
-    return (
-      <div className="relative flex items-center justify-center h-full w-full">
-        <span className="font-light">{day.getDate()}</span>
-        {hasDeal && (
-          <span className="absolute bottom-0.5 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-kenoo-red shadow-[0_0_4px_rgba(255,0,0,0.4)]" />
-        )}
-      </div>
-    );
-  };
+  React.useEffect(() => {
+    if (selected) {
+      setDisplayMonth(startOfMonth(selected));
+    }
+  }, [selected]);
+
+  const days = React.useMemo(() => {
+    const monthStart = startOfMonth(displayMonth);
+    const monthEnd = endOfMonth(displayMonth);
+    return eachDayOfInterval({
+      start: startOfWeek(monthStart),
+      end: endOfWeek(monthEnd),
+    });
+  }, [displayMonth]);
 
   return (
-    <DayPicker
-      showOutsideDays={showOutsideDays}
-      className={cn("p-3", className)}
-      classNames={{
-        months: "flex flex-col space-y-3",
-        month: "space-y-2",
-        caption: "flex justify-between items-center px-0.5 mb-1",
-        caption_label:
-          "text-[0.6rem] font-semibold uppercase tracking-[0.12em] text-neutral-500 select-none",
-        nav: "flex items-center gap-0.5",
-        nav_button:
-          "group p-0 bg-transparent border-none flex items-center justify-center cursor-pointer",
-        nav_button_previous: "",
-        nav_button_next: "",
-        table: "w-full border-collapse",
-        head_row: "flex",
-        head_cell:
-          "text-neutral-400 w-8 text-center text-[0.55rem] font-medium uppercase tracking-wider py-1 select-none",
-        row: "flex w-full mt-0.5",
-        cell: cn(
-          "h-8 w-8 text-center text-xs p-0 relative",
-          "[&:has([aria-selected].day-range-end)]:rounded-r-full",
-          "[&:has([aria-selected].day-outside)]:bg-kenoo-yellow/10",
-          "[&:has([aria-selected])]:bg-kenoo-yellow/15",
-          "first:[&:has([aria-selected])]:rounded-l-full",
-          "last:[&:has([aria-selected])]:rounded-r-full",
-          "focus-within:relative focus-within:z-20"
-        ),
-        day: cn(
-          "h-8 w-8 p-0 font-light text-xs rounded-full",
-          "transition-all duration-200 ease-in-out",
-          "hover:bg-neutral-100 hover:shadow-[inset_0_1px_3px_rgba(0,0,0,0.08)] hover:scale-95",
-          "aria-selected:opacity-100 flex items-center justify-center cursor-pointer",
-          "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-kenoo-yellow/40 focus-visible:ring-offset-1"
-        ),
-        day_range_end: "day-range-end",
-        day_selected:
-          "bg-kenoo-yellow text-neutral-900 font-light shadow-sm hover:bg-kenoo-yellow hover:text-neutral-900 hover:scale-95 focus:bg-kenoo-yellow focus:text-neutral-900 rounded-full",
-        day_today:
-          "font-light text-neutral-800 rounded-full border border-kenoo-sky [&:not([aria-selected])]:bg-transparent",
-        day_outside:
-          "day-outside text-neutral-300 opacity-50 aria-selected:bg-kenoo-yellow/10 aria-selected:text-neutral-400 aria-selected:opacity-40",
-        day_disabled: "text-neutral-300 opacity-40 cursor-not-allowed hover:bg-transparent hover:scale-100 hover:shadow-none",
-        day_range_middle:
-          "aria-selected:bg-kenoo-yellow/15 aria-selected:text-neutral-700 rounded-none",
-        day_hidden: "invisible",
-        ...classNames,
-      }}
-      components={{
-        IconLeft: () => (
-          <div className="relative z-10 p-1.5 rounded-full border border-transparent transition-all duration-200 ease-in-out group-hover:bg-neutral-50 group-hover:border-neutral-200 group-hover:shadow-[inset_0_2px_4px_rgba(0,0,0,0.08)] group-hover:scale-95 origin-center">
-            <ChevronLeft className="h-2.5 w-2.5 text-neutral-500" />
+    <div className={cn("w-full select-none", className)}>
+      {showHeader && (
+        <div className="mb-1 flex items-center justify-between">
+          <h2 className="text-[13px] font-medium tracking-tight text-kenoo-ink">
+            {format(displayMonth, "MMMM yyyy")}
+          </h2>
+          <div className="flex items-center">
+            <button
+              type="button"
+              aria-label="Previous month"
+              onClick={() => setDisplayMonth((m) => subMonths(m, 1))}
+              className="flex h-6 w-6 items-center justify-center rounded-full text-kenoo-muted transition-colors hover:bg-kenoo-subtle hover:text-kenoo-ink"
+            >
+              <ChevronLeft className="h-3.5 w-3.5" />
+            </button>
+            <button
+              type="button"
+              aria-label="Next month"
+              onClick={() => setDisplayMonth((m) => addMonths(m, 1))}
+              className="flex h-6 w-6 items-center justify-center rounded-full text-kenoo-muted transition-colors hover:bg-kenoo-subtle hover:text-kenoo-ink"
+            >
+              <ChevronRight className="h-3.5 w-3.5" />
+            </button>
           </div>
-        ),
-        IconRight: () => (
-          <div className="relative z-10 p-1.5 rounded-full border border-transparent transition-all duration-200 ease-in-out group-hover:bg-neutral-50 group-hover:border-neutral-200 group-hover:shadow-[inset_0_2px_4px_rgba(0,0,0,0.08)] group-hover:scale-95 origin-center">
-            <ChevronRight className="h-2.5 w-2.5 text-neutral-500" />
+        </div>
+      )}
+
+      <div className="mb-0.5 grid grid-cols-7">
+        {WEEKDAYS.map((day, i) => (
+          <div
+            key={`${day}-${i}`}
+            className="flex h-5 items-center justify-center text-[10px] font-medium text-kenoo-muted"
+          >
+            {day}
           </div>
-        ),
-        DayContent: ({ date }: { date: Date }) => renderDayContent(date),
-      } as React.ComponentProps<typeof DayPicker>["components"]}
-      {...props}
-    />
+        ))}
+      </div>
+
+      <div className="grid grid-cols-7 gap-y-0.5">
+        {days.map((day) => {
+          const inMonth = isSameMonth(day, displayMonth);
+          const selectedDay = selected ? isSameDay(day, selected) : false;
+          const today = isToday(day);
+          const hasDeal = dealDates.some((d) => isSameDay(d, day));
+
+          return (
+            <button
+              key={day.toISOString()}
+              type="button"
+              onClick={() => onSelect?.(day)}
+              className={cn(
+                "relative mx-auto flex h-6 w-6 items-center justify-center rounded-full text-[11px] transition-colors",
+                !inMonth && "text-kenoo-muted/40",
+                inMonth &&
+                  !selectedDay &&
+                  !today &&
+                  "text-kenoo-ink hover:bg-kenoo-yellow/40",
+                // Today (not selected): soft neutral ring
+                today &&
+                  !selectedDay &&
+                  "font-medium text-kenoo-ink ring-1 ring-inset ring-neutral-300",
+                // Selected: vivid cool cyan-azure
+                selectedDay &&
+                  "bg-[#00A8E8] font-medium text-white hover:bg-[#0096D1]"
+              )}
+            >
+              {format(day, "d")}
+              {hasDeal && (
+                <span
+                  className={cn(
+                    "absolute bottom-0 left-1/2 h-0.5 w-0.5 -translate-x-1/2 rounded-full",
+                    selectedDay ? "bg-white" : "bg-kenoo-red"
+                  )}
+                />
+              )}
+            </button>
+          );
+        })}
+      </div>
+    </div>
   );
 }
 
 MiniCalendar.displayName = "MiniCalendar";
-
-export { MiniCalendar };

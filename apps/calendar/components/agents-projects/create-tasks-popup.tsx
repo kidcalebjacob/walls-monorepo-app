@@ -565,7 +565,7 @@ export function CreateTasksPopup({
       <DialogContent className="sm:max-w-[900px] [&>button]:focus:outline-none [&>button]:focus:ring-0 [&>button]:focus-visible:ring-0 [&>button]:ring-0" onOpenAutoFocus={(e) => e.preventDefault()}>
         <DialogHeader />
 
-        <div className="grid grid-cols-[2fr,1fr] divide-x divide-gray-200 gap-6 py-4">
+        <div className="grid grid-cols-[2fr_1fr] divide-x divide-gray-200 gap-6 py-4">
           {/* Left Column */}
           <div className="min-w-0 space-y-4 pr-6">
             <Input
@@ -573,7 +573,7 @@ export function CreateTasksPopup({
               onChange={(e) => setForm((f) => ({ ...f, title: e.target.value }))}
               placeholder="Add title"
               disabled={saving}
-              className="border-0 border-b-2 rounded-none bg-transparent focus:ring-0 focus-visible:ring-0 px-0 border-b-[var(--kenoo-sky)] focus:border-b-[var(--kenoo-sky)] placeholder:text-neutral-300"
+              className="border-0 border-b-2 rounded-none bg-transparent shadow-none focus:ring-0 focus-visible:ring-0 px-0 border-b-[var(--kenoo-sky)] focus:border-b-[var(--kenoo-sky)] placeholder:text-neutral-300"
             />
 
             <SimpleMarkdownEditor

@@ -356,7 +356,7 @@ export function TaskPopup({ isOpen, onClose, onSubmit, events, initialTask, isEd
         <DialogHeader>
         </DialogHeader>
         <form onSubmit={handleSubmit}>
-          <div className="grid grid-cols-[2fr,1fr] divide-x divide-gray-200 gap-6 py-4">
+          <div className="grid grid-cols-[2fr_1fr] divide-x divide-gray-200 gap-6 py-4">
             {/* Left Column */}
             <div className="space-y-4 pr-6">
               <div>

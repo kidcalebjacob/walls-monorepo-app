@@ -19,6 +19,8 @@ import {
 } from './calendar-event-theme';
 import { ViewPopup } from './create/event/view/view-popup';
 import Image from 'next/image';
+import { AnimatePresence, motion } from 'framer-motion';
+import { createPortal } from 'react-dom';
 
 const HOURS = Array.from({ length: 24 }, (_, i) => i);
 const DAYS_OF_WEEK = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'];
@@ -225,52 +227,242 @@ function pixelsToTime(pixels: number): { hours: number; minutes: number } {
   };
 }
 
-// Add TimeIndicator component
-const TimeIndicator = ({ weekDates, pixelsPerMinute }: { weekDates: Date[], pixelsPerMinute: number }) => {
+function formatRelativeMinutes(minutes: number): string {
+  const mins = Math.max(1, Math.round(minutes));
+  if (mins < 60) return `${mins} min`;
+  const hours = Math.floor(mins / 60);
+  const rem = mins % 60;
+  if (rem === 0) return hours === 1 ? '1 hr' : `${hours} hrs`;
+  return `${hours}h ${rem}m`;
+}
+
+type NowGlance =
+  | { kind: 'current'; title: string; endsInMinutes: number; extraCount: number }
+  | { kind: 'next'; title: string; inMinutes: number; atLabel: string }
+  | { kind: 'clear' };
+
+function getNowGlance(
+  now: DateTime,
+  events: Array<{ title: string; start: DateTime; end: DateTime }>
+): NowGlance {
+  const active = events
+    .filter((event) => event.start <= now && now < event.end)
+    .sort((a, b) => a.end.toMillis() - b.end.toMillis());
+
+  if (active.length > 0) {
+    const current = active[0];
+    return {
+      kind: 'current',
+      title: current.title || 'Untitled',
+      endsInMinutes: current.end.diff(now, 'minutes').minutes,
+      extraCount: active.length - 1,
+    };
+  }
+
+  const upcoming = events
+    .filter((event) => event.start > now)
+    .sort((a, b) => a.start.toMillis() - b.start.toMillis());
+
+  if (upcoming.length > 0) {
+    const next = upcoming[0];
+    return {
+      kind: 'next',
+      title: next.title || 'Untitled',
+      inMinutes: next.start.diff(now, 'minutes').minutes,
+      atLabel: formatEventTime(next.start),
+    };
+  }
+
+  return { kind: 'clear' };
+}
+
+const TimeIndicator = ({
+  weekDates,
+  pixelsPerMinute,
+  timedEvents,
+  viewerZone,
+}: {
+  weekDates: Date[];
+  pixelsPerMinute: number;
+  timedEvents: Event[];
+  viewerZone: string;
+}) => {
   // `null` until mounted so SSR and first client render match (avoids a
   // hydration mismatch on the time-dependent `top` position).
   const [currentTime, setCurrentTime] = useState<Date | null>(null);
+  const [open, setOpen] = useState(false);
+  const [coords, setCoords] = useState<{ top: number; left: number } | null>(null);
+  const anchorRef = useRef<HTMLDivElement>(null);
   const numDays = weekDates.length;
 
   useEffect(() => {
     setCurrentTime(new Date());
     const interval = setInterval(() => {
       setCurrentTime(new Date());
-    }, 15000); // 15 seconds
+    }, 15000);
 
     return () => clearInterval(interval);
   }, []);
 
+  useEffect(() => {
+    if (!open) return;
+
+    const updateCoords = () => {
+      const el = anchorRef.current;
+      if (!el) return;
+      const rect = el.getBoundingClientRect();
+      setCoords({ top: rect.top, left: rect.left });
+    };
+
+    updateCoords();
+    window.addEventListener('scroll', updateCoords, true);
+    window.addEventListener('resize', updateCoords);
+    return () => {
+      window.removeEventListener('scroll', updateCoords, true);
+      window.removeEventListener('resize', updateCoords);
+    };
+  }, [open]);
+
   if (!currentTime) return null;
 
-  // Find which column index (if any) corresponds to today
   const todayColIndex = weekDates.findIndex(
     (d) => d.getFullYear() === currentTime.getFullYear() &&
             d.getMonth() === currentTime.getMonth() &&
             d.getDate() === currentTime.getDate()
   );
-  const isVisible = todayColIndex >= 0;
+  if (todayColIndex < 0) return null;
+
+  const now = DateTime.fromJSDate(currentTime).setZone(viewerZone);
+  const todayStart = now.startOf('day');
+  const todayEnd = todayStart.endOf('day');
+
+  const todayEvents = timedEvents
+    .map((event) => {
+      const start = toEventDateTime(event.startTime, viewerZone);
+      const end = toEventDateTime(event.endTime, viewerZone);
+      if (!start.isValid || !end.isValid) return null;
+      if (end <= todayStart || start > todayEnd) return null;
+      return { title: event.title, start, end };
+    })
+    .filter((event): event is { title: string; start: DateTime; end: DateTime } => event !== null);
+
+  const glance = getNowGlance(now, todayEvents);
   const topPx = (currentTime.getHours() * 60 + currentTime.getMinutes()) * pixelsPerMinute;
   const leftPct = todayColIndex * (100 / numDays);
+  const widthPct = 100 / numDays;
+  const clock = format(currentTime, 'h:mm');
+  const meridiem = format(currentTime, 'a');
 
   return (
-    <div className="flex items-center pointer-events-none">
+    <div
+      ref={anchorRef}
+      className="absolute z-20"
+      style={{
+        left: `${leftPct}%`,
+        top: `${topPx}px`,
+        width: `${widthPct}%`,
+      }}
+      onMouseEnter={() => setOpen(true)}
+      onMouseLeave={() => setOpen(false)}
+    >
       <div
-        className={`absolute w-3 h-3 rounded-full bg-red-500 z-10 ${isVisible ? 'opacity-100' : 'opacity-0'}`}
-        style={{
-          left: `calc(${leftPct}%)`,
-          top: `${topPx}px`,
-          transform: 'translate(-50%, -40%)'
-        }}
-      />
-      <div
-        className={`absolute border-t-2 border-red-500 z-10 ${isVisible ? 'opacity-100' : 'opacity-0'}`}
-        style={{
-          left: `calc(${leftPct}%)`,
-          top: `${topPx}px`,
-          width: `${100 / numDays}%`
-        }}
-      />
+        className="absolute inset-x-0 top-1/2 h-3 -translate-y-1/2 cursor-default"
+        aria-hidden
+      >
+        <div
+          className="absolute inset-x-0 top-1/2 -translate-y-1/2 border-t border-dashed border-[var(--kenoo-accent)] pointer-events-none"
+          style={{
+            maskImage: 'linear-gradient(90deg, black 0%, black 55%, transparent 100%)',
+            WebkitMaskImage: 'linear-gradient(90deg, black 0%, black 55%, transparent 100%)',
+          }}
+        />
+        <div className="absolute left-0 top-1/2 size-2 -translate-x-1/2 -translate-y-1/2 rounded-full bg-[var(--kenoo-accent)] pointer-events-none" />
+      </div>
+
+      {typeof document !== 'undefined' &&
+        createPortal(
+          <AnimatePresence>
+            {open && coords && (
+              <motion.div
+                key="now-glance"
+                initial={{ opacity: 0, y: 'calc(-100% + 8px)', scale: 0.96, filter: 'blur(4px)' }}
+                animate={{ opacity: 1, y: '-100%', scale: 1, filter: 'blur(0px)' }}
+                exit={{ opacity: 0, y: 'calc(-100% + 6px)', scale: 0.97, filter: 'blur(4px)' }}
+                transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
+                className="pointer-events-none fixed z-[9999] w-[220px] origin-bottom-left overflow-hidden rounded-2xl border border-white/60 bg-white/92 text-left text-kenoo-ink shadow-[0_16px_40px_rgba(17,17,17,0.12)] backdrop-blur-xl"
+                style={{
+                  top: coords.top - 12,
+                  left: coords.left,
+                }}
+              >
+                <div className="relative px-3.5 pb-3 pt-3">
+                  <div
+                    aria-hidden
+                    className="pointer-events-none absolute inset-x-0 top-0 h-16 bg-[radial-gradient(120%_80%_at_0%_0%,rgba(11,110,255,0.14),transparent_60%)]"
+                  />
+                  <div className="relative flex items-center gap-2">
+                    <span className="relative flex size-1.5">
+                      <span className="absolute inset-0 animate-ping rounded-full bg-[var(--kenoo-accent)]/40" />
+                      <span className="relative size-1.5 rounded-full bg-[var(--kenoo-accent)]" />
+                    </span>
+                    <p className="font-display text-[22px] font-semibold leading-none tracking-tight text-kenoo-ink">
+                      {clock}
+                      <span className="ml-1.5 align-middle text-[11px] font-medium uppercase tracking-[0.14em] text-kenoo-muted">
+                        {meridiem}
+                      </span>
+                    </p>
+                  </div>
+
+                  <div className="relative mt-3 rounded-xl bg-[#f6f8fc] px-3 py-2.5">
+                    {glance.kind === 'current' && (
+                      <>
+                        <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-[var(--kenoo-accent)]">
+                          Happening now
+                        </p>
+                        <p className="mt-1 truncate text-[13px] font-medium leading-snug text-kenoo-ink">
+                          {glance.title}
+                        </p>
+                        <p className="mt-0.5 text-[11px] text-kenoo-muted">
+                          Ends in {formatRelativeMinutes(glance.endsInMinutes)}
+                          {glance.extraCount > 0 ? ` · +${glance.extraCount} more` : null}
+                        </p>
+                      </>
+                    )}
+                    {glance.kind === 'next' && (
+                      <>
+                        <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-kenoo-muted">
+                          Up next
+                        </p>
+                        <p className="mt-1 truncate text-[13px] font-medium leading-snug text-kenoo-ink">
+                          {glance.title}
+                        </p>
+                        <p className="mt-0.5 text-[11px] text-kenoo-muted">
+                          in {formatRelativeMinutes(glance.inMinutes)}
+                          <span className="mx-1.5 text-kenoo-border">·</span>
+                          {glance.atLabel}
+                        </p>
+                      </>
+                    )}
+                    {glance.kind === 'clear' && (
+                      <>
+                        <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-kenoo-muted">
+                          Schedule
+                        </p>
+                        <p className="mt-1 text-[13px] font-medium leading-snug text-kenoo-ink">
+                          Nothing left today
+                        </p>
+                        <p className="mt-0.5 text-[11px] text-kenoo-muted">
+                          Clear for the rest of the day
+                        </p>
+                      </>
+                    )}
+                  </div>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>,
+          document.body
+        )}
     </div>
   );
 };
@@ -530,16 +722,10 @@ export function CalendarGrid({ selectedDate, onDateSelect, allEvents, onTaskDrop
 
   return (
     <>
-      <div
-        className={cn(
-          'flex-1 flex flex-col bg-white overflow-hidden min-h-0 overscroll-none',
-          viewMode === 'day' && 'border rounded-[30px] shadow-sm'
-        )}
-      >
-        <div className="flex bg-white pt-2">
+      <div className="flex min-h-0 flex-1 flex-col overflow-hidden overscroll-none bg-kenoo-white">
+        <div className="flex bg-kenoo-white pb-1 pt-1">
           <div className="w-12" />
           {weekDates.map((date, index) => {
-            const isSelected = isSameDay(date, selectedDate);
             const isToday = isSameDay(date, new Date());
 
             return (
@@ -548,17 +734,16 @@ export function CalendarGrid({ selectedDate, onDateSelect, allEvents, onTaskDrop
                   type="button"
                   onClick={() => onDateSelect?.(date)}
                   className={cn(
-                    "w-full flex flex-col items-center rounded-xl transition-colors",
-                    onDateSelect && "hover:bg-neutral-50"
+                    "flex w-full flex-col items-center gap-0.5 rounded-xl py-0.5 transition-colors",
+                    onDateSelect && "hover:bg-kenoo-subtle"
                   )}
                 >
-                  <span className="text-xs font-light text-neutral-500">
+                  <span className="font-mono text-[11px] font-medium uppercase tracking-[0.12em] text-kenoo-muted">
                     {format(date, 'EEE')}
                   </span>
                   <span className={cn(
-                    "flex items-center justify-center w-10 h-10 mt-1 rounded-full text-lg font-medium",
-                    isToday && "bg-kenoo-yellow/60 text-black font-semibold",
-                    isSelected && !isToday && "text-neutral-900 font-semibold"
+                    "flex h-7 w-7 items-center justify-center rounded-full text-sm font-medium text-kenoo-ink",
+                    isToday && "bg-[#00A8E8] text-white"
                   )}>
                     {format(date, 'd')}
                   </span>
@@ -571,7 +756,7 @@ export function CalendarGrid({ selectedDate, onDateSelect, allEvents, onTaskDrop
         {allDayLayouts.length > 0 && (
           <div
             className={cn(
-              'flex border-b border-slate-200 bg-white transition-[min-height] duration-150',
+              'flex border-b border-kenoo-border bg-kenoo-white transition-[min-height] duration-150',
               isAllDayExpanded && 'relative z-20 shadow-sm'
             )}
             style={{ minHeight: `${allDaySectionHeight}px` }}
@@ -586,7 +771,7 @@ export function CalendarGrid({ selectedDate, onDateSelect, allEvents, onTaskDrop
                 {weekDates.map((_, dayIndex) => (
                   <div
                     key={`all-day-col-${dayIndex}`}
-                    className="flex-1 border-r border-slate-200 last:border-r-0"
+                    className="flex-1 border-r border-kenoo-border last:border-r-0"
                   />
                 ))}
               </div>
@@ -673,7 +858,7 @@ export function CalendarGrid({ selectedDate, onDateSelect, allEvents, onTaskDrop
             onDragLeave={handleDragLeave}
           >
             {/* Time column */}
-            <div className="absolute top-0 left-0 w-12 h-full border-r bg-white">
+            <div className="absolute top-0 left-0 w-12 h-full border-r border-kenoo-border bg-kenoo-white">
               {HOURS.map((hour) => (
                 <div key={hour} className="relative border-b border-slate-100" style={{ height: `${pixelsPerHour}px` }}>
                   {hour !== 0 && (
@@ -688,7 +873,12 @@ export function CalendarGrid({ selectedDate, onDateSelect, allEvents, onTaskDrop
             {/* Events grid */}
             <div className="absolute left-12 right-0 top-0 h-full">
               {/* Current time indicator */}
-              <TimeIndicator weekDates={weekDates} pixelsPerMinute={pixelsPerMinute} />
+              <TimeIndicator
+                weekDates={weekDates}
+                pixelsPerMinute={pixelsPerMinute}
+                timedEvents={timedEvents}
+                viewerZone={viewerZone}
+              />
 
               {/* Hour grid with 15-minute intervals */}
               {HOURS.map((hour) => (
@@ -696,7 +886,7 @@ export function CalendarGrid({ selectedDate, onDateSelect, allEvents, onTaskDrop
                   <div className="absolute top-0 left-0 right-0 border-t border-slate-100" />
                   <div className="flex h-full">
                     {weekDates.map((_, dayIndex) => (
-                      <div key={dayIndex} className="flex-1 border-r border-slate-200 h-full relative">
+                      <div key={dayIndex} className="relative h-full flex-1 border-r border-kenoo-border last:border-r-0">
                         {/* Four 15-minute interval sections per hour */}
                         {[0, 15, 30, 45].map(minute => (
                           <div

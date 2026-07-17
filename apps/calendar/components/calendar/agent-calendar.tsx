@@ -593,8 +593,16 @@ function AgentCalendarContent({ calendarData }: AgentCalendarProps) {
   };
 
   return (
-    <div className="flex h-full min-h-0 overflow-hidden overscroll-none pt-4">
-      <div className="flex-1 flex flex-col overflow-hidden min-h-0">
+    <div className="kenoo-calendar-atmosphere flex h-full min-h-0 gap-3 overflow-hidden overscroll-none p-3">
+      <CalendarDaySidebar
+        selectedDate={selectedDate}
+        onDateSelect={setSelectedDate}
+        events={allEvents}
+        onCreateTask={handleCreateTask}
+        {...sidebarProps}
+      />
+
+      <div className="flex min-h-0 min-w-0 flex-1 flex-col gap-2 overflow-hidden">
         <CalendarHeader
           selectedDate={selectedDate}
           onTodayClick={() => setSelectedDate(new Date())}
@@ -602,39 +610,32 @@ function AgentCalendarContent({ calendarData }: AgentCalendarProps) {
           onNext={handleNext}
           calendarView={calendarView}
           onViewChange={setCalendarView}
-          onCreateTask={handleCreateTask}
         />
 
-        <div className="flex flex-1 overflow-hidden px-8 pb-6 min-h-0 overscroll-none">
-          {calendarView === 'monthly' ? (
-            <AgentMonthGrid
-              selectedDate={selectedDate}
-              onDateSelect={(date) => setSelectedDate(date)}
-              allEvents={allEvents}
-              tasks={tasks}
-              scheduledTasks={scheduledTasks}
-              {...sidebarProps}
-            />
-          ) : (
-            <div className="flex flex-1 gap-5 min-h-0 overflow-hidden w-full">
-              <CalendarGrid
-                selectedDate={selectedDate}
-                onDateSelect={setSelectedDate}
-                allEvents={allEvents}
-                onTaskDrop={() => {}}
-                onEventDeleted={handleEventDeleted}
-                onEventUpdated={handleEventUpdated}
-                onProjectTaskClick={handleProjectTaskClick}
-                userTimezone={userTimezone}
-                viewMode={calendarView === 'daily' ? 'day' : 'week'}
-              />
-              <CalendarDaySidebar
-                selectedDate={selectedDate}
-                events={allEvents}
-                {...sidebarProps}
-              />
+        <div className="flex min-h-0 flex-1 overflow-hidden overscroll-none">
+          <div className="kenoo-glass-panel flex min-h-0 min-w-0 flex-1 overflow-hidden rounded-[1.75rem] p-[1.5px]">
+            <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden rounded-[calc(1.75rem-1.5px)] bg-kenoo-white">
+              {calendarView === 'monthly' ? (
+                <AgentMonthGrid
+                  selectedDate={selectedDate}
+                  onDateSelect={(date) => setSelectedDate(date)}
+                  allEvents={allEvents}
+                />
+              ) : (
+                <CalendarGrid
+                  selectedDate={selectedDate}
+                  onDateSelect={setSelectedDate}
+                  allEvents={allEvents}
+                  onTaskDrop={() => {}}
+                  onEventDeleted={handleEventDeleted}
+                  onEventUpdated={handleEventUpdated}
+                  onProjectTaskClick={handleProjectTaskClick}
+                  userTimezone={userTimezone}
+                  viewMode={calendarView === 'daily' ? 'day' : 'week'}
+                />
+              )}
             </div>
-          )}
+          </div>
         </div>
 
         <TimezoneAlert

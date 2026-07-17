@@ -3,7 +3,6 @@
 import { useMemo } from "react";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
-import { TaskData, ScheduledTask } from "@/types/calendar.types";
 import {
   getCalendarEventDisplayLabel,
   getCalendarEventTheme,
@@ -11,7 +10,6 @@ import {
   getCompletedTaskTitleClass,
   isCalendarTaskCompleted,
 } from "./calendar-event-theme";
-import { CalendarDaySidebar } from "./calendar-day-sidebar";
 
 function convertToDate(time: Date | { seconds: number } | string): Date {
   if (time instanceof Date) return new Date(time);
@@ -71,22 +69,12 @@ interface AgentMonthGridProps {
   selectedDate: Date;
   onDateSelect: (date: Date) => void;
   allEvents: CalendarEventItem[];
-  tasks: TaskData[];
-  scheduledTasks: ScheduledTask[];
-  onProjectTaskCompleted?: (taskId: string) => void;
-  onLegacyTaskCompleted?: (taskId: string) => void;
-  onProjectTaskClick?: (taskId: string) => void;
 }
 
 export function AgentMonthGrid({
   selectedDate,
   onDateSelect,
   allEvents,
-  tasks,
-  scheduledTasks,
-  onProjectTaskCompleted,
-  onLegacyTaskCompleted,
-  onProjectTaskClick,
 }: AgentMonthGridProps) {
   const today = new Date();
   // Use local-date strings throughout so events align with grid cells correctly
@@ -135,122 +123,116 @@ export function AgentMonthGrid({
   };
 
   return (
-    <div className="flex flex-1 gap-5 min-h-0 overflow-hidden">
-      {/* Monthly grid */}
-      <div className="flex-1 flex flex-col min-w-0 min-h-0">
-        {/* Day headers */}
-        <div className="grid grid-cols-7 mb-1 shrink-0">
-          {DAYS.map((day) => (
-            <div
-              key={day}
-              className="text-center text-[10px] font-medium text-neutral-400 uppercase tracking-widest py-1"
-            >
-              {day}
-            </div>
-          ))}
-        </div>
-
-        {/* Grid */}
-        <div
-          className="flex-1 min-h-0 grid grid-cols-7 gap-px bg-neutral-200/60 rounded-[2rem] overflow-hidden border border-neutral-200/60 shadow-inner"
-          style={{ gridTemplateRows: `repeat(${rowCount}, minmax(0, 1fr))` }}
-        >
-          {calendarCells.map((day, index) => {
-            const cornerClass = gridCellCornerClass(
-              index,
-              calendarCells.length
-            );
-            if (day === null) {
-              return (
-                <div
-                  key={`empty-${index}`}
-                  className={cn(
-                    "bg-neutral-50/50 min-h-0 h-full",
-                    cornerClass
-                  )}
-                />
-              );
-            }
-
-            const dateStr = formatDateStr(day);
-            const dayEvents = eventsByDate[dateStr] ?? [];
-            const isToday = dateStr === todayStr;
-            const isSelected = dateStr === selectedDateStr;
-
-            return (
-              <button
-                key={day}
-                type="button"
-                onClick={() => handleDayClick(day)}
-                className={cn(
-                  "bg-white min-h-0 h-full p-2 pt-2 flex flex-col items-center transition-all relative hover:bg-neutral-50 overflow-hidden",
-                  cornerClass,
-                  isSelected && "ring-1 ring-inset ring-kenoo-sky/60"
-                )}
-              >
-                <span
-                  className={cn(
-                    "shrink-0 text-xs font-light text-neutral-500 inline-flex items-center justify-center w-6 h-6 rounded-full",
-                    isToday && "bg-kenoo-yellow/60"
-                  )}
-                >
-                  {day}
-                </span>
-
-                {dayEvents.length > 0 && (
-                  <div className="mt-1 w-full space-y-0.5 self-stretch">
-                    {dayEvents.slice(0, 2).map((event) => {
-                      const theme = getCalendarEventTheme(event);
-                      const isCompleted = isCalendarTaskCompleted(event);
-                      const compactTime = formatCompactTime(event.startTime);
-                      const displayLabel = getCalendarEventDisplayLabel(event, compactTime);
-
-                      return (
-                        <div
-                          key={event.id}
-                          className={cn(
-                            "flex items-center gap-1.5 px-1 py-0.5 min-w-0 leading-snug text-xs",
-                            theme.container,
-                            isCompleted && "opacity-60"
-                          )}
-                        >
-                          <span
-                            className={cn(
-                              'shrink-0 w-1.5 h-1.5 rounded-full',
-                              isCompleted ? getCompletedTaskAccentClass() : theme.dotColor
-                            )}
-                          />
-                          <span
-                            className={cn(
-                              'truncate min-w-0',
-                              isCompleted ? getCompletedTaskTitleClass() : theme.title
-                            )}
-                          >
-                            {displayLabel}
-                          </span>
-                        </div>
-                      );
-                    })}
-                    {dayEvents.length > 2 && (
-                      <p className="text-[10px] text-neutral-400 px-1 font-normal">
-                        +{dayEvents.length - 2} more
-                      </p>
-                    )}
-                  </div>
-                )}
-              </button>
-            );
-          })}
-        </div>
+    <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden p-3 pt-2">
+      <div className="mb-1 grid shrink-0 grid-cols-7">
+        {DAYS.map((day) => (
+          <div
+            key={day}
+            className="py-1 text-center font-mono text-[10px] font-medium uppercase tracking-[0.14em] text-kenoo-muted"
+          >
+            {day}
+          </div>
+        ))}
       </div>
 
-      <CalendarDaySidebar
-        selectedDate={selectedDate}
-        events={allEvents}
-        onProjectTaskCompleted={onProjectTaskCompleted}
-        onLegacyTaskCompleted={onLegacyTaskCompleted}
-        onProjectTaskClick={onProjectTaskClick}
-      />
+      <div
+        className="grid min-h-0 flex-1 gap-px overflow-hidden rounded-[1.35rem] border border-kenoo-border/80 bg-kenoo-border/40"
+        style={{ gridTemplateRows: `repeat(${rowCount}, minmax(0, 1fr))` }}
+      >
+        {calendarCells.map((day, index) => {
+          const cornerClass = gridCellCornerClass(
+            index,
+            calendarCells.length
+          );
+          if (day === null) {
+            return (
+              <div
+                key={`empty-${index}`}
+                className={cn(
+                  "h-full min-h-0 bg-kenoo-subtle/50",
+                  cornerClass
+                )}
+              />
+            );
+          }
+
+          const dateStr = formatDateStr(day);
+          const dayEvents = eventsByDate[dateStr] ?? [];
+          const isToday = dateStr === todayStr;
+          const isSelected = dateStr === selectedDateStr;
+
+          return (
+            <button
+              key={day}
+              type="button"
+              onClick={() => handleDayClick(day)}
+              className={cn(
+                "relative flex h-full min-h-0 flex-col items-center overflow-hidden bg-kenoo-white p-2 pt-2 transition-all hover:bg-kenoo-subtle/60",
+                cornerClass,
+                isSelected && "ring-1 ring-inset ring-kenoo-accent/50"
+              )}
+            >
+              <span
+                className={cn(
+                  "inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-xs text-kenoo-muted",
+                  isToday && "bg-kenoo-accent text-white"
+                )}
+              >
+                {day}
+              </span>
+
+              {dayEvents.length > 0 && (
+                <div className="mt-1 w-full space-y-0.5 self-stretch">
+                  {dayEvents.slice(0, 2).map((event) => {
+                    const theme = getCalendarEventTheme(event);
+                    const isCompleted = isCalendarTaskCompleted(event);
+                    const compactTime = formatCompactTime(event.startTime);
+                    const displayLabel = getCalendarEventDisplayLabel(
+                      event,
+                      compactTime
+                    );
+
+                    return (
+                      <div
+                        key={event.id}
+                        className={cn(
+                          "flex min-w-0 items-center gap-1.5 px-1 py-0.5 text-xs leading-snug",
+                          theme.container,
+                          isCompleted && "opacity-60"
+                        )}
+                      >
+                        <span
+                          className={cn(
+                            "h-1.5 w-1.5 shrink-0 rounded-full",
+                            isCompleted
+                              ? getCompletedTaskAccentClass()
+                              : theme.dotColor
+                          )}
+                        />
+                        <span
+                          className={cn(
+                            "min-w-0 truncate",
+                            isCompleted
+                              ? getCompletedTaskTitleClass()
+                              : theme.title
+                          )}
+                        >
+                          {displayLabel}
+                        </span>
+                      </div>
+                    );
+                  })}
+                  {dayEvents.length > 2 && (
+                    <p className="px-1 text-[10px] font-normal text-kenoo-muted">
+                      +{dayEvents.length - 2} more
+                    </p>
+                  )}
+                </div>
+              )}
+            </button>
+          );
+        })}
+      </div>
     </div>
   );
 }
