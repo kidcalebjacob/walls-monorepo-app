@@ -161,12 +161,13 @@ function parseTimeToMinutes(time: string): number | null {
     !Number.isFinite(hours) ||
     !Number.isFinite(minutes) ||
     hours < 0 ||
-    hours > 23 ||
+    hours > 24 ||
     minutes < 0 ||
     minutes > 59
   ) {
     return null;
   }
+  if (hours === 24) return minutes === 0 ? 24 * 60 : null;
   return hours * 60 + minutes;
 }
 

@@ -6,6 +6,7 @@ import {
   useEffect,
   useImperativeHandle,
   useMemo,
+  useRef,
   useState,
 } from "react";
 import { Plus, Trash2 } from "lucide-react";
@@ -74,6 +75,7 @@ const toTimeInputValue = (value: string | null | undefined): string => {
 };
 
 const minsToTime = (mins: number): string => {
+  if (mins >= 24 * 60) return "24:00";
   const h = Math.floor(mins / 60);
   const m = mins % 60;
   return `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`;
@@ -88,17 +90,19 @@ const timeToMins = (time: string): number | null => {
     !Number.isFinite(hours) ||
     !Number.isFinite(minutes) ||
     hours < 0 ||
-    hours > 23 ||
+    hours > 24 ||
     minutes < 0 ||
     minutes > 59
   ) {
     return null;
   }
+  // Exclusive end-of-day marker (last slot is 11:30 PM → 12:00 AM).
+  if (hours === 24) return minutes === 0 ? 24 * 60 : null;
   return hours * 60 + minutes;
 };
 
 const formatSlotLabel = (mins: number): string => {
-  const h = Math.floor(mins / 60);
+  const h = Math.floor(mins / 60) % 24;
   const m = mins % 60;
   const suffix = h >= 12 ? "p" : "a";
   const hour12 = h % 12 === 0 ? 12 : h % 12;
@@ -110,6 +114,7 @@ const formatSlotLabel = (mins: number): string => {
 const formatFriendlyTime = (time: string): string => {
   const mins = timeToMins(time);
   if (mins == null) return time;
+  if (mins === 24 * 60) return "12:00 AM";
   const h = Math.floor(mins / 60) % 24;
   const m = mins % 60;
   const suffix = h >= 12 ? "PM" : "AM";
@@ -139,6 +144,22 @@ const GRID_SLOTS = (() => {
   }
   return slots;
 })();
+
+/** Map a pointer X position within a slot row to a half-hour slot. */
+const slotFromClientX = (
+  rowEl: HTMLElement,
+  clientX: number
+): number | null => {
+  const rect = rowEl.getBoundingClientRect();
+  if (rect.width <= 0) return null;
+  const ratio = (clientX - rect.left) / rect.width;
+  if (ratio < 0 || ratio > 1) return null;
+  const index = Math.min(
+    GRID_SLOTS.length - 1,
+    Math.max(0, Math.floor(ratio * GRID_SLOTS.length))
+  );
+  return GRID_SLOTS[index] ?? null;
+};
 
 const sortDayOrder = (a: number, b: number) => {
   const order = (d: number) => (d === 0 ? 7 : d);
@@ -308,6 +329,17 @@ export const UserSchedulesSection = forwardRef<
   const [hoursModeByKey, setHoursModeByKey] = useState<Record<string, HoursMode>>(
     {}
   );
+  const paintDragRef = useRef<{
+    dow: number;
+    scheduleKey: string;
+    mode: HoursMode;
+    anchor: number;
+    turningOn: boolean;
+    startX: number;
+    dragging: boolean;
+    /** Per-day slot sets captured before this gesture. */
+    snapshot: Map<number, Set<number>>;
+  } | null>(null);
 
   const dirty = useMemo(
     () => serialize(schedules) !== baseline,
@@ -476,40 +508,107 @@ export const UserSchedulesSection = forwardRef<
     });
   };
 
-  const toggleSlot = (dow: number, slotMins: number) => {
+  const commitPaintRange = useCallback((currentSlot: number) => {
+    const drag = paintDragRef.current;
+    if (!drag) return;
+
+    const from = Math.min(drag.anchor, currentSlot);
+    const to = Math.max(drag.anchor, currentSlot);
+
+    setSchedules((prev) =>
+      prev.map((schedule) => {
+        if (schedule.key !== drag.scheduleKey) return schedule;
+
+        const targetDays =
+          drag.mode === "same"
+            ? schedule.activeDays
+            : [drag.dow].filter((d) => schedule.activeDays.includes(d));
+        if (targetDays.length === 0) return schedule;
+
+        const slotMap = new Map<number, Set<number>>();
+        for (const day of schedule.activeDays) {
+          slotMap.set(day, new Set(drag.snapshot.get(day) ?? []));
+        }
+
+        for (const day of targetDays) {
+          const slots = slotMap.get(day) ?? new Set();
+          for (const slot of GRID_SLOTS) {
+            if (slot < from || slot > to) continue;
+            if (drag.turningOn) slots.add(slot);
+            else slots.delete(slot);
+          }
+          slotMap.set(day, slots);
+        }
+
+        return {
+          ...schedule,
+          intervals: rebuildIntervalsFromSlots(schedule.activeDays, slotMap),
+        };
+      })
+    );
+  }, []);
+
+  const startPaint = (
+    dow: number,
+    rowEl: HTMLElement,
+    clientX: number
+  ) => {
     if (!selected) return;
+    const anchor = slotFromClientX(rowEl, clientX);
+    if (anchor == null) return;
+
     const mode =
       hoursModeByKey[selected.key] ??
       inferHoursMode(selected.activeDays, selected.intervals);
 
-    updateSelected((current) => {
-      const targetDays =
-        mode === "same" ? current.activeDays : [dow].filter((d) =>
-          current.activeDays.includes(d)
-        );
-      if (targetDays.length === 0) return current;
+    const snapshot = new Map<number, Set<number>>();
+    for (const day of selected.activeDays) {
+      snapshot.set(day, intervalsToSlots(selected.intervals, day));
+    }
 
-      const slotMap = new Map<number, Set<number>>();
-      for (const day of current.activeDays) {
-        slotMap.set(day, intervalsToSlots(current.intervals, day));
-      }
+    const sampleDay = mode === "same" ? selected.activeDays[0] : dow;
+    const currentlyOn = snapshot.get(sampleDay)?.has(anchor) ?? false;
 
-      const sample = slotMap.get(targetDays[0]) ?? new Set();
-      const turningOn = !sample.has(slotMins);
+    paintDragRef.current = {
+      dow,
+      scheduleKey: selected.key,
+      mode,
+      anchor,
+      turningOn: !currentlyOn,
+      startX: clientX,
+      dragging: false,
+      snapshot,
+    };
 
-      for (const day of targetDays) {
-        const slots = slotMap.get(day) ?? new Set();
-        if (turningOn) slots.add(slotMins);
-        else slots.delete(slotMins);
-        slotMap.set(day, slots);
-      }
-
-      return {
-        ...current,
-        intervals: rebuildIntervalsFromSlots(current.activeDays, slotMap),
-      };
-    });
+    commitPaintRange(anchor);
   };
+
+  const paintSlotFromEvent = (rowEl: HTMLElement, clientX: number) => {
+    const drag = paintDragRef.current;
+    if (!drag) return;
+
+    if (!drag.dragging && Math.abs(clientX - drag.startX) < 4) {
+      return;
+    }
+    drag.dragging = true;
+
+    const currentSlot = slotFromClientX(rowEl, clientX);
+    if (currentSlot == null) return;
+    commitPaintRange(currentSlot);
+  };
+
+  const endPaint = () => {
+    paintDragRef.current = null;
+  };
+
+  useEffect(() => {
+    window.addEventListener("pointerup", endPaint);
+    window.addEventListener("pointercancel", endPaint);
+    return () => {
+      window.removeEventListener("pointerup", endPaint);
+      window.removeEventListener("pointercancel", endPaint);
+    };
+  }, []);
 
   const setHoursMode = (mode: HoursMode) => {
     if (!selected) return;
@@ -845,24 +944,42 @@ export const UserSchedulesSection = forwardRef<
                             {meta?.short}
                           </span>
                         )}
-                        <div className="flex min-w-0 flex-1">
+                        <div
+                          className="flex min-w-0 flex-1 cursor-pointer touch-none select-none"
+                          onPointerDown={(e) => {
+                            if (e.button !== 0) return;
+                            e.preventDefault();
+                            startPaint(dow, e.currentTarget, e.clientX);
+                            e.currentTarget.setPointerCapture(e.pointerId);
+                          }}
+                          onPointerMove={(e) => {
+                            if (!paintDragRef.current) return;
+                            paintSlotFromEvent(e.currentTarget, e.clientX);
+                          }}
+                          onPointerUp={(e) => {
+                            endPaint();
+                            if (e.currentTarget.hasPointerCapture(e.pointerId)) {
+                              e.currentTarget.releasePointerCapture(e.pointerId);
+                            }
+                          }}
+                        >
                           {GRID_SLOTS.map((slotMins) => {
                             const on = slots.has(slotMins);
                             return (
-                              <button
+                              <div
                                 key={`${dow}-${slotMins}`}
-                                type="button"
+                                role="button"
+                                tabIndex={-1}
                                 aria-pressed={on}
                                 aria-label={`${
                                   hoursMode === "same"
                                     ? "All days"
                                     : meta?.long
                                 } ${formatSlotLabel(slotMins)}`}
-                                onClick={() => toggleSlot(dow, slotMins)}
-                                className={`h-7 min-w-0 flex-1 border-b transition-colors ${
+                                className={`pointer-events-none h-7 min-w-0 flex-1 border-b transition-colors ${
                                   on
                                     ? "border-b-[var(--kenoo-sky)]"
-                                    : "border-b-neutral-200 hover:border-b-neutral-400"
+                                    : "border-b-neutral-200"
                                 }`}
                               />
                             );
