@@ -3,6 +3,7 @@
 import { useMemo } from "react";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
+import { parseCalendarToJsDate } from "@/lib/calendar-recurring";
 import {
   getCalendarEventDisplayLabel,
   getCalendarEventTheme,
@@ -16,7 +17,7 @@ function convertToDate(time: Date | { seconds: number } | string): Date {
   if (typeof time === "object" && "seconds" in time) {
     return new Date((time as { seconds: number }).seconds * 1000);
   }
-  return new Date(time as string);
+  return parseCalendarToJsDate(time as string);
 }
 
 const DAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];

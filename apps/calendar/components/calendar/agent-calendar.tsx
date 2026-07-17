@@ -31,7 +31,13 @@ import {
   ACCESSIBLE_PROJECT_SELECT,
   loadAccessibleProjects,
 } from '@/components/agents-projects/load-accessible-projects';
-import type { Project, ProjectTask } from '@/components/agents-projects/types';
+import type { Project, ProjectTask, ProjectTaskSchedule } from '@/components/agents-projects/types';
+
+const PROJECT_TASK_SELECT =
+  'id, title, description, status, start_date, due_date, priority, project_id, assignee_id, assigned_by, is_private, created_at, updated_at, completed_at, parent_task_id, position, estimated_minutes, actual_minutes, metadata, projects(id, name, color)';
+
+const PROJECT_TASK_SCHEDULE_SELECT =
+  'id, created_at, updated_at, task_id, start_time, end_time, position, notes, created_by, is_blocking';
 
 function mapRowToProjectTask(row: Record<string, unknown>): ProjectTask {
   const projects = row.projects as { id: string; name: string; color: string | null } | null;
@@ -64,6 +70,53 @@ function mapRowToProjectTask(row: Record<string, unknown>): ProjectTask {
       ? { id: projects.id, name: projects.name, color: projects.color }
       : undefined,
   };
+}
+
+async function loadProjectTasksWithSchedules(
+  supabase: ReturnType<typeof createClient>,
+  viewerUserId: string
+): Promise<ProjectTask[]> {
+  const { data, error } = await supabase
+    .from('project_tasks')
+    .select(PROJECT_TASK_SELECT)
+    .order('due_date', { ascending: true, nullsFirst: false });
+
+  if (error) {
+    console.error('Error fetching project tasks:', error);
+    throw error;
+  }
+
+  const mapped = (data ?? []).map((row) =>
+    mapRowToProjectTask(row as Record<string, unknown>)
+  );
+  const visible = filterTasksVisibleToUser(mapped, viewerUserId);
+  if (visible.length === 0) return visible;
+
+  const taskIds = visible.map((task) => task.id);
+  const { data: scheduleRows, error: scheduleError } = await supabase
+    .from('project_task_schedules')
+    .select(PROJECT_TASK_SCHEDULE_SELECT)
+    .in('task_id', taskIds)
+    .order('position', { ascending: true })
+    .order('start_time', { ascending: true });
+
+  if (scheduleError) {
+    console.error('Error fetching project task schedules:', scheduleError);
+    return visible.map((task) => ({ ...task, schedules: task.schedules ?? [] }));
+  }
+
+  const schedulesByTask = new Map<string, ProjectTaskSchedule[]>();
+  for (const row of scheduleRows ?? []) {
+    const schedule = row as ProjectTaskSchedule;
+    const list = schedulesByTask.get(schedule.task_id) ?? [];
+    list.push(schedule);
+    schedulesByTask.set(schedule.task_id, list);
+  }
+
+  return visible.map((task) => ({
+    ...task,
+    schedules: schedulesByTask.get(task.id) ?? [],
+  }));
 }
 
 interface AgentCalendarProps {
@@ -150,20 +203,22 @@ function AgentCalendarContent({ calendarData }: AgentCalendarProps) {
       });
 
     const formattedProjectScheduleEvents = projectTasks.flatMap((task) =>
-      (task.schedules ?? []).map((schedule) => ({
-        id: `project-task-schedule-${schedule.id}`,
-        title: task.title,
-        description: task.description ?? '',
-        startTime: schedule.start_time,
-        endTime: schedule.end_time,
-        type: 'project-task-schedule' as const,
-        isAllDay: false,
-        status: task.status,
-        projectTaskId: task.id,
-        scheduleId: schedule.id,
-        projectName: task.project?.name || '',
-        projectColor: task.project?.color || null,
-      }))
+      (task.schedules ?? [])
+        .filter((schedule) => schedule.start_time && schedule.end_time)
+        .map((schedule) => ({
+          id: `project-task-schedule-${schedule.id}`,
+          title: task.title,
+          description: task.description ?? '',
+          startTime: schedule.start_time,
+          endTime: schedule.end_time,
+          type: 'project-task-schedule' as const,
+          isAllDay: false,
+          status: task.status,
+          projectTaskId: task.id,
+          scheduleId: schedule.id,
+          projectName: task.project?.name || '',
+          projectColor: task.project?.color || null,
+        }))
     );
 
     const filteredEvents = [];
@@ -469,20 +524,12 @@ function AgentCalendarContent({ calendarData }: AgentCalendarProps) {
     const viewerUserId = user.id;
 
     const fetchProjectTasks = async () => {
-      const { data, error } = await supabase
-        .from('project_tasks')
-        .select('id, title, description, status, start_date, due_date, priority, project_id, assignee_id, assigned_by, is_private, created_at, updated_at, completed_at, parent_task_id, position, estimated_minutes, actual_minutes, metadata, projects(id, name, color), project_task_schedules(id, created_at, updated_at, task_id, start_time, end_time, position, notes, created_by, is_blocking)')
-        .order('due_date', { ascending: true, nullsFirst: false });
-
-      if (error) {
-        console.error('Error fetching project tasks:', error);
-        return;
+      try {
+        const loaded = await loadProjectTasksWithSchedules(supabase, viewerUserId);
+        setProjectTasks(loaded);
+      } catch (err) {
+        console.error('Error loading project tasks with schedules:', err);
       }
-
-      const mapped = (data ?? []).map((row) =>
-        mapRowToProjectTask(row as Record<string, unknown>)
-      );
-      setProjectTasks(filterTasksVisibleToUser(mapped, viewerUserId));
     };
 
     fetchProjectTasks();
@@ -560,20 +607,9 @@ function AgentCalendarContent({ calendarData }: AgentCalendarProps) {
     handleTaskFormClose();
     if (!user?.id) return;
     const supabase = createClient();
-    void supabase
-      .from('project_tasks')
-      .select('id, title, description, status, start_date, due_date, priority, project_id, assignee_id, assigned_by, is_private, created_at, updated_at, completed_at, parent_task_id, position, estimated_minutes, actual_minutes, metadata, projects(id, name, color), project_task_schedules(id, created_at, updated_at, task_id, start_time, end_time, position, notes, created_by, is_blocking)')
-      .order('due_date', { ascending: true, nullsFirst: false })
-      .then(({ data, error }) => {
-        if (error) {
-          console.error('Error refreshing project tasks:', error);
-          return;
-        }
-        const mapped = (data ?? []).map((row) =>
-          mapRowToProjectTask(row as Record<string, unknown>)
-        );
-        setProjectTasks(filterTasksVisibleToUser(mapped, user.id));
-      });
+    void loadProjectTasksWithSchedules(supabase, user.id)
+      .then((loaded) => setProjectTasks(loaded))
+      .catch((err) => console.error('Error refreshing project tasks:', err));
   };
 
   // Check for timezone mismatch

@@ -36,7 +36,10 @@ export function getCalendarEventDisplayLabel(
   event: CalendarEventLike,
   compactStartTime?: string
 ): string {
-  if (event.type === 'regular-event' && compactStartTime) {
+  if (
+    (event.type === 'regular-event' || event.type === 'project-task-schedule') &&
+    compactStartTime
+  ) {
     return `${event.title}, ${formatCompactTimeLabel(compactStartTime)}`;
   }
   return event.title;

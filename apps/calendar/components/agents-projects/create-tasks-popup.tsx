@@ -54,7 +54,6 @@ import { MiniCalendar } from "@/components/ui/mini-calendar";
 import { SequenceSwitch as Switch } from "@/components/ui/sequence-switch";
 import { AnimatePresence, motion } from "framer-motion";
 import {
-  addMinutes,
   format,
   isValid,
   parseISO,
@@ -151,25 +150,6 @@ function addHoursToTime(time: string, hours: number): string {
   const total = h * 60 + m + hours * 60;
   const wrapped = ((total % (24 * 60)) + 24 * 60) % (24 * 60);
   return `${String(Math.floor(wrapped / 60)).padStart(2, "0")}:${String(wrapped % 60).padStart(2, "0")}`;
-}
-
-function parseTimeToMinutes(time: string): number | null {
-  const match = /^(\d{1,2}):(\d{2})(?::\d{2})?$/.exec(time.trim());
-  if (!match) return null;
-  const hours = Number(match[1]);
-  const minutes = Number(match[2]);
-  if (
-    !Number.isFinite(hours) ||
-    !Number.isFinite(minutes) ||
-    hours < 0 ||
-    hours > 24 ||
-    minutes < 0 ||
-    minutes > 59
-  ) {
-    return null;
-  }
-  if (hours === 24) return minutes === 0 ? 24 * 60 : null;
-  return hours * 60 + minutes;
 }
 
 function createScheduleDraft(
@@ -773,8 +753,8 @@ export function CreateTasksPopup({
           start_time: range.start_time,
           end_time: range.end_time,
           position: index,
-          created_by: actorUserId,
-          is_blocking: draft.is_blocking,
+          created_by: currentUserId,
+          is_blocking: draft.is_blocking === true,
         };
       })
       .filter((row): row is NonNullable<typeof row> => row !== null);
@@ -1602,7 +1582,10 @@ export function CreateTasksPopup({
                                             setSchedules((prev) =>
                                               prev.map((s) =>
                                                 s.key === draft.key
-                                                  ? { ...s, date: format(date, "yyyy-MM-dd") }
+                                                  ? clearDraftIso({
+                                                      ...s,
+                                                      date: format(date, "yyyy-MM-dd"),
+                                                    })
                                                   : s
                                               )
                                             );
@@ -1656,11 +1639,11 @@ export function CreateTasksPopup({
                                                       option.value >= s.end
                                                         ? addHoursToTime(option.value, 1)
                                                         : s.end;
-                                                    return {
+                                                    return clearDraftIso({
                                                       ...s,
                                                       start: option.value,
                                                       end: nextEnd,
-                                                    };
+                                                    });
                                                   })
                                                 );
                                               }}
@@ -1700,7 +1683,10 @@ export function CreateTasksPopup({
                                                 setSchedules((prev) =>
                                                   prev.map((s) =>
                                                     s.key === draft.key
-                                                      ? { ...s, end: option.value }
+                                                      ? clearDraftIso({
+                                                          ...s,
+                                                          end: option.value,
+                                                        })
                                                       : s
                                                   )
                                                 );

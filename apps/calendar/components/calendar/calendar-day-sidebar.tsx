@@ -28,6 +28,7 @@ import {
   isCalendarTaskCompleted,
   isGoogleMeetLink,
 } from "./calendar-event-theme";
+import { parseCalendarToJsDate } from "@/lib/calendar-recurring";
 
 export interface CalendarSidebarEvent {
   id: string;
@@ -37,6 +38,7 @@ export interface CalendarSidebarEvent {
   type?: "regular-event" | "scheduled-task" | "project-task" | "project-task-schedule";
   eventType?: string;
   projectName?: string;
+  projectColor?: string | null;
   meetingLink?: string;
   attendees?: Array<{ email: string }>;
   location?: string;
@@ -77,7 +79,7 @@ function convertToDate(time: Date | { seconds: number } | string): Date {
   if (typeof time === "object" && "seconds" in time) {
     return new Date((time as { seconds: number }).seconds * 1000);
   }
-  return new Date(time as string);
+  return parseCalendarToJsDate(time as string);
 }
 
 function formatTime(time: Date | { seconds: number } | string): string {

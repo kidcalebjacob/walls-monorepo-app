@@ -29,6 +29,8 @@ export function isAllDayEvent(event: {
   isAllDay?: boolean;
   type?: string;
 }): boolean {
+  // Timed task schedule chunks are never all-day, even if flags are missing.
+  if (event.type === 'project-task-schedule') return false;
   if (event.isAllDay) return true;
   if (event.type === 'project-task') return true;
 

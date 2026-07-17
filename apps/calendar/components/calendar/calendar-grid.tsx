@@ -41,6 +41,16 @@ function getTimedEventTheme(event: Event): CalendarEventTheme {
   };
 }
 
+function getEventAccentStyle(event: Event): React.CSSProperties | undefined {
+  if (
+    (event.type === 'project-task' || event.type === 'project-task-schedule') &&
+    event.projectColor
+  ) {
+    return { backgroundColor: event.projectColor };
+  }
+  return undefined;
+}
+
 function getAllDayEventTheme(event: Event): CalendarEventTheme {
   return getCalendarEventTheme(event);
 }
@@ -803,8 +813,13 @@ export function CalendarGrid({ selectedDate, onDateSelect, allEvents, onTaskDrop
                       <span
                         className={cn(
                           'w-[3px] shrink-0 self-stretch',
-                          isCompleted ? getCompletedTaskAccentClass() : theme.accentColor
+                          isCompleted
+                            ? getCompletedTaskAccentClass()
+                            : !event.projectColor && theme.accentColor
                         )}
+                        style={
+                          isCompleted ? undefined : getEventAccentStyle(event)
+                        }
                       />
                       <div className="flex min-w-0 flex-1 items-center gap-1.5 pl-2 pr-2">
                         {showGoogleMeetIcon && (
@@ -998,8 +1013,13 @@ export function CalendarGrid({ selectedDate, onDateSelect, allEvents, onTaskDrop
                       <span
                         className={cn(
                           'w-[3px] shrink-0 self-stretch',
-                          isCompleted ? getCompletedTaskAccentClass() : theme.accentColor
+                          isCompleted
+                            ? getCompletedTaskAccentClass()
+                            : !event.projectColor && theme.accentColor
                         )}
+                        style={
+                          isCompleted ? undefined : getEventAccentStyle(event)
+                        }
                       />
                       <div
                         className={cn(
