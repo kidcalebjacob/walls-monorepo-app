@@ -19,21 +19,16 @@ const orbSpring = {
   mass: 0.85,
 };
 
-/** Slot-to-slot glide — a bit softer than the tab pill spring. */
+/** Weighted glide — slight overshoot so orbs feel like metal spheres. */
 const orbSlide = {
   type: "spring" as const,
-  stiffness: 170,
-  damping: 28,
-  mass: 0.95,
+  stiffness: 140,
+  damping: 22,
+  mass: 1.15,
 };
 
 const softEase = {
   duration: 0.42,
-  ease,
-};
-
-const setSwapEase = {
-  duration: 0.48,
   ease,
 };
 
@@ -93,53 +88,41 @@ const copyVariants = {
   }),
 };
 
-/** Whole-set crossfade when suite / feature toggles change. */
+/** Set swap: soft dissolve in place — no slide, scale, or tilt. */
 const setSwapVariants = {
-  enter: (direction: number) => ({
+  enter: {
     opacity: 0,
-    x: direction === 0 ? 0 : direction * 36,
-    scale: 0.9,
-    filter: "blur(10px)",
-  }),
+  },
   center: {
     opacity: 1,
-    x: 0,
-    scale: 1,
-    filter: "blur(0px)",
   },
-  exit: (direction: number) => ({
+  exit: {
     opacity: 0,
-    x: direction === 0 ? 0 : direction * -28,
-    scale: 0.94,
-    filter: "blur(8px)",
-  }),
+  },
 };
 
 function OrbCarousel({
   setKey,
   capabilities,
   capIndex,
-  direction,
   onSelectOffset,
 }: {
   setKey: string;
   capabilities: SuiteCapability[];
   capIndex: number;
-  direction: number;
   onSelectOffset: (offset: -1 | 1) => void;
 }) {
   return (
     <div className="relative flex h-[13rem] w-full max-w-2xl items-center justify-center overflow-visible md:h-[16rem]">
-      <AnimatePresence mode="sync" custom={direction} initial={false}>
+      <AnimatePresence mode="sync" initial={false}>
         <motion.div
           key={setKey}
-          custom={direction}
           variants={setSwapVariants}
           initial="enter"
           animate="center"
           exit="exit"
-          transition={setSwapEase}
-          className="absolute inset-0 will-change-transform"
+          transition={{ duration: 0.38, ease }}
+          className="absolute inset-0"
         >
           {capabilities.map((cap, index) => {
             const offset = circularOffset(
@@ -293,9 +276,9 @@ export function SuiteShowcase() {
         <div className="flex flex-col gap-8 md:flex-row md:items-start md:justify-between md:gap-16">
           <div className="max-w-md">
             <h2 className="font-display text-3xl font-semibold tracking-[-0.04em] text-kenoo-ink md:text-4xl">
-              One OS.
+              Life OS.
               <br />
-              Built for every angle.
+              Smart, made simple.
             </h2>
             <div className="mt-7 flex flex-wrap gap-3">
               <a
@@ -381,7 +364,6 @@ export function SuiteShowcase() {
                 setKey={`${suite.id}-${feature.id}`}
                 capabilities={capabilities}
                 capIndex={capIndex}
-                direction={direction}
                 onSelectOffset={(offset) => {
                   if (offset < 0) goPrev();
                   else goNext();

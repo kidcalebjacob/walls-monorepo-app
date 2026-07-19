@@ -35,7 +35,7 @@ const PROFILE_FALLBACK_ICON_URL =
 
 /** Notification bell hover — inset shadow + scale, no border ring */
 const NOTIFICATION_BELL_HOVER =
-  "relative z-10 rounded-full border-0 p-3 transition-all duration-300 ease-in-out group-hover:scale-95 group-hover:bg-gray-50 group-hover:shadow-[inset_0_4px_8px_rgba(0,0,0,0.15)]";
+  "relative z-10 rounded-full border-0 p-3 transition-all duration-300 ease-in-out group-hover:scale-95 group-hover:bg-neutral-50/80 group-hover:shadow-[inset_0_3px_6px_rgba(0,0,0,0.1)]";
 
 const AVATAR_SIZE_PX = 44;
 /** Image request size — 2× the display size for retina sharpness. */
@@ -458,10 +458,10 @@ export default function UserProfileButton({
                       className={`${NOTIFICATION_BELL_HOVER} flex items-center justify-center overflow-visible`}
                     >
                       <span className="relative flex h-[18px] w-[18px] shrink-0 items-center justify-center overflow-visible">
-                        <Bell className="h-[18px] w-[18px] stroke-[1.5] text-neutral-500" />
+                        <Bell className="h-[18px] w-[18px] stroke-[1.75] text-neutral-600 transition-colors duration-300 group-hover:text-neutral-800" />
                         {hasUnreadNotifications && (
                           <span
-                            className="pointer-events-none absolute -right-0.5 -top-0.5 z-20 h-2 w-2 rounded-full bg-[#FF1744] ring-2 ring-white"
+                            className="pointer-events-none absolute -right-px -top-px z-20 h-1.5 w-1.5 rounded-full bg-[var(--kenoo-light)] ring-[1.5px] ring-white"
                             aria-hidden
                           />
                         )}
