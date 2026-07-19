@@ -5,7 +5,7 @@ import ProductPage from "@/components/kenoo/product-page";
 export const metadata: Metadata = {
   title: "Product",
   description:
-    "Explore Kenoo by angle: business, finance, and health—in one business OS.",
+    "Explore Kenoo by angle: business, finance, and health in one business OS.",
 
 };
 

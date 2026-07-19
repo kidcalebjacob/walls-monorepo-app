@@ -14,7 +14,7 @@ export function Modules() {
             One workspace. Every angle.
           </h2>
           <p className="mt-4 text-base leading-relaxed text-kenoo-muted">
-            Business, finance, health, and more as you grow—connected in a
+            Business, finance, health, and more as you grow, connected in a
             single product that stays consistent from screen to screen.
           </p>
         </div>

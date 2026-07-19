@@ -27,7 +27,7 @@ export type KenooSuite = {
 
 /**
  * Home showcase suites / angles.
- * Organized by situation (Business, Finance, Health)—not by a fixed app count.
+ * Organized by situation (Business, Finance, Health), not by a fixed app count.
  * Capabilities reflect what the product can actually do today.
  */
 export const KENOO_SUITES: KenooSuite[] = [
@@ -35,7 +35,7 @@ export const KENOO_SUITES: KenooSuite[] = [
     id: "business",
     name: "Business",
     description:
-      "Relationships, delivery, schedule, ads, and AI—everything that keeps the company moving.",
+      "Relationships, delivery, schedule, ads, and AI. Everything that keeps the company moving.",
     dot: "#0b6eff",
     features: [
       {
@@ -46,7 +46,7 @@ export const KENOO_SUITES: KenooSuite[] = [
             id: "people",
             title: "People",
             description:
-              "A clear record of every relationship—roles, history, and next steps.",
+              "A clear record of every relationship: roles, history, and next steps.",
             href: "/product#business",
             orb: {
               from: "#0b6eff",
@@ -59,7 +59,7 @@ export const KENOO_SUITES: KenooSuite[] = [
             id: "companies",
             title: "Companies",
             description:
-              "Accounts connected to deals, projects, and invoices—not a disconnected list.",
+              "Accounts connected to deals, projects, and invoices, not a disconnected list.",
             href: "/product#business",
             orb: {
               from: "#0066b2",
@@ -117,7 +117,7 @@ export const KENOO_SUITES: KenooSuite[] = [
             id: "drafts",
             title: "Drafts",
             description:
-              "AI-assisted outreach that stays on-brand—you decide what sends.",
+              "AI-assisted outreach that stays on-brand. You decide what sends.",
             href: "/product#business",
             orb: {
               from: "#111111",
@@ -239,7 +239,7 @@ export const KENOO_SUITES: KenooSuite[] = [
             id: "spend",
             title: "Spend",
             description:
-              "Performance and budgets in one view—not buried in another silo.",
+              "Performance and budgets in one view, not buried in another silo.",
             href: "/product#business",
             orb: {
               from: "#0b6eff",
@@ -269,7 +269,7 @@ export const KENOO_SUITES: KenooSuite[] = [
     id: "finance",
     name: "Finance",
     description:
-      "Invoices, cash flow, forecasts, and payouts—money you can follow without spreadsheet gymnastics.",
+      "Invoices, cash flow, forecasts, and payouts. Money you can follow without spreadsheet gymnastics.",
     dot: "#8dcf76",
     features: [
       {
@@ -338,7 +338,7 @@ export const KENOO_SUITES: KenooSuite[] = [
             id: "transactions",
             title: "Transactions",
             description:
-              "Movement that stays readable—who, what, and when.",
+              "Movement that stays readable: who, what, and when.",
             href: "/product#finance",
             orb: {
               from: "#8dcf76",
@@ -396,7 +396,7 @@ export const KENOO_SUITES: KenooSuite[] = [
             id: "runway",
             title: "Runway",
             description:
-              "A simple read on obligations and headroom—no spreadsheet gymnastics.",
+              "A simple read on obligations and headroom, with no spreadsheet gymnastics.",
             href: "/product#finance",
             orb: {
               from: "#a8e090",
@@ -441,7 +441,7 @@ export const KENOO_SUITES: KenooSuite[] = [
             id: "controls",
             title: "Controls",
             description:
-              "Finance actions that stay understandable—no black-box steps.",
+              "Finance actions that stay understandable, with no black-box steps.",
             href: "/product#finance",
             orb: {
               from: "#6eadc0",
@@ -458,7 +458,7 @@ export const KENOO_SUITES: KenooSuite[] = [
     id: "health",
     name: "Health",
     description:
-      "Meals, activities, and goals—optional wellness that supports the work without competing for attention.",
+      "Meals, activities, and goals. Optional wellness that supports the work without competing for attention.",
     dot: "#5bb8a8",
     features: [
       {
@@ -495,7 +495,7 @@ export const KENOO_SUITES: KenooSuite[] = [
             id: "habits",
             title: "Habits",
             description:
-              "Simple patterns you can keep—not another complicated diet app.",
+              "Simple patterns you can keep, not another complicated diet app.",
             href: "/product#health",
             orb: {
               from: "#7ecfc0",
@@ -527,7 +527,7 @@ export const KENOO_SUITES: KenooSuite[] = [
             id: "movement",
             title: "Movement",
             description:
-              "See how the week actually moved—not just what you planned.",
+              "See how the week actually moved, not just what you planned.",
             href: "/product#health",
             orb: {
               from: "#4aa89a",
@@ -572,7 +572,7 @@ export const KENOO_SUITES: KenooSuite[] = [
             id: "progress",
             title: "Progress",
             description:
-              "A calm dashboard for how you’re tracking—not a guilt meter.",
+              "A calm dashboard for how you’re tracking, not a guilt meter.",
             href: "/product#health",
             orb: {
               from: "#5bb8a8",
@@ -585,7 +585,7 @@ export const KENOO_SUITES: KenooSuite[] = [
             id: "balance",
             title: "Balance",
             description:
-              "Wellness that supports the work—not another product competing for attention.",
+              "Wellness that supports the work, not another product competing for attention.",
             href: "/product#health",
             orb: {
               from: "#7ecfc0",

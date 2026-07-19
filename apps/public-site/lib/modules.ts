@@ -5,14 +5,14 @@ export type KenooModule = {
   description: string;
 };
 
-/** Marketing angles — not a fixed app count. */
+/** Marketing angles, not a fixed app count. */
 export const KENOO_MODULES: KenooModule[] = [
   {
     id: "business",
     name: "Business",
     headline: "Relationships, delivery, and growth",
     description:
-      "CRM, projects, calendar, advertising, and AI assist—so pipeline, delivery, and outreach stay in one rhythm.",
+      "CRM, projects, calendar, advertising, and AI assist, so pipeline, delivery, and outreach stay in one rhythm.",
   },
   {
     id: "finance",
@@ -26,6 +26,6 @@ export const KENOO_MODULES: KenooModule[] = [
     name: "Health",
     headline: "Energy for the long run",
     description:
-      "Meals, activities, and goals—optional wellness tracking that stays in its own lane.",
+      "Meals, activities, and goals. Optional wellness tracking that stays in its own lane.",
   },
 ];

@@ -30,6 +30,10 @@ import {
   type DashboardCalorieDay,
 } from "@/lib/dashboard-defaults";
 import {
+  getVisibleDashboardWidgets,
+} from "@/lib/dashboard-widgets-server";
+import type { DashboardWidgetId } from "@/lib/dashboard-widgets";
+import {
   buildScienceInsights,
   type DashboardInsight,
 } from "@/lib/science-insights";
@@ -102,6 +106,7 @@ export type DashboardAnalytics = {
   macros: DashboardMacroRow[];
   insights: DashboardInsight[];
   appleHealth: DashboardAppleHealth;
+  visibleWidgets: DashboardWidgetId[];
   profile: Pick<
     HealthProfile,
     | "goal_type"
@@ -254,15 +259,6 @@ function buildAppleHealthCards(
     });
   }
 
-  if (today.active_energy_kcal != null && today.active_energy_kcal > 0) {
-    cards.push({
-      label: "Active energy",
-      value: formatCalories(today.active_energy_kcal),
-      change: "Apple Health",
-      positive: true,
-    });
-  }
-
   if (today.exercise_minutes != null && today.exercise_minutes > 0) {
     cards.push({
       label: "Exercise",
@@ -362,10 +358,11 @@ export async function getDashboardAnalytics(
   scope: HealthDataScope,
   options: { rangeDays: number; timeRange: TimeRangeValue },
 ): Promise<DashboardAnalytics> {
-  const [profile, timeZone, goals] = await Promise.all([
+  const [profile, timeZone, goals, visibleWidgets] = await Promise.all([
     ensureHealthProfile(scope),
     resolveHealthTimezone(scope),
     listGoals(scope),
+    getVisibleDashboardWidgets(scope),
   ]);
 
   const todayKey = todayDateKey(timeZone);
@@ -616,6 +613,7 @@ export async function getDashboardAnalytics(
     macros,
     insights,
     appleHealth,
+    visibleWidgets,
     profile: {
       goal_type: profile.goal_type,
       calorie_target_daily: profile.calorie_target_daily,
