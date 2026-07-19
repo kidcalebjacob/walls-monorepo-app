@@ -393,9 +393,6 @@ export function DashboardPage() {
               <p className="text-[11px] font-medium uppercase tracking-[0.18em] text-neutral-400">
                 Today
               </p>
-              <p className="mt-1 text-sm font-light text-neutral-600">
-                Metrics & activity
-              </p>
             </div>
             <WidgetPicker
               visibleWidgets={visibleWidgets}

@@ -14,13 +14,26 @@ const ease = [0.22, 1, 0.36, 1] as const;
 
 const orbSpring = {
   type: "spring" as const,
-  stiffness: 240,
-  damping: 26,
-  mass: 0.9,
+  stiffness: 210,
+  damping: 30,
+  mass: 0.85,
+};
+
+/** Slot-to-slot glide — a bit softer than the tab pill spring. */
+const orbSlide = {
+  type: "spring" as const,
+  stiffness: 170,
+  damping: 28,
+  mass: 0.95,
 };
 
 const softEase = {
   duration: 0.42,
+  ease,
+};
+
+const setSwapEase = {
+  duration: 0.48,
   ease,
 };
 
@@ -49,6 +62,16 @@ function circularOffset(index: number, active: number, length: number) {
   return offset;
 }
 
+function slotForOffset(offset: number): SlotStyle {
+  if (Math.abs(offset) <= 2) return SLOT[offset]!;
+  return {
+    left: offset < 0 ? "-4%" : "104%",
+    scale: 0.22,
+    opacity: 0,
+    zIndex: 0,
+  };
+}
+
 const copyVariants = {
   enter: (direction: number) => ({
     opacity: 0,
@@ -70,12 +93,36 @@ const copyVariants = {
   }),
 };
 
+/** Whole-set crossfade when suite / feature toggles change. */
+const setSwapVariants = {
+  enter: (direction: number) => ({
+    opacity: 0,
+    x: direction === 0 ? 0 : direction * 36,
+    scale: 0.9,
+    filter: "blur(10px)",
+  }),
+  center: {
+    opacity: 1,
+    x: 0,
+    scale: 1,
+    filter: "blur(0px)",
+  },
+  exit: (direction: number) => ({
+    opacity: 0,
+    x: direction === 0 ? 0 : direction * -28,
+    scale: 0.94,
+    filter: "blur(8px)",
+  }),
+};
+
 function OrbCarousel({
+  setKey,
   capabilities,
   capIndex,
   direction,
   onSelectOffset,
 }: {
+  setKey: string;
   capabilities: SuiteCapability[];
   capIndex: number;
   direction: number;
@@ -83,99 +130,97 @@ function OrbCarousel({
 }) {
   return (
     <div className="relative flex h-[13rem] w-full max-w-2xl items-center justify-center overflow-visible md:h-[16rem]">
-      <AnimatePresence initial={false} mode="sync">
-        {capabilities.map((cap, index) => {
-          const offset = circularOffset(index, capIndex, capabilities.length);
-          if (Math.abs(offset) > 2) return null;
+      <AnimatePresence mode="sync" custom={direction} initial={false}>
+        <motion.div
+          key={setKey}
+          custom={direction}
+          variants={setSwapVariants}
+          initial="enter"
+          animate="center"
+          exit="exit"
+          transition={setSwapEase}
+          className="absolute inset-0 will-change-transform"
+        >
+          {capabilities.map((cap, index) => {
+            const offset = circularOffset(
+              index,
+              capIndex,
+              capabilities.length,
+            );
+            const slot = slotForOffset(offset);
+            const isActive = offset === 0;
+            const isNeighbor = Math.abs(offset) === 1;
+            const isGhost = Math.abs(offset) === 2;
+            const isHidden = Math.abs(offset) > 2;
 
-          const slot = SLOT[offset]!;
-          const isActive = offset === 0;
-          const isNeighbor = Math.abs(offset) === 1;
-          const isGhost = Math.abs(offset) === 2;
-
-          return (
-            <motion.div
-              key={cap.id}
-              className={cn(
-                "absolute top-1/2",
-                isGhost && "pointer-events-none hidden lg:block",
-                isActive && "pointer-events-none",
-                isNeighbor && "cursor-pointer",
-              )}
-              initial={{
-                left: slot.left,
-                x: "-50%",
-                y: "-50%",
-                scale: slot.scale * 0.86,
-                opacity: 0,
-                filter: "blur(6px)",
-                zIndex: slot.zIndex,
-              }}
-              animate={{
-                left: slot.left,
-                x: "-50%",
-                y: "-50%",
-                scale: slot.scale,
-                opacity: slot.opacity,
-                filter: "blur(0px)",
-                zIndex: slot.zIndex,
-              }}
-              exit={{
-                scale: slot.scale * 0.86,
-                opacity: 0,
-                filter: "blur(6px)",
-                x: direction >= 0 ? "calc(-50% - 20px)" : "calc(-50% + 20px)",
-                y: "-50%",
-                transition: { duration: 0.28, ease },
-              }}
-              transition={orbSpring}
-              whileHover={
-                isNeighbor
-                  ? {
-                      scale: slot.scale * 1.05,
-                      opacity: Math.min(1, slot.opacity + 0.12),
-                    }
-                  : undefined
-              }
-              whileTap={
-                isNeighbor ? { scale: slot.scale * 0.97 } : undefined
-              }
-              onClick={
-                isNeighbor
-                  ? () => onSelectOffset(offset as -1 | 1)
-                  : undefined
-              }
-              onKeyDown={
-                isNeighbor
-                  ? (event) => {
-                      if (event.key === "Enter" || event.key === " ") {
-                        event.preventDefault();
-                        onSelectOffset(offset as -1 | 1);
+            return (
+              <motion.div
+                key={cap.id}
+                className={cn(
+                  "absolute top-1/2",
+                  isGhost && "pointer-events-none max-lg:invisible",
+                  isHidden && "pointer-events-none",
+                  isActive && "pointer-events-none",
+                  isNeighbor && "cursor-pointer",
+                )}
+                initial={false}
+                animate={{
+                  left: slot.left,
+                  x: "-50%",
+                  y: "-50%",
+                  scale: slot.scale,
+                  opacity: slot.opacity,
+                  zIndex: slot.zIndex,
+                }}
+                transition={orbSlide}
+                whileHover={
+                  isNeighbor
+                    ? {
+                        scale: slot.scale * 1.05,
+                        opacity: Math.min(1, slot.opacity + 0.12),
                       }
-                    }
-                  : undefined
-              }
-              role={isNeighbor ? "button" : undefined}
-              tabIndex={isNeighbor ? 0 : undefined}
-              aria-label={
-                isNeighbor
-                  ? offset < 0
-                    ? "Show previous capability"
-                    : "Show next capability"
-                  : undefined
-              }
-              aria-hidden={isGhost || undefined}
-            >
-              <SuiteOrb
-                capability={cap}
-                size="lg"
-                active={isActive}
-                dimmed={isNeighbor}
-                blurred={isGhost}
-              />
-            </motion.div>
-          );
-        })}
+                    : undefined
+                }
+                whileTap={
+                  isNeighbor ? { scale: slot.scale * 0.97 } : undefined
+                }
+                onClick={
+                  isNeighbor
+                    ? () => onSelectOffset(offset as -1 | 1)
+                    : undefined
+                }
+                onKeyDown={
+                  isNeighbor
+                    ? (event) => {
+                        if (event.key === "Enter" || event.key === " ") {
+                          event.preventDefault();
+                          onSelectOffset(offset as -1 | 1);
+                        }
+                      }
+                    : undefined
+                }
+                role={isNeighbor ? "button" : undefined}
+                tabIndex={isNeighbor ? 0 : undefined}
+                aria-label={
+                  isNeighbor
+                    ? offset < 0
+                      ? "Show previous capability"
+                      : "Show next capability"
+                    : undefined
+                }
+                aria-hidden={isGhost || isHidden || undefined}
+              >
+                <SuiteOrb
+                  capability={cap}
+                  size="lg"
+                  active={isActive}
+                  dimmed={isNeighbor}
+                  blurred={isGhost || isHidden}
+                />
+              </motion.div>
+            );
+          })}
+        </motion.div>
       </AnimatePresence>
     </div>
   );
@@ -333,6 +378,7 @@ export function SuiteShowcase() {
               </button>
 
               <OrbCarousel
+                setKey={`${suite.id}-${feature.id}`}
                 capabilities={capabilities}
                 capIndex={capIndex}
                 direction={direction}
