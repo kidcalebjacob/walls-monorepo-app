@@ -7,12 +7,20 @@ import { Loader2 } from "lucide-react";
 
 import { cn } from "@walls/utils";
 
-import type { DashboardAnalytics, DashboardStat } from "@/lib/analytics-server";
+import type {
+  DashboardAnalytics,
+  DashboardStat,
+} from "@/lib/analytics-server";
 import { ZERO_DASHBOARD_STATS } from "@/lib/dashboard-defaults";
-import { formatCalories } from "@/lib/format-health";
+import {
+  formatCalories,
+  formatDistanceMeters,
+  formatSteps,
+} from "@/lib/format-health";
 import type { TimeRangeValue } from "@/lib/time-range";
 import { TIME_RANGE_OPTIONS } from "@/lib/time-range";
 
+import { ActivityTrendChart } from "./activity-trend-chart";
 import { CalorieTrendChart } from "./calorie-trend-chart";
 import { DayPulse } from "./day-pulse";
 import {
@@ -45,6 +53,38 @@ function macroStatus(
   if (ratio < 0.85) return { label: "Below target", tone: "low" };
   if (ratio > 1.1) return { label: "Above target", tone: "high" };
   return { label: "On track", tone: "on" };
+}
+
+const APPLE_CARD_TONES = [
+  "sage",
+  "amber",
+  "spectrum",
+  "coral",
+  "mist",
+  "lime",
+] as const;
+
+function graphicForIndex(index: number, darkStroke: boolean) {
+  const stroke = darkStroke ? "#1a1a1a" : "white";
+  if (darkStroke) {
+    return index % 2 === 0 ? (
+      <WaveGraphic stroke={stroke} className="opacity-35" />
+    ) : (
+      <FunnelGraphic stroke={stroke} />
+    );
+  }
+  switch (index % 5) {
+    case 0:
+      return <RingsGraphic />;
+    case 1:
+      return <WaveGraphic />;
+    case 2:
+      return <ArcScaleGraphic />;
+    case 3:
+      return <DiamondGraphic />;
+    default:
+      return <FunnelGraphic />;
+  }
 }
 
 export function DashboardPage() {
@@ -86,15 +126,18 @@ export function DashboardPage() {
 
   const stats = analytics?.stats ?? [...ZERO_DASHBOARD_STATS];
   const caloriesByDay = analytics?.caloriesByDay ?? [];
+  const activityByDay = analytics?.activityByDay ?? [];
   const todayMeals = analytics?.todayMeals ?? [];
   const macros = analytics?.macros ?? [];
   const insights = analytics?.insights ?? [];
+  const appleHealth = analytics?.appleHealth;
   const periodLabel = analytics?.periodLabel ?? "Last 7 days";
   const hasProfile = analytics?.hasProfile ?? false;
   const profile = analytics?.profile;
 
   const remaining = statByLabel(stats, "Remaining");
   const burned = statByLabel(stats, "Burned");
+  const steps = statByLabel(stats, "Steps");
   const protein = macros.find((macro) => macro.label === "Protein");
   const carbs = macros.find((macro) => macro.label === "Carbs");
   const fat = macros.find((macro) => macro.label === "Fat");
@@ -118,6 +161,9 @@ export function DashboardPage() {
       : todayMeals.length > 0
         ? 35
         : 0;
+
+  const secondaryAppleCards =
+    appleHealth?.cards.filter((card) => card.label !== "Steps") ?? [];
 
   if (loading) {
     return (
@@ -160,6 +206,10 @@ export function DashboardPage() {
                 value: goalLabel(profile?.goal_type),
               },
               {
+                label: "Steps",
+                value: steps?.value ?? "—",
+              },
+              {
                 label: "Daily burn",
                 value: profile?.tdee_calories
                   ? formatCalories(profile.tdee_calories)
@@ -190,6 +240,24 @@ export function DashboardPage() {
             />
 
             <GlowMetricCard
+              title="Steps"
+              value={steps?.value ?? "0"}
+              detail={
+                appleHealth?.hasAppleHealth
+                  ? `${appleHealth.stepsProgress}% of ${formatSteps(appleHealth.stepsTarget)}${
+                      appleHealth.distanceMeters > 0
+                        ? ` · ${formatDistanceMeters(appleHealth.distanceMeters, appleHealth.unitSystem)}`
+                        : ""
+                    }`
+                  : "Connect Apple Health in Wallie"
+              }
+              tone="spectrum"
+              graphic={<ArcScaleGraphic />}
+              delay={0.1}
+              href="/goals"
+            />
+
+            <GlowMetricCard
               title="Protein"
               value={protein?.value ?? "0g"}
               detail={
@@ -210,8 +278,8 @@ export function DashboardPage() {
                   ? `Target ${carbs.target}g`
                   : "No target set"
               }
-              tone="spectrum"
-              graphic={<ArcScaleGraphic />}
+              tone="coral"
+              graphic={<DiamondGraphic />}
               delay={0.16}
             />
 
@@ -225,8 +293,8 @@ export function DashboardPage() {
                       todayMeals.reduce((sum, meal) => sum + meal.calories, 0),
                     )} today`
               }
-              tone="coral"
-              graphic={<DiamondGraphic />}
+              tone="mist"
+              graphic={<FunnelGraphic stroke="#1a1a1a" />}
               delay={0.2}
               href="/meals"
             />
@@ -237,8 +305,8 @@ export function DashboardPage() {
               detail={
                 fat?.target != null ? `Target ${fat.target}g` : "Tracking"
               }
-              tone="mist"
-              graphic={<FunnelGraphic stroke="#1a1a1a" />}
+              tone="lime"
+              graphic={<WaveGraphic stroke="#1a1a1a" className="opacity-35" />}
               delay={0.24}
             />
 
@@ -246,38 +314,49 @@ export function DashboardPage() {
               className="col-span-2"
               title="Active burn"
               value={burned?.value ?? "0"}
-              detail="From logged activities today"
-              tone="lime"
-              graphic={<WaveGraphic stroke="#1a1a1a" className="opacity-35" />}
+              detail={
+                appleHealth?.activeEnergyKcal
+                  ? "From Apple Health active energy"
+                  : "From logged activities today"
+              }
+              tone="sage"
+              graphic={<RingsGraphic />}
               delay={0.28}
               href="/activities"
             />
           </div>
+
+          {secondaryAppleCards.length > 0 ? (
+            <div className="mt-4 grid grid-cols-2 gap-3 md:gap-4">
+              {secondaryAppleCards.map((card, index) => {
+                const tone = APPLE_CARD_TONES[index % APPLE_CARD_TONES.length];
+                const darkStroke = tone === "mist" || tone === "lime";
+                return (
+                  <GlowMetricCard
+                    key={card.label}
+                    className={
+                      secondaryAppleCards.length % 2 === 1 &&
+                      index === secondaryAppleCards.length - 1
+                        ? "col-span-2"
+                        : undefined
+                    }
+                    title={card.label}
+                    value={card.value}
+                    detail={card.change}
+                    tone={tone}
+                    graphic={graphicForIndex(index, darkStroke)}
+                    delay={0.3 + index * 0.03}
+                  />
+                );
+              })}
+            </div>
+          ) : null}
 
           {insights.length > 0 ? (
             <div className="mt-4 grid grid-cols-2 gap-3 md:gap-4">
               {insights.map((insight, index) => {
                 const darkStroke =
                   insight.tone === "mist" || insight.tone === "lime";
-                const stroke = darkStroke ? "#1a1a1a" : "white";
-                const graphic = darkStroke ? (
-                  index % 2 === 0 ? (
-                    <WaveGraphic stroke={stroke} className="opacity-35" />
-                  ) : (
-                    <FunnelGraphic stroke={stroke} />
-                  )
-                ) : index % 5 === 0 ? (
-                  <RingsGraphic />
-                ) : index % 5 === 1 ? (
-                  <WaveGraphic />
-                ) : index % 5 === 2 ? (
-                  <ArcScaleGraphic />
-                ) : index % 5 === 3 ? (
-                  <DiamondGraphic />
-                ) : (
-                  <FunnelGraphic />
-                );
-
                 return (
                   <GlowMetricCard
                     key={insight.id}
@@ -290,8 +369,8 @@ export function DashboardPage() {
                     value={insight.value}
                     detail={insight.detail}
                     tone={insight.tone}
-                    graphic={graphic}
-                    delay={0.3 + index * 0.04}
+                    graphic={graphicForIndex(index, darkStroke)}
+                    delay={0.34 + index * 0.04}
                     href={insight.href}
                   />
                 );
@@ -304,6 +383,59 @@ export function DashboardPage() {
             animate={{ opacity: 1, y: 0 }}
             transition={{
               delay: 0.36,
+              duration: 0.45,
+              ease: [0.22, 1, 0.36, 1],
+            }}
+            className="relative mt-4 min-h-[160px] overflow-hidden rounded-[28px] p-5 shadow-[0_18px_40px_-24px_rgba(0,0,0,0.35)] md:p-6"
+            style={{
+              background:
+                "linear-gradient(145deg, #6eadc0 0%, #4a8fa3 48%, #3a6f82 100%)",
+            }}
+          >
+            <div className="relative z-10 mb-4 flex flex-wrap items-start justify-between gap-3">
+              <div>
+                <p className="text-[11px] font-medium uppercase tracking-[0.18em] text-white/70">
+                  Steps
+                </p>
+                <p className="mt-1 text-sm font-light text-white/80">
+                  {periodLabel}
+                  {appleHealth?.hasAppleHealth
+                    ? " · Apple Health"
+                    : " · Preview"}
+                </p>
+              </div>
+              <div className="flex gap-1 rounded-full bg-white/20 p-1 ring-1 ring-white/30 backdrop-blur-sm">
+                {TIME_RANGE_OPTIONS.map((option) => (
+                  <button
+                    key={`steps-${option.value}`}
+                    type="button"
+                    onClick={() => setTimeRange(option.value)}
+                    className={cn(
+                      "rounded-full px-3 py-1 text-[11px] font-light uppercase tracking-wider transition-colors",
+                      timeRange === option.value
+                        ? "bg-neutral-900 text-white"
+                        : "text-white/80 hover:text-white",
+                    )}
+                  >
+                    {option.label.replace("Last ", "")}
+                  </button>
+                ))}
+              </div>
+            </div>
+            <div className="relative z-10">
+              <ActivityTrendChart
+                days={activityByDay}
+                stepsTarget={appleHealth?.stepsTarget}
+                variant="onDark"
+              />
+            </div>
+          </motion.div>
+
+          <motion.div
+            initial={{ opacity: 0, y: 14 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{
+              delay: 0.4,
               duration: 0.45,
               ease: [0.22, 1, 0.36, 1],
             }}

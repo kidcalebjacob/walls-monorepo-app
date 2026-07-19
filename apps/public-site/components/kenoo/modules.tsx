@@ -8,14 +8,14 @@ export function Modules() {
       <div className="mx-auto max-w-6xl px-5 py-20 md:px-8 md:py-28">
         <div className="max-w-xl">
           <p className="font-mono text-[11px] uppercase tracking-[0.16em] text-kenoo-muted">
-            Modules
+            Suites
           </p>
           <h2 className="mt-4 font-display text-3xl font-semibold tracking-[-0.04em] text-kenoo-ink md:text-4xl">
-            One workspace. Seven apps.
+            One workspace. Every angle.
           </h2>
           <p className="mt-4 text-base leading-relaxed text-kenoo-muted">
-            The apps your team actually uses, connected in a single product that
-            stays consistent from screen to screen.
+            Business, finance, health, and more as you grow—connected in a
+            single product that stays consistent from screen to screen.
           </p>
         </div>
 

@@ -10,6 +10,41 @@ export function formatGrams(value: number): string {
   }).format(value)}g`;
 }
 
+export function formatSteps(value: number): string {
+  return new Intl.NumberFormat("en-US", {
+    maximumFractionDigits: 0,
+  }).format(Math.round(value));
+}
+
+export function formatDistanceMeters(
+  meters: number,
+  unitSystem: "metric" | "imperial" = "imperial",
+): string {
+  if (unitSystem === "imperial") {
+    const miles = meters / 1609.344;
+    return `${new Intl.NumberFormat("en-US", {
+      maximumFractionDigits: miles >= 10 ? 0 : 1,
+    }).format(miles)} mi`;
+  }
+  const km = meters / 1000;
+  return `${new Intl.NumberFormat("en-US", {
+    maximumFractionDigits: km >= 10 ? 0 : 1,
+  }).format(km)} km`;
+}
+
+export function formatDurationMinutes(minutes: number): string {
+  const total = Math.max(0, Math.round(minutes));
+  const hours = Math.floor(total / 60);
+  const mins = total % 60;
+  if (hours <= 0) return `${mins}m`;
+  if (mins === 0) return `${hours}h`;
+  return `${hours}h ${mins}m`;
+}
+
+export function formatHeartRate(bpm: number): string {
+  return `${Math.round(bpm)} bpm`;
+}
+
 export function formatWeightKg(kg: number, unitSystem: "metric" | "imperial"): string {
   if (unitSystem === "imperial") {
     const lbs = kg * 2.20462;

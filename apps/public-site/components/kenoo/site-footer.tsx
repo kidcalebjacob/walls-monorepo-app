@@ -19,8 +19,8 @@ export function SiteFooter() {
             <KenooWordmark className="h-6 md:h-7" />
           </Link>
           <p className="mt-3 text-sm leading-relaxed text-kenoo-muted">
-            A modern business OS for CRM, projects, calendar, ledger, Wallie,
-            AdPilot, and health.
+            A modern business OS for business, finance, health, and the angles
+            that come next.
           </p>
           <a
             href="mailto:hello@kenoo.io"

@@ -5,55 +5,27 @@ export type KenooModule = {
   description: string;
 };
 
-/** Product apps that ship in the monorepo (excludes portal, settings, admin). */
+/** Marketing angles — not a fixed app count. */
 export const KENOO_MODULES: KenooModule[] = [
   {
-    id: "crm",
-    name: "CRM",
-    headline: "Relationships, clearly organized",
+    id: "business",
+    name: "Business",
+    headline: "Relationships, delivery, and growth",
     description:
-      "People, companies, deals, pitches, and sequences in one place so you always know who needs attention next.",
+      "CRM, projects, calendar, advertising, and AI assist—so pipeline, delivery, and outreach stay in one rhythm.",
   },
   {
-    id: "projects",
-    name: "Projects",
-    headline: "Work that stays clear",
-    description:
-      "Task boards, timelines, and project overviews that keep plans aligned with what’s actually shipping.",
-  },
-  {
-    id: "calendar",
-    name: "Calendar",
-    headline: "Time in one place",
-    description:
-      "Events, tasks, and deal deadlines on a shared schedule instead of scattered across tools.",
-  },
-  {
-    id: "ledger",
-    name: "Ledger",
+    id: "finance",
+    name: "Finance",
     headline: "Money you can follow",
     description:
-      "Balances, forecasts, transactions, recipients, and invoices designed to stay readable and easy to trust.",
-  },
-  {
-    id: "wallie",
-    name: "Wallie",
-    headline: "Helpful when you need it",
-    description:
-      "An AI assistant for research, outreach, and drafts—ready in chat without crowding the rest of your workspace.",
-  },
-  {
-    id: "adpilot",
-    name: "AdPilot",
-    headline: "Ads you can operate",
-    description:
-      "Meta campaign sync, spend, and automation controls so advertising stays visible alongside the rest of the business.",
+      "Invoices, cash flow, forecasts, and payouts designed to stay readable and easy to trust.",
   },
   {
     id: "health",
     name: "Health",
     headline: "Energy for the long run",
     description:
-      "Meals, activities, and goals—optional wellness tracking that stays separate from your core ops stack.",
+      "Meals, activities, and goals—optional wellness tracking that stays in its own lane.",
   },
 ];

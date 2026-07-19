@@ -47,14 +47,31 @@ export function SuiteShowcase() {
   }
 
   return (
-    <section className="border-t border-kenoo-border bg-kenoo-canvas">
-      <div className="mx-auto max-w-6xl px-5 py-20 md:px-8 md:py-28">
+    <section className="relative overflow-hidden pt-16 md:pt-[4.25rem]">
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-0"
+        style={{
+          background:
+            "radial-gradient(ellipse 80% 55% at 50% -10%, rgba(11,110,255,0.10), transparent 55%), radial-gradient(ellipse 50% 40% at 90% 20%, rgba(17,17,17,0.03), transparent 50%), linear-gradient(180deg, #fcfcfc 0%, #ffffff 55%, #fcfcfc 100%)",
+        }}
+      />
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-0 opacity-[0.3]"
+        style={{
+          backgroundImage:
+            "url(\"data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.05'/%3E%3C/svg%3E\")",
+        }}
+      />
+
+      <div className="relative mx-auto max-w-6xl px-5 py-20 md:px-8 md:py-28">
         <div className="flex flex-col gap-8 md:flex-row md:items-start md:justify-between md:gap-16">
           <div className="max-w-md">
             <h2 className="font-display text-3xl font-semibold tracking-[-0.04em] text-kenoo-ink md:text-4xl">
               One OS.
               <br />
-              Seven apps.
+              Built for every angle.
             </h2>
             <div className="mt-7 flex flex-wrap gap-3">
               <a
