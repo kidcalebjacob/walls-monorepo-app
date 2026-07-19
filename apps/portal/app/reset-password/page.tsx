@@ -68,10 +68,6 @@ export default function ResetPasswordPage() {
       setSuccess(null);
       const supabase = getSupabaseClient();
 
-      if (!email.endsWith("@wallsentertainment.com")) {
-        throw new Error("Only @wallsentertainment.com emails are allowed");
-      }
-
       const { error: resetError } = await supabase.auth.resetPasswordForEmail(
         email,
         {
