@@ -40,11 +40,11 @@ const INDUSTRIES = [
 ] as const;
 
 const USE_CASES = [
+  { id: "business", label: "Business" },
+  { id: "finance", label: "Finance" },
+  { id: "health", label: "Health" },
   { id: "crm", label: "CRM & pipeline" },
-  { id: "projects", label: "Projects" },
-  { id: "calendar", label: "Calendar" },
-  { id: "finance", label: "Finance / ledger" },
-  { id: "workflows", label: "Workflows" },
+  { id: "advertising", label: "Advertising" },
   { id: "ai", label: "AI assist" },
 ] as const;
 
@@ -72,7 +72,7 @@ const ENTERPRISE_POINTS = [
   },
   {
     title: "Scale without the clutter",
-    body: "Unlimited seats, custom workflows, and integrations that fit how your organization already works.",
+    body: "Unlimited seats, full suite access, and integrations that fit how your organization already works.",
   },
   {
     title: "Dedicated partnership",

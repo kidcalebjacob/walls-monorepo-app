@@ -28,7 +28,7 @@ export const metadata: Metadata = createWallsMetadata({
     template: "%s | Kenoo",
   },
   description:
-    "Kenoo is an AI-native business OS for CRM, projects, calendar, finance, and workflows. Powerful tools, simply designed.",
+    "Kenoo is an AI-native business OS for business, finance, and health. Powerful tools, simply designed.",
   metadataBase: new URL("https://kenoo.io"),
 });
 

@@ -4,6 +4,11 @@ const DEFAULT_DEV_PORTAL_ORIGIN = "http://localhost:3002";
 const DEFAULT_PROD_PORTAL_ORIGIN = "https://portal.kenoo.io";
 const LEGACY_PROD_PORTAL_ORIGIN = "https://portal.walls.agency";
 
+/** Local next-dev ports that belong to apps, not the portal. */
+const LOCAL_APP_PORTS = new Set([
+  3000, 3001, 3003, 3004, 3005, 3006, 3007, 3008, 3009, 3010,
+]);
+
 export function normalizePortalOrigin(raw: string): string | null {
   const trimmed = raw.trim().replace(/\/$/, "");
   if (!trimmed) return null;
@@ -29,9 +34,23 @@ function portalOriginForHost(hostname: string): string | null {
   return null;
 }
 
+function looksLikeLocalAppOrigin(origin: string): boolean {
+  try {
+    const url = new URL(origin);
+    if (url.hostname !== "localhost" && url.hostname !== "127.0.0.1") {
+      return false;
+    }
+    const port = Number(url.port || "80");
+    return LOCAL_APP_PORTS.has(port);
+  } catch {
+    return false;
+  }
+}
+
 /**
  * Portal origin for login/logout redirects.
  * Skips env values that match the current app host (common Vercel misconfiguration).
+ * Also skips local env values that point at an app port (swapped portal/adpilot trap).
  */
 export function resolvePortalLoginOrigin(currentAppOrigin?: string): string {
   const candidates = [
@@ -47,6 +66,14 @@ export function resolvePortalLoginOrigin(currentAppOrigin?: string): string {
     // Stale env after rebrand: never send users to the dead walls.agency portal.
     if (origin === LEGACY_PROD_PORTAL_ORIGIN) {
       return DEFAULT_PROD_PORTAL_ORIGIN;
+    }
+    if (looksLikeLocalAppOrigin(origin)) {
+      if (process.env.NODE_ENV === "development") {
+        console.warn(
+          `[auth] Portal URL (${origin}) looks like an app port; using ${DEFAULT_DEV_PORTAL_ORIGIN}`,
+        );
+      }
+      continue;
     }
     return origin;
   }

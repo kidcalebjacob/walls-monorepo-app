@@ -8,13 +8,30 @@ function isWallsAgencyHost(hostname: string): boolean {
   return hostname === "walls.agency" || hostname.endsWith(".walls.agency");
 }
 
+function isLocalHost(hostname?: string): boolean {
+  if (!hostname) return false;
+  return (
+    hostname === "localhost" ||
+    hostname === "127.0.0.1" ||
+    hostname === "[::1]"
+  );
+}
+
 /**
  * Shared Supabase auth cookie domain for SSO across subdomains (portal → apps).
  * Set SUPABASE_AUTH_COOKIE_DOMAIN=.kenoo.io to override.
+ *
+ * On localhost we intentionally return undefined so cookies are host-only and
+ * shared across ports (portal:3002 ↔ apps). A production Domain= value copied
+ * into local env would otherwise break session sharing or bloat cookies.
  */
 export function getSupabaseAuthCookieOptions(
   hostname?: string,
 ): CookieOptions | undefined {
+  if (isLocalHost(hostname)) {
+    return undefined;
+  }
+
   const configured = process.env.SUPABASE_AUTH_COOKIE_DOMAIN?.trim();
   if (configured) {
     // Stale rebrand value — prefer Kenoo so SSO works on *.kenoo.io.
@@ -22,19 +39,20 @@ export function getSupabaseAuthCookieOptions(
       configured === ".walls.agency" || configured === "walls.agency"
         ? ".kenoo.io"
         : configured;
+
+    if (domain.includes("localhost")) {
+      return undefined;
+    }
+
     return {
       domain,
       path: "/",
       sameSite: "lax",
-      secure: !domain.includes("localhost"),
+      secure: true,
     };
   }
 
-  const host =
-    hostname ??
-    (typeof window !== "undefined" ? window.location.hostname : undefined);
-
-  if (host && isKenooHost(host)) {
+  if (hostname && isKenooHost(hostname)) {
     return {
       domain: ".kenoo.io",
       path: "/",
@@ -43,7 +61,7 @@ export function getSupabaseAuthCookieOptions(
     };
   }
 
-  if (host && isWallsAgencyHost(host)) {
+  if (hostname && isWallsAgencyHost(hostname)) {
     return {
       domain: ".walls.agency",
       path: "/",
@@ -52,7 +70,7 @@ export function getSupabaseAuthCookieOptions(
     };
   }
 
-  if (!host && process.env.NODE_ENV === "production") {
+  if (!hostname && process.env.NODE_ENV === "production") {
     return {
       domain: ".kenoo.io",
       path: "/",

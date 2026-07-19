@@ -92,6 +92,8 @@ export function OrganizationMembers({
   const [loading, setLoading] = useState(true);
   const [showInviteForm, setShowInviteForm] = useState(false);
   const [inviteEmail, setInviteEmail] = useState("");
+  const [inviteFirstName, setInviteFirstName] = useState("");
+  const [inviteLastName, setInviteLastName] = useState("");
   const [inviteRole, setInviteRole] = useState<AccountRole>("member");
   const [inviting, setInviting] = useState(false);
   const [updatingUserId, setUpdatingUserId] = useState<string | null>(null);
@@ -101,6 +103,8 @@ export function OrganizationMembers({
 
   const resetInviteForm = () => {
     setInviteEmail("");
+    setInviteFirstName("");
+    setInviteLastName("");
     setInviteRole("member");
     setShowInviteForm(false);
   };
@@ -143,6 +147,12 @@ export function OrganizationMembers({
           body: JSON.stringify({
             email: inviteEmail.trim(),
             role: inviteRole,
+            ...(inviteFirstName.trim()
+              ? { firstName: inviteFirstName.trim() }
+              : {}),
+            ...(inviteLastName.trim()
+              ? { lastName: inviteLastName.trim() }
+              : {}),
           }),
         },
       );
@@ -263,13 +273,49 @@ export function OrganizationMembers({
               </button>
             </div>
 
+            <div className="grid gap-4 sm:grid-cols-2">
+              <label className="block space-y-2">
+                <span className="text-sm font-medium text-foreground">
+                  First name
+                </span>
+                <Input
+                  type="text"
+                  value={inviteFirstName}
+                  onChange={(event) => setInviteFirstName(event.target.value)}
+                  onKeyDown={(event) => {
+                    if (event.key === "Enter") {
+                      event.preventDefault();
+                      void handleInvite();
+                    }
+                  }}
+                  placeholder="Jane"
+                  className="rounded-xl border border-neutral-200 bg-kenoo-white px-3 py-2.5 font-light text-sm"
+                />
+              </label>
+
+              <label className="block space-y-2">
+                <span className="text-sm font-medium text-foreground">
+                  Last name
+                </span>
+                <Input
+                  type="text"
+                  value={inviteLastName}
+                  onChange={(event) => setInviteLastName(event.target.value)}
+                  onKeyDown={(event) => {
+                    if (event.key === "Enter") {
+                      event.preventDefault();
+                      void handleInvite();
+                    }
+                  }}
+                  placeholder="Doe"
+                  className="rounded-xl border border-neutral-200 bg-kenoo-white px-3 py-2.5 font-light text-sm"
+                />
+              </label>
+            </div>
+
             <div className="grid gap-4 sm:grid-cols-[1fr_auto]">
               <label className="block space-y-2">
                 <span className="text-sm font-medium text-foreground">Email</span>
-                <p className="text-xs font-light text-neutral-500">
-                  We&apos;ll send an invite if they don&apos;t have a WALLS account
-                  yet.
-                </p>
                 <Input
                   type="email"
                   value={inviteEmail}
@@ -287,9 +333,6 @@ export function OrganizationMembers({
 
               <label className="block space-y-2 sm:w-40">
                 <span className="text-sm font-medium text-foreground">Role</span>
-                <p className="text-xs font-light text-neutral-500">
-                  Access level for this org.
-                </p>
                 <Select
                   value={inviteRole}
                   onValueChange={(value) => setInviteRole(value as AccountRole)}

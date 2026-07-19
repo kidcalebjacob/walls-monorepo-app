@@ -5,47 +5,27 @@ export type KenooModule = {
   description: string;
 };
 
+/** Marketing angles, not a fixed app count. */
 export const KENOO_MODULES: KenooModule[] = [
   {
-    id: "crm",
-    name: "CRM",
-    headline: "Relationships, clearly organized",
+    id: "business",
+    name: "Business",
+    headline: "Relationships, delivery, and growth",
     description:
-      "Pipelines, contacts, and context in one place so you always know who needs attention next.",
-  },
-  {
-    id: "projects",
-    name: "Projects",
-    headline: "Work that stays clear",
-    description:
-      "Milestones, owners, and status updates that keep plans aligned with what’s actually happening.",
-  },
-  {
-    id: "calendar",
-    name: "Calendar",
-    headline: "Time in one place",
-    description:
-      "Meetings, deadlines, and operations on a shared schedule instead of scattered across tools.",
+      "CRM, projects, calendar, advertising, and AI assist, so pipeline, delivery, and outreach stay in one rhythm.",
   },
   {
     id: "finance",
     name: "Finance",
     headline: "Money you can follow",
     description:
-      "Invoices, cash flow, and ledger views designed to stay readable and easy to trust.",
+      "Invoices, cash flow, forecasts, and payouts designed to stay readable and easy to trust.",
   },
   {
-    id: "workflows",
-    name: "Workflows",
-    headline: "Automation that fits your process",
+    id: "health",
+    name: "Health",
+    headline: "Energy for the long run",
     description:
-      "Build the flows your business already uses, with controls that stay easy to understand.",
-  },
-  {
-    id: "ai",
-    name: "AI",
-    headline: "Helpful when you need it",
-    description:
-      "An assistant that drafts, routes, and highlights what matters without crowding the workspace.",
+      "Meals, activities, and goals. Optional wellness tracking that stays in its own lane.",
   },
 ];

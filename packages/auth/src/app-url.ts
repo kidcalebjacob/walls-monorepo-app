@@ -5,6 +5,25 @@
 
 const DEFAULT_ROOT_DOMAIN = "kenoo.io";
 
+/** Canonical local `next dev` ports — used when env points at the portal by mistake. */
+const LOCAL_DEV_PORTS: Record<string, number> = {
+  adpilot: 3001,
+  wallie: 3003,
+  settings: 3004,
+  health: 3005,
+  calendar: 3006,
+  projects: 3007,
+  admin: 3008,
+  crm: 3009,
+  ledger: 3010,
+};
+
+const KNOWN_PORTAL_ORIGINS = [
+  "http://localhost:3002",
+  "https://portal.kenoo.io",
+  "https://portal.walls.agency",
+] as const;
+
 function stripTrailingSlash(value: string): string {
   return value.replace(/\/$/, "");
 }
@@ -12,7 +31,29 @@ function stripTrailingSlash(value: string): string {
 function envOrigin(value: string | undefined): string | null {
   const trimmed = value?.trim();
   if (!trimmed) return null;
-  return stripTrailingSlash(trimmed);
+  try {
+    return stripTrailingSlash(new URL(trimmed).origin);
+  } catch {
+    return stripTrailingSlash(trimmed);
+  }
+}
+
+function portalOriginSet(): Set<string> {
+  const origins = new Set<string>(KNOWN_PORTAL_ORIGINS);
+  for (const raw of [
+    process.env.NEXT_PUBLIC_PORTAL_URL,
+    process.env.NEXT_PUBLIC_WALLS_AGENCY_URL,
+  ]) {
+    const origin = envOrigin(raw);
+    if (origin) origins.add(origin);
+  }
+  return origins;
+}
+
+function localDevOriginForSlug(slug: string): string | null {
+  const port = LOCAL_DEV_PORTS[slug];
+  if (!port) return null;
+  return `http://localhost:${port}`;
 }
 
 /** Known app origin env vars by slug (local ports / Vercel overrides). */
@@ -29,7 +70,29 @@ export function originForAppSlug(slug: string): string | null {
     ledger: process.env.NEXT_PUBLIC_LEDGER_URL,
   };
 
-  return envOrigin(map[slug]);
+  const fromEnv = envOrigin(map[slug]);
+  if (fromEnv) {
+    // Swapped env trap: never send an app tile to the portal origin.
+    if (!portalOriginSet().has(fromEnv)) {
+      return fromEnv;
+    }
+
+    const localFallback = localDevOriginForSlug(slug);
+    if (localFallback && localFallback !== fromEnv) {
+      if (process.env.NODE_ENV === "development") {
+        console.warn(
+          `[auth] ${slug} URL (${fromEnv}) collides with the portal origin; using ${localFallback}`,
+        );
+      }
+      return localFallback;
+    }
+  }
+
+  if (process.env.NODE_ENV === "development") {
+    return localDevOriginForSlug(slug);
+  }
+
+  return null;
 }
 
 /** Build `https://{subdomain}.kenoo.io` from a host label. */

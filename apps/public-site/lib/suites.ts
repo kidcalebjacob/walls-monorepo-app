@@ -25,69 +25,29 @@ export type KenooSuite = {
   features: SuiteFeature[];
 };
 
+/**
+ * Home showcase suites / angles.
+ * Organized by situation (Business, Finance, Health), not by a fixed app count.
+ * Capabilities reflect what the product can actually do today.
+ */
 export const KENOO_SUITES: KenooSuite[] = [
   {
-    id: "grow",
-    name: "KenooGrow",
+    id: "business",
+    name: "Business",
     description:
-      "Relationships, pipelines, and context so your team always knows who needs attention next.",
+      "Relationships, delivery, schedule, ads, and AI. Everything that keeps the company moving.",
     dot: "#0b6eff",
     features: [
       {
-        id: "pipelines",
-        name: "Pipelines",
-        capabilities: [
-          {
-            id: "deal-flow",
-            title: "Deal flow",
-            description:
-              "Stages that stay readable so wins and blockers are never buried.",
-            href: "/product#crm",
-            orb: {
-              from: "#1a6dff",
-              mid: "#4d9fff",
-              to: "#0a3d8c",
-              glow: "rgba(11,110,255,0.7)",
-            },
-          },
-          {
-            id: "priorities",
-            title: "Priorities",
-            description:
-              "Surface the next conversation instead of scrolling endless lists.",
-            href: "/product#crm",
-            orb: {
-              from: "#30a1f4",
-              mid: "#6ec4ff",
-              to: "#0066b2",
-              glow: "rgba(48,161,244,0.65)",
-            },
-          },
-          {
-            id: "handoffs",
-            title: "Handoffs",
-            description:
-              "Pass context cleanly between sales, ops, and delivery without losing the thread.",
-            href: "/product#crm",
-            orb: {
-              from: "#6eadc0",
-              mid: "#9fd0dc",
-              to: "#3d7a8a",
-              glow: "rgba(110,173,192,0.65)",
-            },
-          },
-        ],
-      },
-      {
-        id: "contacts",
-        name: "Contacts",
+        id: "relationships",
+        name: "Relationships",
         capabilities: [
           {
             id: "people",
             title: "People",
             description:
-              "A clear record of every relationship—roles, history, and next steps.",
-            href: "/product#crm",
+              "A clear record of every relationship: roles, history, and next steps.",
+            href: "/product#business",
             orb: {
               from: "#0b6eff",
               mid: "#5a9fff",
@@ -99,8 +59,8 @@ export const KENOO_SUITES: KenooSuite[] = [
             id: "companies",
             title: "Companies",
             description:
-              "Accounts that stay connected to deals, projects, and invoices.",
-            href: "/product#crm",
+              "Accounts connected to deals, projects, and invoices, not a disconnected list.",
+            href: "/product#business",
             orb: {
               from: "#0066b2",
               mid: "#30a1f4",
@@ -109,16 +69,16 @@ export const KENOO_SUITES: KenooSuite[] = [
             },
           },
           {
-            id: "context",
-            title: "Context",
+            id: "deals",
+            title: "Deals",
             description:
-              "Notes and activity that make every follow-up feel informed.",
-            href: "/product#crm",
+              "Stages that stay readable so wins and blockers are never buried.",
+            href: "/product#business",
             orb: {
-              from: "#4d8ef0",
-              mid: "#8eb8ff",
-              to: "#1e4a9e",
-              glow: "rgba(77,142,240,0.65)",
+              from: "#1a6dff",
+              mid: "#4d9fff",
+              to: "#0a3d8c",
+              glow: "rgba(11,110,255,0.7)",
             },
           },
         ],
@@ -132,7 +92,7 @@ export const KENOO_SUITES: KenooSuite[] = [
             title: "Sequences",
             description:
               "Structured follow-ups that stay human, not spammy automation.",
-            href: "/product#crm",
+            href: "/product#business",
             orb: {
               from: "#30a1f4",
               mid: "#7cc8ff",
@@ -145,7 +105,7 @@ export const KENOO_SUITES: KenooSuite[] = [
             title: "Pitches",
             description:
               "Keep proposals and talking points tied to the right account.",
-            href: "/product#crm",
+            href: "/product#business",
             orb: {
               from: "#6eadc0",
               mid: "#a8d8e4",
@@ -154,84 +114,30 @@ export const KENOO_SUITES: KenooSuite[] = [
             },
           },
           {
-            id: "follow-ups",
-            title: "Follow-ups",
+            id: "drafts",
+            title: "Drafts",
             description:
-              "Never lose a warm lead because it slipped out of view.",
-            href: "/product#crm",
+              "AI-assisted outreach that stays on-brand. You decide what sends.",
+            href: "/product#business",
             orb: {
-              from: "#0b6eff",
-              mid: "#3d8cff",
-              to: "#052a66",
-              glow: "rgba(11,110,255,0.7)",
+              from: "#111111",
+              mid: "#4a4a4a",
+              to: "#000000",
+              glow: "rgba(17,17,17,0.55)",
             },
           },
         ],
       },
       {
-        id: "deals",
-        name: "Deals",
+        id: "delivery",
+        name: "Delivery",
         capabilities: [
           {
-            id: "pipeline-health",
-            title: "Pipeline health",
+            id: "tasks",
+            title: "Tasks",
             description:
-              "See momentum, risk, and stalled deals without opening ten tabs.",
-            href: "/product#crm",
-            orb: {
-              from: "#0066b2",
-              mid: "#4da3e0",
-              to: "#083554",
-              glow: "rgba(0,102,178,0.65)",
-            },
-          },
-          {
-            id: "close-plan",
-            title: "Close plan",
-            description:
-              "Owners, dates, and next actions that keep deals moving forward.",
-            href: "/product#crm",
-            orb: {
-              from: "#1a7ae0",
-              mid: "#6eb4ff",
-              to: "#0a3d70",
-              glow: "rgba(26,122,224,0.65)",
-            },
-          },
-          {
-            id: "history",
-            title: "History",
-            description:
-              "A durable trail of touches so nothing depends on memory alone.",
-            href: "/product#crm",
-            orb: {
-              from: "#6eadc0",
-              mid: "#8fc5d4",
-              to: "#355f6a",
-              glow: "rgba(110,173,192,0.6)",
-            },
-          },
-        ],
-      },
-    ],
-  },
-  {
-    id: "deliver",
-    name: "KenooDeliver",
-    description:
-      "Projects and calendar in one rhythm—milestones, owners, and time that stay aligned.",
-    dot: "#f08a5d",
-    features: [
-      {
-        id: "boards",
-        name: "Boards",
-        capabilities: [
-          {
-            id: "status",
-            title: "Status",
-            description:
-              "Work that stays clear from backlog to done without noisy boards.",
-            href: "/product#projects",
+              "Boards and owners so work stays clear from backlog to done.",
+            href: "/product#business",
             orb: {
               from: "#f08a5d",
               mid: "#ffb08a",
@@ -240,11 +146,11 @@ export const KENOO_SUITES: KenooSuite[] = [
             },
           },
           {
-            id: "owners",
-            title: "Owners",
+            id: "timelines",
+            title: "Timelines",
             description:
-              "Every task has a person, so progress never becomes a guessing game.",
-            href: "/product#projects",
+              "See how work stacks across weeks without a separate planning tool.",
+            href: "/product#business",
             orb: {
               from: "#e07a4d",
               mid: "#f5a882",
@@ -253,61 +159,16 @@ export const KENOO_SUITES: KenooSuite[] = [
             },
           },
           {
-            id: "focus",
-            title: "Focus",
+            id: "milestones",
+            title: "Milestones",
             description:
-              "Cut through noise and show the work that matters this week.",
-            href: "/product#projects",
+              "Connect ambition to what’s actually shipping.",
+            href: "/product#business",
             orb: {
               from: "#ff9a6b",
               mid: "#ffc4a3",
               to: "#c45a30",
               glow: "rgba(255,154,107,0.65)",
-            },
-          },
-        ],
-      },
-      {
-        id: "milestones",
-        name: "Milestones",
-        capabilities: [
-          {
-            id: "plans",
-            title: "Plans",
-            description:
-              "Milestones that connect ambition to what’s actually shipping.",
-            href: "/product#projects",
-            orb: {
-              from: "#f08a5d",
-              mid: "#ffae88",
-              to: "#b04a25",
-              glow: "rgba(240,138,93,0.65)",
-            },
-          },
-          {
-            id: "alignment",
-            title: "Alignment",
-            description:
-              "Keep stakeholders on the same page without another status meeting.",
-            href: "/product#projects",
-            orb: {
-              from: "#e2a06a",
-              mid: "#f5c89a",
-              to: "#9a5a30",
-              glow: "rgba(226,160,106,0.65)",
-            },
-          },
-          {
-            id: "delivery",
-            title: "Delivery",
-            description:
-              "Track outcomes, not just activity, as work moves through the team.",
-            href: "/product#projects",
-            orb: {
-              from: "#d87848",
-              mid: "#f0a070",
-              to: "#7a3a18",
-              glow: "rgba(216,120,72,0.65)",
             },
           },
         ],
@@ -321,7 +182,7 @@ export const KENOO_SUITES: KenooSuite[] = [
             title: "Meetings",
             description:
               "A shared calendar for ops, delivery, and client time in one view.",
-            href: "/product#calendar",
+            href: "/product#business",
             orb: {
               from: "#e2f85c",
               mid: "#f0ff9a",
@@ -333,8 +194,8 @@ export const KENOO_SUITES: KenooSuite[] = [
             id: "deadlines",
             title: "Deadlines",
             description:
-              "Dates that stay tied to projects so nothing slips quietly.",
-            href: "/product#calendar",
+              "Tasks and deal dates beside events so nothing slips quietly.",
+            href: "/product#business",
             orb: {
               from: "#ceff00",
               mid: "#e8ff80",
@@ -343,11 +204,11 @@ export const KENOO_SUITES: KenooSuite[] = [
             },
           },
           {
-            id: "ops-time",
-            title: "Ops time",
+            id: "capacity",
+            title: "Capacity",
             description:
               "Protect focus blocks and still see what the week demands.",
-            href: "/product#calendar",
+            href: "/product#business",
             orb: {
               from: "#e0ea00",
               mid: "#f2ff66",
@@ -358,46 +219,46 @@ export const KENOO_SUITES: KenooSuite[] = [
         ],
       },
       {
-        id: "timelines",
-        name: "Timelines",
+        id: "advertising",
+        name: "Advertising",
         capabilities: [
           {
-            id: "roadmap",
-            title: "Roadmap",
+            id: "campaigns",
+            title: "Campaigns",
             description:
-              "See how work stacks across weeks without a separate planning tool.",
-            href: "/product#projects",
+              "Meta campaigns, ad sets, and creatives organized the way media teams think.",
+            href: "/product#business",
             orb: {
-              from: "#f08a5d",
-              mid: "#ffb899",
-              to: "#9a4020",
-              glow: "rgba(240,138,93,0.65)",
+              from: "#1a7ae0",
+              mid: "#6eb4ff",
+              to: "#0a3d70",
+              glow: "rgba(26,122,224,0.65)",
             },
           },
           {
-            id: "dependencies",
-            title: "Dependencies",
+            id: "spend",
+            title: "Spend",
             description:
-              "Spot blockers early when one delay would cascade into another.",
-            href: "/product#projects",
+              "Performance and budgets in one view, not buried in another silo.",
+            href: "/product#business",
             orb: {
-              from: "#ff9f6e",
-              mid: "#ffc8a8",
-              to: "#b85028",
-              glow: "rgba(255,159,110,0.65)",
+              from: "#0b6eff",
+              mid: "#4d9aff",
+              to: "#062a66",
+              glow: "rgba(11,110,255,0.65)",
             },
           },
           {
-            id: "capacity",
-            title: "Capacity",
+            id: "automation",
+            title: "Automation",
             description:
-              "Balance load across people so delivery stays realistic.",
-            href: "/product#calendar",
+              "Preview or apply campaign rules with controls that stay understandable.",
+            href: "/product#business",
             orb: {
-              from: "#e07a4d",
-              mid: "#f0a888",
-              to: "#8c3818",
-              glow: "rgba(224,122,77,0.65)",
+              from: "#30a1f4",
+              mid: "#7cc8ff",
+              to: "#0b6eff",
+              glow: "rgba(48,161,244,0.6)",
             },
           },
         ],
@@ -405,10 +266,10 @@ export const KENOO_SUITES: KenooSuite[] = [
     ],
   },
   {
-    id: "operate",
-    name: "KenooOperate",
+    id: "finance",
+    name: "Finance",
     description:
-      "Finance, workflows, and AI—money you can follow and automation that stays understandable.",
+      "Invoices, cash flow, forecasts, and payouts. Money you can follow without spreadsheet gymnastics.",
     dot: "#8dcf76",
     features: [
       {
@@ -419,7 +280,7 @@ export const KENOO_SUITES: KenooSuite[] = [
             id: "billing",
             title: "Billing",
             description:
-              "Send clear invoices that stay connected to the work that earned them.",
+              "Send clear invoices connected to the work that earned them.",
             href: "/product#finance",
             orb: {
               from: "#8dcf76",
@@ -432,7 +293,7 @@ export const KENOO_SUITES: KenooSuite[] = [
             id: "collections",
             title: "Collections",
             description:
-              "Know what’s outstanding without digging through spreadsheets.",
+              "Know what’s outstanding without digging through exports.",
             href: "/product#finance",
             orb: {
               from: "#75b85f",
@@ -461,10 +322,10 @@ export const KENOO_SUITES: KenooSuite[] = [
         name: "Ledger",
         capabilities: [
           {
-            id: "cash-flow",
-            title: "Cash flow",
+            id: "balances",
+            title: "Balances",
             description:
-              "Balances and forecasts designed to stay readable and easy to trust.",
+              "See what’s available without another opaque finance export.",
             href: "/product#finance",
             orb: {
               from: "#2b5b00",
@@ -474,10 +335,10 @@ export const KENOO_SUITES: KenooSuite[] = [
             },
           },
           {
-            id: "forecast",
-            title: "Forecast",
+            id: "transactions",
+            title: "Transactions",
             description:
-              "See what’s coming in and going out before the month surprises you.",
+              "Movement that stays readable: who, what, and when.",
             href: "/product#finance",
             orb: {
               from: "#8dcf76",
@@ -490,7 +351,7 @@ export const KENOO_SUITES: KenooSuite[] = [
             id: "trust",
             title: "Trust",
             description:
-              "Numbers that feel accountable—not another opaque finance export.",
+              "Numbers that feel accountable for operators, not only accountants.",
             href: "/product#finance",
             orb: {
               from: "#6eadc0",
@@ -502,91 +363,235 @@ export const KENOO_SUITES: KenooSuite[] = [
         ],
       },
       {
-        id: "workflows",
-        name: "Workflows",
+        id: "forecast",
+        name: "Forecast",
         capabilities: [
           {
-            id: "flows",
-            title: "Flows",
+            id: "ahead",
+            title: "Look ahead",
             description:
-              "Build the processes your business already uses, with clear controls.",
-            href: "/product#workflows",
+              "See what’s coming in and going out before the month surprises you.",
+            href: "/product#finance",
             orb: {
-              from: "#ceff00",
-              mid: "#e8ff70",
-              to: "#6a8800",
-              glow: "rgba(206,255,0,0.55)",
+              from: "#8dcf76",
+              mid: "#b8e8a4",
+              to: "#3d7a2e",
+              glow: "rgba(141,207,118,0.65)",
             },
           },
           {
-            id: "routing",
-            title: "Routing",
+            id: "planning",
+            title: "Planning",
             description:
-              "Move work to the right person at the right moment automatically.",
-            href: "/product#workflows",
+              "Forecast views built for how the business actually runs.",
+            href: "/product#finance",
             orb: {
-              from: "#e2f85c",
-              mid: "#f4ff9e",
-              to: "#7a8a18",
-              glow: "rgba(226,248,92,0.55)",
+              from: "#75b85f",
+              mid: "#a4d890",
+              to: "#2b5b00",
+              glow: "rgba(117,184,95,0.65)",
+            },
+          },
+          {
+            id: "runway",
+            title: "Runway",
+            description:
+              "A simple read on obligations and headroom, with no spreadsheet gymnastics.",
+            href: "/product#finance",
+            orb: {
+              from: "#a8e090",
+              mid: "#d0f5c0",
+              to: "#4a8a38",
+              glow: "rgba(168,224,144,0.6)",
+            },
+          },
+        ],
+      },
+      {
+        id: "payouts",
+        name: "Payouts",
+        capabilities: [
+          {
+            id: "recipients",
+            title: "Recipients",
+            description:
+              "Payout recipients managed alongside the rest of the ledger.",
+            href: "/product#finance",
+            orb: {
+              from: "#2b5b00",
+              mid: "#5a9a28",
+              to: "#0a1a00",
+              glow: "rgba(43,91,0,0.6)",
+            },
+          },
+          {
+            id: "transfers",
+            title: "Transfers",
+            description:
+              "Move money with a clear trail from intent to completion.",
+            href: "/product#finance",
+            orb: {
+              from: "#8dcf76",
+              mid: "#b5e6a0",
+              to: "#456828",
+              glow: "rgba(141,207,118,0.6)",
             },
           },
           {
             id: "controls",
             title: "Controls",
             description:
-              "Automation that stays understandable—no black-box mystery steps.",
-            href: "/product#workflows",
+              "Finance actions that stay understandable, with no black-box steps.",
+            href: "/product#finance",
             orb: {
-              from: "#e0ea00",
-              mid: "#f0fa60",
-              to: "#6a7000",
-              glow: "rgba(224,234,0,0.55)",
+              from: "#6eadc0",
+              mid: "#9ed0dc",
+              to: "#2f5a66",
+              glow: "rgba(110,173,192,0.6)",
+            },
+          },
+        ],
+      },
+    ],
+  },
+  {
+    id: "health",
+    name: "Health",
+    description:
+      "Meals, activities, and goals. Optional wellness that supports the work without competing for attention.",
+    dot: "#5bb8a8",
+    features: [
+      {
+        id: "meals",
+        name: "Meals",
+        capabilities: [
+          {
+            id: "nutrition",
+            title: "Nutrition",
+            description:
+              "Log meals and stay aware of intake without turning it into a chore.",
+            href: "/product#health",
+            orb: {
+              from: "#5bb8a8",
+              mid: "#8fd4c8",
+              to: "#2a6e64",
+              glow: "rgba(91,184,168,0.6)",
+            },
+          },
+          {
+            id: "calories",
+            title: "Calories",
+            description:
+              "A clear daily read so energy goals stay grounded in reality.",
+            href: "/product#health",
+            orb: {
+              from: "#3d9a8c",
+              mid: "#6ec4b6",
+              to: "#1e524a",
+              glow: "rgba(61,154,140,0.6)",
+            },
+          },
+          {
+            id: "habits",
+            title: "Habits",
+            description:
+              "Simple patterns you can keep, not another complicated diet app.",
+            href: "/product#health",
+            orb: {
+              from: "#7ecfc0",
+              mid: "#b0e8dc",
+              to: "#3a7a70",
+              glow: "rgba(126,207,192,0.55)",
             },
           },
         ],
       },
       {
-        id: "ai",
-        name: "AI Assist",
+        id: "activities",
+        name: "Activities",
         capabilities: [
           {
-            id: "drafts",
-            title: "Drafts",
+            id: "workouts",
+            title: "Workouts",
             description:
-              "An assistant that helps write and route without crowding the workspace.",
-            href: "/product#ai",
+              "Track activity and sync from providers when you want the fuller picture.",
+            href: "/product#health",
             orb: {
-              from: "#111111",
-              mid: "#4a4a4a",
-              to: "#000000",
-              glow: "rgba(17,17,17,0.6)",
+              from: "#5bb8a8",
+              mid: "#8fd4c8",
+              to: "#2a6e64",
+              glow: "rgba(91,184,168,0.6)",
             },
           },
           {
-            id: "highlights",
-            title: "Highlights",
+            id: "movement",
+            title: "Movement",
             description:
-              "Surface what matters across CRM, projects, and finance in one pass.",
-            href: "/product#ai",
+              "See how the week actually moved, not just what you planned.",
+            href: "/product#health",
             orb: {
-              from: "#0b6eff",
-              mid: "#4d9aff",
-              to: "#062a66",
-              glow: "rgba(11,110,255,0.65)",
+              from: "#4aa89a",
+              mid: "#7ecfc0",
+              to: "#245850",
+              glow: "rgba(74,168,154,0.6)",
             },
           },
           {
-            id: "assist",
-            title: "Assist",
+            id: "sync",
+            title: "Sync",
             description:
-              "Helpful when you need it—quiet when you don’t.",
-            href: "/product#ai",
+              "Optional connections so logs don’t depend on manual entry alone.",
+            href: "/product#health",
             orb: {
-              from: "#2b5b00",
-              mid: "#5a9a28",
-              to: "#0a1a00",
-              glow: "rgba(43,91,0,0.6)",
+              from: "#6eadc0",
+              mid: "#9fd0dc",
+              to: "#3d7a8a",
+              glow: "rgba(110,173,192,0.55)",
+            },
+          },
+        ],
+      },
+      {
+        id: "goals",
+        name: "Goals",
+        capabilities: [
+          {
+            id: "targets",
+            title: "Targets",
+            description:
+              "Set goals that stay visible next to meals and activity.",
+            href: "/product#health",
+            orb: {
+              from: "#3d9a8c",
+              mid: "#6ec4b6",
+              to: "#1e524a",
+              glow: "rgba(61,154,140,0.6)",
+            },
+          },
+          {
+            id: "progress",
+            title: "Progress",
+            description:
+              "A calm dashboard for how you’re tracking, not a guilt meter.",
+            href: "/product#health",
+            orb: {
+              from: "#5bb8a8",
+              mid: "#a0ddd2",
+              to: "#2a6e64",
+              glow: "rgba(91,184,168,0.55)",
+            },
+          },
+          {
+            id: "balance",
+            title: "Balance",
+            description:
+              "Wellness that supports the work, not another product competing for attention.",
+            href: "/product#health",
+            orb: {
+              from: "#7ecfc0",
+              mid: "#b0e8dc",
+              to: "#3a7a70",
+              glow: "rgba(126,207,192,0.55)",
             },
           },
         ],

@@ -2,11 +2,15 @@ import type { SupabaseClient, User } from "@supabase/supabase-js";
 import { NextResponse, type NextRequest } from "next/server";
 
 import { isMfaSecondFactorPending } from "./mfa-assurance";
-import { createMiddlewareSupabaseClient } from "./middleware-supabase";
+import { refreshMiddlewareSession } from "./middleware-supabase";
 import { buildPortalLoginUrl, normalizePortalOrigin, resolvePortalLoginOrigin } from "./portal-url";
 import { safeAuthReturnUrl } from "./post-login-redirect";
 
-export { createMiddlewareSupabaseClient } from "./middleware-supabase";
+export {
+  clearSupabaseAuthCookies,
+  createMiddlewareSupabaseClient,
+  refreshMiddlewareSession,
+} from "./middleware-supabase";
 
 export interface ProtectedAppMiddlewareOptions {
   /** Routes that skip auth (default: none). */
@@ -33,9 +37,21 @@ function isPublicPath(pathname: string, publicPaths: string[]): boolean {
   );
 }
 
+/** Preserve Set-Cookie from session refresh / cookie clears onto a redirect. */
+function withSessionCookies(
+  redirect: NextResponse,
+  sessionResponse: NextResponse,
+): NextResponse {
+  for (const cookie of sessionResponse.cookies.getAll()) {
+    redirect.cookies.set(cookie);
+  }
+  return redirect;
+}
+
 function redirectToPortalLogin(
   request: NextRequest,
   portalLoginUrl?: string,
+  sessionResponse?: NextResponse,
 ): NextResponse {
   const returnUrl = safeAuthReturnUrl(
     request.nextUrl.href,
@@ -47,23 +63,27 @@ function redirectToPortalLogin(
     ? normalizePortalOrigin(portalLoginUrl)
     : null;
 
+  let redirect: NextResponse;
   if (configuredOrigin && configuredOrigin !== request.nextUrl.origin) {
     const override = new URL("/login", configuredOrigin);
     override.searchParams.set("redirect", returnUrl);
-    return NextResponse.redirect(override);
+    redirect = NextResponse.redirect(override);
+  } else {
+    redirect = NextResponse.redirect(
+      buildPortalLoginUrl(request.nextUrl.origin, {
+        redirect: returnUrl,
+      }),
+    );
   }
 
-  return NextResponse.redirect(
-    buildPortalLoginUrl(request.nextUrl.origin, {
-      redirect: returnUrl,
-    }),
-  );
+  return sessionResponse ? withSessionCookies(redirect, sessionResponse) : redirect;
 }
 
 /** Logged-in but not allowed on this app — do not pass ?redirect= or portal will bounce back. */
 function redirectToPortalHome(
   request: NextRequest,
   portalLoginUrl?: string,
+  sessionResponse?: NextResponse,
 ): NextResponse {
   const configuredOrigin = portalLoginUrl
     ? normalizePortalOrigin(portalLoginUrl)
@@ -73,7 +93,8 @@ function redirectToPortalHome(
       ? configuredOrigin
       : resolvePortalLoginOrigin(request.nextUrl.origin);
 
-  return NextResponse.redirect(new URL("/login", portalOrigin));
+  const redirect = NextResponse.redirect(new URL("/login", portalOrigin));
+  return sessionResponse ? withSessionCookies(redirect, sessionResponse) : redirect;
 }
 
 async function isUserAuthenticated(
@@ -175,18 +196,16 @@ export async function handleProtectedAppRequest(
     },
   });
 
-  const supabase = createMiddlewareSupabaseClient(request, response);
-
   try {
-    const {
-      data: { user },
-      error: userError,
-    } = await supabase.auth.getUser();
+    const { supabase, user, error: userError } = await refreshMiddlewareSession(
+      request,
+      response,
+    );
 
     const authenticated = !userError && (await isUserAuthenticated(supabase, user));
 
     if (!authenticated) {
-      return redirectToPortalLogin(request, options.portalLoginUrl);
+      return redirectToPortalLogin(request, options.portalLoginUrl, response);
     }
 
     const { data: userRow, error: statusError } = await supabase
@@ -201,11 +220,11 @@ export async function handleProtectedAppRequest(
 
     if (userRow?.status && userRow.status !== "active") {
       await supabase.auth.signOut();
-      return redirectToPortalLogin(request, options.portalLoginUrl);
+      return redirectToPortalLogin(request, options.portalLoginUrl, response);
     }
 
     if (options.requireAdmin && userRow?.is_admin !== true) {
-      return redirectToPortalHome(request, options.portalLoginUrl);
+      return redirectToPortalHome(request, options.portalLoginUrl, response);
     }
 
     if (options.appSlug) {
@@ -214,13 +233,13 @@ export async function handleProtectedAppRequest(
         console.warn(
           `[auth] User ${user!.id} lacks access to app slug "${options.appSlug}"`,
         );
-        return redirectToPortalHome(request, options.portalLoginUrl);
+        return redirectToPortalHome(request, options.portalLoginUrl, response);
       }
     }
 
     return response;
   } catch (error) {
     console.error("[auth] Protected app middleware error:", error);
-    return redirectToPortalLogin(request, options.portalLoginUrl);
+    return redirectToPortalLogin(request, options.portalLoginUrl, response);
   }
 }

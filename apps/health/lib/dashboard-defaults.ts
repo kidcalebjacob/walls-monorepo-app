@@ -11,6 +11,17 @@ export type DashboardCalorieDay = {
   sugar_g: number;
 };
 
+export type DashboardActivityDay = {
+  date: string;
+  label: string;
+  steps: number;
+  distance_meters: number;
+  active_energy_kcal: number;
+  flights_climbed: number;
+};
+
+export const DEFAULT_STEPS_TARGET = 10_000;
+
 export const ZERO_DASHBOARD_STATS = [
   { label: "Consumed", value: "0", change: "—", positive: true },
   { label: "Remaining", value: "0", change: "—", positive: true },
@@ -59,3 +70,37 @@ function buildPreviewCalorieCurve(): DashboardCalorieDay[] {
 }
 
 export const PREVIEW_CALORIES_BY_DAY = buildPreviewCalorieCurve();
+
+function buildPreviewActivityCurve(): DashboardActivityDay[] {
+  const points: DashboardActivityDay[] = [];
+  const today = new Date();
+
+  for (let index = 0; index < 7; index += 1) {
+    const date = new Date(today);
+    date.setDate(today.getDate() - (6 - index));
+    const isoDate = new Intl.DateTimeFormat("en-CA", {
+      timeZone: "America/New_York",
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+    }).format(date);
+    const steps = Math.round(6500 + Math.sin(index / 1.7) * 2200 + index * 180);
+
+    points.push({
+      date: isoDate,
+      label: date.toLocaleDateString("en-US", {
+        month: "short",
+        day: "numeric",
+        timeZone: "America/New_York",
+      }),
+      steps,
+      distance_meters: Math.round(steps * 0.78),
+      active_energy_kcal: Math.round(steps * 0.045),
+      flights_climbed: Math.max(0, Math.round(3 + Math.cos(index) * 4)),
+    });
+  }
+
+  return points;
+}
+
+export const PREVIEW_ACTIVITY_BY_DAY = buildPreviewActivityCurve();
