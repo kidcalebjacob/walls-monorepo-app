@@ -39,8 +39,9 @@ export function Hero() {
             Simply designed.
           </h1>
           <p className="mx-auto mt-5 max-w-xl text-base leading-relaxed text-kenoo-muted md:text-lg">
-            An AI-native business OS for CRM, projects, calendar, finance, and
-            workflows. Built to stay capable without feeling complicated.
+            An AI-native business OS for CRM, projects, calendar, ledger,
+            Wallie, AdPilot, and health. Built to stay capable without feeling
+            complicated.
           </p>
           <div className="mt-8 flex flex-col items-center justify-center gap-4 sm:flex-row">
             <ChromeFrame className="w-full min-w-[10.5rem] sm:w-auto">

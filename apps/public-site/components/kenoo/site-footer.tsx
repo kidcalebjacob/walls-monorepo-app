@@ -1,3 +1,4 @@
+import { KenooWordmark } from "@walls/ui/kenoo-wordmark";
 import Link from "next/link";
 
 import { KENOO_PORTAL_URL } from "@/lib/urls";
@@ -11,15 +12,15 @@ const footerLinks = [
 
 export function SiteFooter() {
   return (
-    <footer className="border-t border-kenoo-border bg-kenoo-surface">
+    <footer className="bg-kenoo-white">
       <div className="mx-auto flex max-w-6xl flex-col gap-10 px-5 py-14 md:flex-row md:items-start md:justify-between md:px-8">
         <div className="max-w-sm">
-          <p className="font-display text-xl font-semibold tracking-[-0.04em] text-kenoo-ink">
-            Kenoo
-          </p>
+          <Link href="/" className="inline-flex items-center" aria-label="Kenoo home">
+            <KenooWordmark className="h-6 md:h-7" />
+          </Link>
           <p className="mt-3 text-sm leading-relaxed text-kenoo-muted">
-            A modern business OS for CRM, projects, calendar, finance, workflows,
-            and AI.
+            A modern business OS for CRM, projects, calendar, ledger, Wallie,
+            AdPilot, and health.
           </p>
           <a
             href="mailto:hello@kenoo.io"

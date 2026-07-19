@@ -43,9 +43,10 @@ const USE_CASES = [
   { id: "crm", label: "CRM & pipeline" },
   { id: "projects", label: "Projects" },
   { id: "calendar", label: "Calendar" },
-  { id: "finance", label: "Finance / ledger" },
-  { id: "workflows", label: "Workflows" },
-  { id: "ai", label: "AI assist" },
+  { id: "ledger", label: "Ledger" },
+  { id: "wallie", label: "Wallie" },
+  { id: "adpilot", label: "AdPilot" },
+  { id: "health", label: "Health" },
 ] as const;
 
 const SECURITY_NEEDS = [

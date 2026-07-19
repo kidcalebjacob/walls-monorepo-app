@@ -11,11 +11,11 @@ export function Modules() {
             Modules
           </p>
           <h2 className="mt-4 font-display text-3xl font-semibold tracking-[-0.04em] text-kenoo-ink md:text-4xl">
-            One workspace. Six modules.
+            One workspace. Seven apps.
           </h2>
           <p className="mt-4 text-base leading-relaxed text-kenoo-muted">
-            The tools your team needs, connected in a single product that stays
-            consistent from screen to screen.
+            The apps your team actually uses, connected in a single product that
+            stays consistent from screen to screen.
           </p>
         </div>
 

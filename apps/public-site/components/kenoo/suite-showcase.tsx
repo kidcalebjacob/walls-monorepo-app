@@ -51,13 +51,10 @@ export function SuiteShowcase() {
       <div className="mx-auto max-w-6xl px-5 py-20 md:px-8 md:py-28">
         <div className="flex flex-col gap-8 md:flex-row md:items-start md:justify-between md:gap-16">
           <div className="max-w-md">
-            <p className="font-mono text-[11px] uppercase tracking-[0.16em] text-kenoo-muted">
-              Suites
-            </p>
-            <h2 className="mt-4 font-display text-3xl font-semibold tracking-[-0.04em] text-kenoo-ink md:text-4xl">
+            <h2 className="font-display text-3xl font-semibold tracking-[-0.04em] text-kenoo-ink md:text-4xl">
               One OS.
               <br />
-              Three suites.
+              Seven apps.
             </h2>
             <div className="mt-7 flex flex-wrap gap-3">
               <a

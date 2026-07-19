@@ -14,8 +14,8 @@ export default function ProductPage() {
             A complete business OS, designed to stay simple.
           </h1>
           <p className="mt-5 max-w-2xl text-base leading-relaxed text-kenoo-muted md:text-lg">
-            Kenoo brings CRM, projects, calendar, finance, workflows, and AI
-            into one workspace with a consistent, easy-to-read interface.
+            Kenoo brings CRM, Projects, Calendar, Ledger, Wallie, AdPilot, and
+            Health into one workspace with a consistent, easy-to-read interface.
           </p>
         </div>
       </section>
