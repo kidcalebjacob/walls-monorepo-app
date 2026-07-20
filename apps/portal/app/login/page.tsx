@@ -27,6 +27,7 @@ import { AuthHeading, AuthShell } from "@/components/kenoo/auth-shell";
 import { useRedirectAfterLogin } from "@/hooks/useRedirectAfterLogin";
 import { useRedirectParam } from "@/hooks/useRedirectParam";
 import {
+  fetchPortalAccounts,
   fetchUserLauncherApps,
   type PortalLauncherApp,
 } from "@/lib/user-apps";
@@ -300,32 +301,20 @@ function LoginPageContent() {
         }
 
         if (!hasRedirectParam) {
-          const [apps, accountsResponse] = await Promise.all([
+          const [apps, accountPayload] = await Promise.all([
             fetchUserLauncherApps(authUser.id),
-            fetch("/api/accounts", { cache: "no-store" }),
+            fetchPortalAccounts(authUser.id),
           ]);
           setLauncherApps(apps);
-
-          if (accountsResponse.ok) {
-            const payload = (await accountsResponse.json()) as {
-              accounts?: Array<{
-                id: string;
-                name: string;
-                accountType: "personal" | "organization";
-                iconUrl?: string | null;
-              }>;
-              activeAccountId?: string | null;
-            };
-            setPortalAccounts(
-              (payload.accounts ?? []).map((account) => ({
-                id: account.id,
-                name: account.name,
-                accountType: account.accountType,
-                iconUrl: account.iconUrl ?? null,
-              })),
-            );
-            setActiveAccountId(payload.activeAccountId ?? null);
-          }
+          setPortalAccounts(
+            accountPayload.accounts.map((account) => ({
+              id: account.id,
+              name: account.name,
+              accountType: account.accountType,
+              iconUrl: account.iconUrl,
+            })),
+          );
+          setActiveAccountId(accountPayload.activeAccountId);
         }
       } catch (err) {
         console.error("Error fetching user data:", err);
@@ -652,30 +641,33 @@ function LoginPageContent() {
           accounts={portalAccounts}
           activeAccountId={activeAccountId}
           accountsLoading={accountsLoading}
-          onAccountChange={(accountId) => {
-            void (async () => {
-              setAccountsLoading(true);
-              try {
-                const response = await fetch("/api/accounts", {
-                  method: "POST",
-                  headers: { "Content-Type": "application/json" },
-                  body: JSON.stringify({ accountId }),
-                });
-                if (!response.ok) return;
-                setActiveAccountId(accountId);
-                const supabase = getSupabaseClient();
-                const {
-                  data: { user },
-                } = await supabase.auth.getUser();
-                if (!user) return;
-                setAppsLoading(true);
-                const apps = await fetchUserLauncherApps(user.id);
-                setLauncherApps(apps);
-              } finally {
-                setAppsLoading(false);
-                setAccountsLoading(false);
+          onAccountChange={async (accountId) => {
+            setAccountsLoading(true);
+            try {
+              // Prefer API so the cookie is set with shared domain options in prod.
+              const response = await fetch("/api/accounts", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ accountId }),
+              });
+              if (!response.ok) {
+                // Localhost fallback: set the cookie from the client.
+                const maxAge = 60 * 60 * 24 * 365;
+                document.cookie = `kenoo_account_id=${encodeURIComponent(accountId)}; path=/; max-age=${maxAge}; samesite=lax`;
               }
-            })();
+              setActiveAccountId(accountId);
+              const supabase = getSupabaseClient();
+              const {
+                data: { user },
+              } = await supabase.auth.getUser();
+              if (!user) return;
+              setAppsLoading(true);
+              const apps = await fetchUserLauncherApps(user.id);
+              setLauncherApps(apps);
+            } finally {
+              setAppsLoading(false);
+              setAccountsLoading(false);
+            }
           }}
         />
       ) : (

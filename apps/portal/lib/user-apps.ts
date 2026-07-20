@@ -1,4 +1,5 @@
 import {
+  ACTIVE_ACCOUNT_COOKIE,
   getSupabaseClient,
   readActiveAccountIdFromDocumentCookie,
   resolveAppHref,
@@ -11,6 +12,14 @@ export type PortalLauncherApp = {
   icon: string;
   href: string;
   subdomain?: string | null;
+};
+
+export type PortalAccountOption = {
+  id: string;
+  name: string;
+  accountType: "personal" | "organization";
+  iconUrl: string | null;
+  isDefault: boolean;
 };
 
 function pushApp(
@@ -62,6 +71,64 @@ function pushApp(
       platformBase: "",
     }),
   });
+}
+
+/** Accounts the user belongs to, for the portal account switcher. */
+export async function fetchPortalAccounts(userId: string): Promise<{
+  accounts: PortalAccountOption[];
+  activeAccountId: string | null;
+}> {
+  const supabase = getSupabaseClient();
+  const { data, error } = await supabase
+    .from("account_users")
+    .select(
+      `is_default, accounts!inner (
+        id, name, account_type, icon_url
+      )`,
+    )
+    .eq("user_id", userId)
+    .order("is_default", { ascending: false });
+
+  if (error) {
+    console.error("[portal] list accounts:", error);
+    return { accounts: [], activeAccountId: null };
+  }
+
+  const accounts: PortalAccountOption[] = [];
+  for (const row of data ?? []) {
+    const account = Array.isArray(row.accounts) ? row.accounts[0] : row.accounts;
+    if (!account) continue;
+    accounts.push({
+      id: account.id as string,
+      name: account.name as string,
+      accountType: account.account_type as "personal" | "organization",
+      iconUrl: (account.icon_url as string | null) ?? null,
+      isDefault: Boolean(row.is_default),
+    });
+  }
+
+  accounts.sort((left, right) => {
+    if (left.isDefault !== right.isDefault) return left.isDefault ? -1 : 1;
+    return left.name.localeCompare(right.name);
+  });
+
+  const preferredAccountId = readActiveAccountIdFromDocumentCookie();
+  const fromCookie = preferredAccountId
+    ? accounts.find((account) => account.id === preferredAccountId)
+    : undefined;
+  const activeAccountId =
+    fromCookie?.id ??
+    accounts.find((account) => account.isDefault)?.id ??
+    accounts[0]?.id ??
+    null;
+
+  // Persist so middleware / other apps agree on the same active account.
+  if (activeAccountId && typeof document !== "undefined") {
+    const maxAge = 60 * 60 * 24 * 365;
+    document.cookie = `${ACTIVE_ACCOUNT_COOKIE}=${encodeURIComponent(activeAccountId)}; path=/; max-age=${maxAge}; samesite=lax`;
+  }
+
+  return { accounts, activeAccountId };
 }
 
 /**

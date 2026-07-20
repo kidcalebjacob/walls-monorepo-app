@@ -5,6 +5,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import Image from "next/image";
 
+import { cn } from "@walls/ui/utils";
 import type { PortalLauncherApp } from "@/lib/user-apps";
 import {
   PortalAccountSwitcher,
@@ -89,19 +90,29 @@ function AppTile({
       initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: 0.03 * Math.min(index, 12), duration: 0.35, ease: easeOut }}
-      className="group flex w-[4.75rem] shrink-0 snap-center flex-col items-center gap-2 outline-none focus-visible:ring-2 focus-visible:ring-kenoo-accent/30 focus-visible:ring-offset-2 focus-visible:ring-offset-kenoo-canvas sm:w-[5.25rem]"
+      className="group flex w-[5.25rem] shrink-0 snap-center flex-col items-center gap-2.5 outline-none focus-visible:ring-2 focus-visible:ring-kenoo-accent/30 focus-visible:ring-offset-2 focus-visible:ring-offset-kenoo-canvas sm:w-[5.75rem]"
       aria-label={`Open ${app.name}`}
     >
-      <div className="relative flex h-14 w-14 items-center justify-center overflow-hidden rounded-xl border border-kenoo-border bg-kenoo-surface transition-all duration-300 ease-out group-hover:-translate-y-0.5 group-hover:border-kenoo-accent/30 group-active:translate-y-0 group-active:scale-[0.97] sm:h-16 sm:w-16">
+      <div
+        className={cn(
+          "relative flex h-14 w-14 items-center justify-center overflow-hidden rounded-2xl bg-gradient-to-br from-white to-neutral-100 shadow-[0_2px_6px_-2px_rgba(0,0,0,0.15)] transition-all duration-200 sm:h-16 sm:w-16",
+          "group-hover:-translate-y-0.5 group-hover:shadow-[0_8px_18px_-6px_rgba(0,0,0,0.25)]",
+          "group-active:translate-y-0 group-active:scale-[0.97]",
+        )}
+      >
+        <span
+          aria-hidden
+          className="pointer-events-none absolute inset-x-0 top-0 h-1/2 bg-gradient-to-b from-white/70 to-transparent"
+        />
         <Image
           src={app.icon}
           alt=""
           width={48}
           height={48}
-          className="h-9 w-9 object-contain sm:h-10 sm:w-10"
+          className="relative h-10 w-10 object-contain sm:h-11 sm:w-11"
         />
       </div>
-      <span className="line-clamp-2 w-full text-center text-[11px] font-medium leading-tight tracking-[-0.01em] text-kenoo-muted transition-colors duration-200 group-hover:text-kenoo-ink sm:text-xs">
+      <span className="line-clamp-2 w-full text-center text-[11px] font-medium leading-tight tracking-[-0.01em] text-neutral-700 transition-colors duration-200 group-hover:text-neutral-900 sm:text-xs">
         {app.name}
       </span>
     </motion.a>
@@ -112,13 +123,16 @@ function AppSlider({ apps }: { apps: PortalLauncherApp[] }) {
   const scrollerRef = React.useRef<HTMLDivElement>(null);
   const [canPrev, setCanPrev] = React.useState(false);
   const [canNext, setCanNext] = React.useState(false);
+  const [overflows, setOverflows] = React.useState(false);
 
   const updateEdges = React.useCallback(() => {
     const el = scrollerRef.current;
     if (!el) return;
     const max = el.scrollWidth - el.clientWidth;
-    setCanPrev(el.scrollLeft > 4);
-    setCanNext(el.scrollLeft < max - 4);
+    const hasOverflow = max > 4;
+    setOverflows(hasOverflow);
+    setCanPrev(hasOverflow && el.scrollLeft > 4);
+    setCanNext(hasOverflow && el.scrollLeft < max - 4);
   }, []);
 
   React.useEffect(() => {
@@ -127,16 +141,27 @@ function AppSlider({ apps }: { apps: PortalLauncherApp[] }) {
     updateEdges();
     el.addEventListener("scroll", updateEdges, { passive: true });
     window.addEventListener("resize", updateEdges);
+
+    const resizeObserver =
+      typeof ResizeObserver !== "undefined"
+        ? new ResizeObserver(() => updateEdges())
+        : null;
+    resizeObserver?.observe(el);
+
     return () => {
       el.removeEventListener("scroll", updateEdges);
       window.removeEventListener("resize", updateEdges);
+      resizeObserver?.disconnect();
     };
   }, [apps.length, updateEdges]);
 
   const scrollByDir = (dir: -1 | 1) => {
     const el = scrollerRef.current;
     if (!el) return;
-    el.scrollBy({ left: dir * Math.min(280, el.clientWidth * 0.7), behavior: "smooth" });
+    el.scrollBy({
+      left: dir * Math.min(280, el.clientWidth * 0.7),
+      behavior: "smooth",
+    });
   };
 
   return (
@@ -182,20 +207,27 @@ function AppSlider({ apps }: { apps: PortalLauncherApp[] }) {
 
       <div
         aria-hidden
-        className={`pointer-events-none absolute inset-y-0 left-2 z-10 w-10 bg-gradient-to-r from-kenoo-canvas to-transparent transition-opacity duration-200 sm:left-4 ${
-          canPrev ? "opacity-100" : "opacity-0"
-        }`}
+        className={cn(
+          "pointer-events-none absolute inset-y-0 left-2 z-10 w-10 bg-gradient-to-r from-kenoo-canvas to-transparent transition-opacity duration-200 sm:left-4",
+          canPrev ? "opacity-100" : "opacity-0",
+        )}
       />
       <div
         aria-hidden
-        className={`pointer-events-none absolute inset-y-0 right-2 z-10 w-10 bg-gradient-to-l from-kenoo-canvas to-transparent transition-opacity duration-200 sm:right-4 ${
-          canNext ? "opacity-100" : "opacity-0"
-        }`}
+        className={cn(
+          "pointer-events-none absolute inset-y-0 right-2 z-10 w-10 bg-gradient-to-l from-kenoo-canvas to-transparent transition-opacity duration-200 sm:right-4",
+          canNext ? "opacity-100" : "opacity-0",
+        )}
       />
 
       <div
         ref={scrollerRef}
-        className="flex snap-x snap-mandatory gap-3 overflow-x-auto scroll-smooth px-10 py-2 [-ms-overflow-style:none] [scrollbar-width:none] sm:gap-4 sm:px-14 [&::-webkit-scrollbar]:hidden"
+        className={cn(
+          "flex snap-x snap-mandatory gap-3 overflow-x-auto scroll-smooth py-2 [-ms-overflow-style:none] [scrollbar-width:none] sm:gap-4 [&::-webkit-scrollbar]:hidden",
+          overflows
+            ? "justify-start px-10 sm:px-14"
+            : "justify-center px-4 sm:px-6",
+        )}
       >
         {apps.map((app, index) => (
           <AppTile key={app.app_id} app={app} index={index} />
