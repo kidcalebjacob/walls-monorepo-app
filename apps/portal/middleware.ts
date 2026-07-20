@@ -11,11 +11,15 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(new URL("/login", request.url));
   }
 
-  if (!PUBLIC_PATHS.some((path) => pathname.startsWith(path))) {
+  // API routes must not be redirected to /login — clients expect JSON.
+  const isApiRoute = pathname.startsWith("/api/");
+  const isPublicPath = PUBLIC_PATHS.some((path) => pathname.startsWith(path));
+
+  if (!isApiRoute && !isPublicPath) {
     return NextResponse.redirect(new URL("/login", request.url));
   }
 
-  // Refresh auth cookies on public auth pages (host-only on localhost).
+  // Refresh auth cookies on public auth pages and API routes (host-only on localhost).
   let response = NextResponse.next({
     request: {
       headers: request.headers,
