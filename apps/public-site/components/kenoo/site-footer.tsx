@@ -7,7 +7,6 @@ const footerLinks = [
   { href: "/solutions", label: "Solutions" },
   { href: "/resources", label: "Resources" },
   { href: "/enterprise", label: "Enterprise" },
-  { href: "/pricing", label: "Pricing" },
 ];
 
 export function SiteFooter() {

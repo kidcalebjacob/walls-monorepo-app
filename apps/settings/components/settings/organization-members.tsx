@@ -258,11 +258,11 @@ export function OrganizationMembers({
     setUpdatingUserId(userId);
     try {
       const response = await fetch(
-        `/api/organizations/${organizationId}/members/${userId}`,
+        `/api/organizations/${organizationId}/members`,
         {
           method: "PATCH",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ role }),
+          body: JSON.stringify({ userId, role }),
         },
       );
 
@@ -286,8 +286,12 @@ export function OrganizationMembers({
     setRemovingUserId(userId);
     try {
       const response = await fetch(
-        `/api/organizations/${organizationId}/members/${userId}`,
-        { method: "DELETE" },
+        `/api/organizations/${organizationId}/members`,
+        {
+          method: "DELETE",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ userId }),
+        },
       );
 
       if (!response.ok) {
@@ -350,11 +354,15 @@ export function OrganizationMembers({
     setTogglingMemberAppId(appId);
     try {
       const response = await fetch(
-        `/api/organizations/${organizationId}/members/${appAccessMember.userId}/apps`,
+        `/api/organizations/${organizationId}/app-access`,
         {
           method: "PATCH",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ appId, enabled }),
+          body: JSON.stringify({
+            appId,
+            enabled,
+            userId: appAccessMember.userId,
+          }),
         },
       );
       if (!response.ok) {
@@ -363,12 +371,11 @@ export function OrganizationMembers({
         return;
       }
       const payload = (await response.json()) as {
-        memberAppIds?: string[];
+        memberAppIds?: Record<string, string[]>;
       };
-      setMemberAppIds((prev) => ({
-        ...prev,
-        [appAccessMember.userId]: payload.memberAppIds ?? [],
-      }));
+      if (payload.memberAppIds) {
+        setMemberAppIds(payload.memberAppIds);
+      }
     } finally {
       setTogglingMemberAppId(null);
     }

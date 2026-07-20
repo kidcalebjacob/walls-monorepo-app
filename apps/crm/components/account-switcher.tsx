@@ -80,7 +80,7 @@ export function AccountSwitcher() {
     return <AccountSwitcherSkeleton />;
   }
 
-  if (!activeAccount) return null;
+  if (!activeAccount || accounts.length < 2) return null;
 
   return (
     <DropdownMenu open={open} onOpenChange={setOpen}>
@@ -251,7 +251,7 @@ function AccountTypeBadge({
   className?: string;
 }) {
   const label =
-    account.accountType === "organization" ? "Organization" : "Personal";
+    account.accountType === "organization" ? "Organization" : "Account";
 
   return (
     <span className={cn("block text-xs text-neutral-500", className)}>

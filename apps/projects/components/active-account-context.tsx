@@ -11,6 +11,8 @@ export type ProjectsAccount = {
   iconUrl: string | null;
   role: string;
   isDefault: boolean;
+  /** Whether the user can open Projects under this account. */
+  hasAppAccess: boolean;
 };
 
 type ActiveAccountContextValue = {

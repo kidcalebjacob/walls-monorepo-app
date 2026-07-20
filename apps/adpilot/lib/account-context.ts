@@ -1,6 +1,9 @@
 import { cookies } from "next/headers";
 
-import { ACTIVE_ACCOUNT_COOKIE } from "@walls/auth/active-account";
+import {
+  ACTIVE_ACCOUNT_COOKIE,
+  getAccountIdsWithAppAccess,
+} from "@walls/auth/active-account";
 import { createClient } from "@walls/supabase/server";
 
 /**
@@ -12,6 +15,9 @@ import { createClient } from "@walls/supabase/server";
 
 export const ADPILOT_ACCOUNT_COOKIE = "adpilot_account_id";
 
+export const ADPILOT_APP_SLUG =
+  process.env.NEXT_PUBLIC_ADPILOT_APP_SLUG || "adpilot";
+
 export type AdpilotAccountType = "personal" | "organization";
 
 export type AdpilotAccount = {
@@ -21,6 +27,8 @@ export type AdpilotAccount = {
   iconUrl: string | null;
   role: string;
   isDefault: boolean;
+  /** Whether the user can open AdPilot under this account. */
+  hasAppAccess: boolean;
 };
 
 type AccountMembershipRow = {
@@ -52,6 +60,8 @@ function mapMembership(row: AccountMembershipRow): AdpilotAccount | null {
     iconUrl: account.icon_url,
     role: row.role,
     isDefault: row.is_default,
+    // Filled by listAccountsForUser after checking grants for this app.
+    hasAppAccess: true,
   };
 }
 
@@ -87,7 +97,22 @@ export async function listAccountsForUser(
     .map((row) => mapMembership(row as AccountMembershipRow))
     .filter((account): account is AdpilotAccount => account !== null);
 
-  return accounts.sort((left, right) => {
+  const allowedIds = await getAccountIdsWithAppAccess(
+    supabase,
+    userId,
+    ADPILOT_APP_SLUG,
+    accounts.map((account) => account.id),
+  );
+
+  const withAccess = accounts.map((account) => ({
+    ...account,
+    hasAppAccess: allowedIds.has(account.id),
+  }));
+
+  return withAccess.sort((left, right) => {
+    if (left.hasAppAccess !== right.hasAppAccess) {
+      return left.hasAppAccess ? -1 : 1;
+    }
     if (left.isDefault !== right.isDefault) return left.isDefault ? -1 : 1;
     return left.name.localeCompare(right.name);
   });

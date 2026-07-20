@@ -2,10 +2,12 @@ import { NextResponse } from "next/server";
 
 import {
   grantAccountAppAccess,
+  grantAccountUserAppAccess,
   listAccountAppIds,
   listManagedApps,
   listMemberAppIdsForAccount,
   revokeAccountAppAccess,
+  revokeAccountUserAppAccess,
 } from "@/lib/app-access";
 import {
   canManageAccountMembers,
@@ -58,26 +60,31 @@ export async function GET(_request: Request, context: RouteContext) {
 }
 
 export async function PATCH(request: Request, context: RouteContext) {
-  const userId = await getCurrentUserId();
-  if (!userId) {
+  const actorUserId = await getCurrentUserId();
+  if (!actorUserId) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
   const { organizationId: accountId } = await context.params;
-  const organization = await getOrganizationForUser(userId, accountId);
+  const organization = await getOrganizationForUser(actorUserId, accountId);
 
   if (!organization || !canEditOrganization(organization.role)) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
-  const membership = await getAccountMembershipForUser(userId, accountId);
-  if (!membership || !canManageAccountMembers(membership.role)) {
+  const actorMembership = await getAccountMembershipForUser(
+    actorUserId,
+    accountId,
+  );
+  if (!actorMembership || !canManageAccountMembers(actorMembership.role)) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
   const body = (await request.json()) as {
     appId?: string;
     enabled?: boolean;
+    /** When set, toggle this member's access instead of the org catalog. */
+    userId?: string;
   };
 
   if (!body.appId || typeof body.enabled !== "boolean") {
@@ -87,12 +94,49 @@ export async function PATCH(request: Request, context: RouteContext) {
     );
   }
 
-  const result = body.enabled
-    ? await grantAccountAppAccess({ accountId, appId: body.appId })
-    : await revokeAccountAppAccess({ accountId, appId: body.appId });
+  const targetUserId = body.userId?.trim() || null;
 
-  if (!result.ok) {
-    return NextResponse.json({ error: result.error }, { status: 400 });
+  if (targetUserId) {
+    const targetMembership = await getAccountMembershipForUser(
+      targetUserId,
+      accountId,
+    );
+    if (!targetMembership) {
+      return NextResponse.json(
+        { error: "User is not a member of this organization" },
+        { status: 404 },
+      );
+    }
+    if (
+      actorMembership.role !== "owner" &&
+      targetMembership.role === "owner"
+    ) {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    }
+
+    const result = body.enabled
+      ? await grantAccountUserAppAccess({
+          accountId,
+          userId: targetUserId,
+          appId: body.appId,
+        })
+      : await revokeAccountUserAppAccess({
+          accountId,
+          userId: targetUserId,
+          appId: body.appId,
+        });
+
+    if (!result.ok) {
+      return NextResponse.json({ error: result.error }, { status: 400 });
+    }
+  } else {
+    const result = body.enabled
+      ? await grantAccountAppAccess({ accountId, appId: body.appId })
+      : await revokeAccountAppAccess({ accountId, appId: body.appId });
+
+    if (!result.ok) {
+      return NextResponse.json({ error: result.error }, { status: 400 });
+    }
   }
 
   const members = await listAccountMembers(accountId);

@@ -12,11 +12,13 @@ export { logoutToPortal } from "./logout";
 export {
   ACTIVE_ACCOUNT_COOKIE,
   accountUserHasAppAccess,
+  getAccountIdsWithAppAccess,
   getActiveAccountCookieOptions,
   readActiveAccountIdFromDocumentCookie,
   writeActiveAccountIdToDocumentCookie,
   resolveActiveAccountId,
   userHasAccountAppGrants,
+  userHasAppAccessForAccount,
   userHasAppAccessForActiveAccount,
   userHasLegacyAppAccess,
 } from "./active-account";

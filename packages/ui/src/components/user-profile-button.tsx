@@ -1,6 +1,12 @@
 "use client";
 
-import { useAuth, getSupabaseClient, logoutToPortal } from "@walls/auth";
+import {
+  useAuth,
+  getSupabaseClient,
+  logoutToPortal,
+  readActiveAccountIdFromDocumentCookie,
+  writeActiveAccountIdToDocumentCookie,
+} from "@walls/auth";
 import { Button } from "./button";
 import {
   DropdownMenuTrigger,
@@ -17,7 +23,6 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { useLoadingCallback } from "react-loading-hook";
 import {
   LogOut,
-  ChevronRight,
   Menu,
   X,
   ChevronUp,
@@ -25,6 +30,9 @@ import {
   Bell,
   Settings,
   BookOpen,
+  Building2,
+  Check,
+  UserRound,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Portal } from "@radix-ui/react-portal";
@@ -44,6 +52,32 @@ const AVATAR_REQUEST_PX = AVATAR_SIZE_PX * 2;
 const DEFAULT_SETTINGS_PATH =
   process.env.NEXT_PUBLIC_SETTINGS_URL?.replace(/\/$/, "") || "/settings";
 
+type ProfileAccount = {
+  id: string;
+  name: string;
+  accountType: "personal" | "organization";
+  iconUrl: string | null;
+  isDefault: boolean;
+};
+
+type AccountMembershipRow = {
+  is_default: boolean;
+  accounts:
+    | {
+        id: string;
+        name: string;
+        account_type: "personal" | "organization";
+        icon_url: string | null;
+      }
+    | {
+        id: string;
+        name: string;
+        account_type: "personal" | "organization";
+        icon_url: string | null;
+      }[]
+    | null;
+};
+
 function navigateToPath(
   path: string,
   router: ReturnType<typeof useRouter>,
@@ -53,6 +87,237 @@ function navigateToPath(
     return;
   }
   router.push(path);
+}
+
+function mapAccountMembership(row: AccountMembershipRow): ProfileAccount | null {
+  const account = Array.isArray(row.accounts) ? row.accounts[0] : row.accounts;
+  if (!account) return null;
+  return {
+    id: account.id,
+    name: account.name,
+    accountType: account.account_type,
+    iconUrl: account.icon_url,
+    isDefault: Boolean(row.is_default),
+  };
+}
+
+async function loadProfileAccounts(userId: string): Promise<{
+  accounts: ProfileAccount[];
+  activeAccountId: string | null;
+}> {
+  const supabase = getSupabaseClient();
+  const { data, error } = await supabase
+    .from("account_users")
+    .select(
+      `is_default, accounts!inner (
+        id, name, account_type, icon_url
+      )`,
+    )
+    .eq("user_id", userId)
+    .order("is_default", { ascending: false });
+
+  if (error) {
+    console.error("[profile] list accounts:", error);
+    return { accounts: [], activeAccountId: null };
+  }
+
+  const accounts = (data ?? [])
+    .map((row) => mapAccountMembership(row as AccountMembershipRow))
+    .filter((account): account is ProfileAccount => account !== null)
+    .sort((left, right) => {
+      if (left.isDefault !== right.isDefault) return left.isDefault ? -1 : 1;
+      return left.name.localeCompare(right.name);
+    });
+
+  const preferred = readActiveAccountIdFromDocumentCookie();
+  const activeAccountId =
+    (preferred && accounts.some((account) => account.id === preferred)
+      ? preferred
+      : null) ??
+    accounts.find((account) => account.isDefault)?.id ??
+    accounts[0]?.id ??
+    null;
+
+  return { accounts, activeAccountId };
+}
+
+async function switchActiveAccount(accountId: string): Promise<void> {
+  writeActiveAccountIdToDocumentCookie(accountId);
+
+  // Best-effort: apps with `/api/accounts` also set local httpOnly cookies.
+  try {
+    await fetch("/api/accounts", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ accountId }),
+    });
+  } catch {
+    // Shared cookie is enough for AuthProvider + middleware.
+  }
+}
+
+function ProfileAccountAvatar({
+  account,
+  userAvatarUrl,
+  size = "sm",
+}: {
+  account: ProfileAccount;
+  userAvatarUrl?: string | null;
+  size?: "sm" | "xs";
+}) {
+  const boxClass = size === "sm" ? "h-7 w-7 rounded-md" : "h-5 w-5 rounded";
+  const imageUrl =
+    account.iconUrl ??
+    (account.accountType === "personal" ? (userAvatarUrl ?? null) : null);
+
+  if (imageUrl) {
+    return (
+      // eslint-disable-next-line @next/next/no-img-element -- remote account icons
+      <img
+        src={imageUrl}
+        alt=""
+        className={cn(boxClass, "shrink-0 object-cover")}
+      />
+    );
+  }
+
+  const Icon = account.accountType === "organization" ? Building2 : UserRound;
+  const initial = account.name.trim().charAt(0).toUpperCase() || "?";
+
+  return (
+    <span
+      className={cn(
+        "flex shrink-0 items-center justify-center",
+        boxClass,
+        account.accountType === "organization"
+          ? "bg-white/15 text-white/90"
+          : "bg-white/10 text-white/80",
+      )}
+    >
+      {account.accountType === "organization" ? (
+        <Icon className={size === "sm" ? "h-3.5 w-3.5" : "h-3 w-3"} />
+      ) : (
+        <span className={size === "sm" ? "text-[11px] font-semibold" : "text-[9px] font-semibold"}>
+          {initial}
+        </span>
+      )}
+    </span>
+  );
+}
+
+/** Subtle active-account chip + expandable switcher inside the profile menu. */
+function ProfileAccountSwitcher({
+  accounts,
+  activeAccountId,
+  userAvatarUrl,
+  switching,
+  onSwitch,
+}: {
+  accounts: ProfileAccount[];
+  activeAccountId: string | null;
+  userAvatarUrl?: string | null;
+  switching: boolean;
+  onSwitch: (accountId: string) => void;
+}) {
+  const [expanded, setExpanded] = useState(false);
+  const activeAccount =
+    accounts.find((account) => account.id === activeAccountId) ?? accounts[0];
+
+  if (!activeAccount || accounts.length < 2) return null;
+
+  const accountKindLabel =
+    activeAccount.accountType === "organization" ? "Organization" : "Account";
+
+  return (
+    <div className="mt-3">
+      <button
+        type="button"
+        disabled={switching}
+        aria-expanded={expanded}
+        aria-label={`Switch account. Current: ${activeAccount.name}`}
+        onClick={() => setExpanded((open) => !open)}
+        className="group flex w-full items-center gap-2 rounded-xl bg-white/[0.06] px-2.5 py-2 text-left transition-colors hover:bg-white/[0.1] disabled:opacity-60"
+      >
+        <ProfileAccountAvatar
+          account={activeAccount}
+          userAvatarUrl={userAvatarUrl}
+          size="xs"
+        />
+        <span className="min-w-0 flex-1">
+          <span className="block text-[10px] font-medium uppercase tracking-wide text-white/45">
+            {accountKindLabel}
+          </span>
+          <span className="block truncate text-xs font-medium text-white/90">
+            {activeAccount.name}
+          </span>
+        </span>
+        <ChevronDown
+          className={cn(
+            "h-3.5 w-3.5 shrink-0 text-white/45 transition-transform duration-200",
+            expanded && "rotate-180",
+          )}
+        />
+      </button>
+
+      <AnimatePresence initial={false}>
+        {expanded ? (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: "auto", opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.2, ease: "easeOut" }}
+            className="overflow-hidden"
+          >
+            <div className="mt-1.5 space-y-0.5 rounded-xl bg-white/[0.04] p-1">
+              {accounts.map((account) => {
+                const isActive = account.id === activeAccount.id;
+                return (
+                  <button
+                    key={account.id}
+                    type="button"
+                    disabled={switching || isActive}
+                    onClick={() => onSwitch(account.id)}
+                    className={cn(
+                      "flex w-full items-center gap-2.5 rounded-lg px-2 py-2 text-left transition-colors",
+                      isActive
+                        ? "bg-white/10"
+                        : "hover:bg-white/[0.07] disabled:opacity-60",
+                    )}
+                  >
+                    <ProfileAccountAvatar
+                      account={account}
+                      userAvatarUrl={userAvatarUrl}
+                    />
+                    <span className="min-w-0 flex-1">
+                      <span
+                        className={cn(
+                          "block truncate text-xs text-white",
+                          isActive ? "font-semibold" : "font-medium text-white/85",
+                        )}
+                      >
+                        {account.name}
+                      </span>
+                      <span className="block text-[10px] text-white/45">
+                        {account.accountType === "organization"
+                          ? "Organization"
+                          : "Account"}
+                      </span>
+                    </span>
+                    {isActive ? (
+                      <Check
+                        className="h-3.5 w-3.5 shrink-0 text-white/80"
+                        strokeWidth={2.75}
+                      />
+                    ) : null}
+                  </button>
+                );
+              })}
+            </div>
+          </motion.div>
+        ) : null}
+      </AnimatePresence>
+    </div>
+  );
 }
 
 export interface UserProfileButtonProps {
@@ -218,6 +483,10 @@ export default function UserProfileButton({
   const [dragIndex, setDragIndex] = useState<number | null>(null);
   const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
   const [avatarHover, setAvatarHover] = useState(false);
+  const [accounts, setAccounts] = useState<ProfileAccount[]>([]);
+  const [activeAccountId, setActiveAccountId] = useState<string | null>(null);
+  const [accountsLoading, setAccountsLoading] = useState(true);
+  const [switchingAccount, setSwitchingAccount] = useState(false);
   const longPressTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const apps = profile?.userApps ?? [];
@@ -264,6 +533,45 @@ export default function UserProfileButton({
   useEffect(() => {
     void refreshUnreadNotificationCount();
   }, [user?.id, isNotificationsOpen, refreshUnreadNotificationCount]);
+
+  useEffect(() => {
+    if (!user?.id) {
+      setAccounts([]);
+      setActiveAccountId(null);
+      setAccountsLoading(false);
+      return;
+    }
+
+    let cancelled = false;
+    setAccountsLoading(true);
+    void (async () => {
+      const result = await loadProfileAccounts(user.id);
+      if (cancelled) return;
+      setAccounts(result.accounts);
+      setActiveAccountId(result.activeAccountId);
+      setAccountsLoading(false);
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [user?.id]);
+
+  const handleSwitchAccount = useCallback(
+    async (accountId: string) => {
+      if (accountId === activeAccountId || switchingAccount) return;
+      setSwitchingAccount(true);
+      try {
+        await switchActiveAccount(accountId);
+        setActiveAccountId(accountId);
+        // Apps list + scoped data are account-bound; reload drops stale state.
+        window.location.reload();
+      } catch {
+        setSwitchingAccount(false);
+      }
+    },
+    [activeAccountId, switchingAccount],
+  );
 
   const navigate = useCallback(
     (route: "dashboard" | "settings" | "documentation" | "admin-settings") => {
@@ -528,30 +836,15 @@ export default function UserProfileButton({
                   </div>
                 </div>
 
-                <button
-                  type="button"
-                  onClick={navigate("dashboard")}
-                  className="group relative mt-4 flex w-full items-center gap-3 rounded-2xl bg-white/10 px-3 py-2.5 text-left backdrop-blur-sm transition-colors hover:bg-white/15"
-                >
-                  <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-white/10 ring-1 ring-white/15">
-                    <Image
-                      src="https://assets.wallsentertainment.com/walls-app-icons/dashboard.svg"
-                      alt=""
-                      width={26}
-                      height={26}
-                      priority
-                    />
-                  </span>
-                  <span className="flex-1">
-                    <span className="block text-sm font-semibold text-white">
-                      Your dashboard
-                    </span>
-                    <span className="block text-[11px] text-white/60">
-                      Back to the WALLS home
-                    </span>
-                  </span>
-                  <ChevronRight className="h-4 w-4 shrink-0 text-white/70 transition-transform group-hover:translate-x-0.5" />
-                </button>
+                {!accountsLoading && accounts.length > 1 ? (
+                  <ProfileAccountSwitcher
+                    accounts={accounts}
+                    activeAccountId={activeAccountId}
+                    userAvatarUrl={avatarUrl}
+                    switching={switchingAccount}
+                    onSwitch={handleSwitchAccount}
+                  />
+                ) : null}
               </div>
 
               {/* Body */}
@@ -704,6 +997,83 @@ export default function UserProfileButton({
               >
                 <X className="h-8 w-8" />
               </button>
+
+              {!accountsLoading && accounts.length > 1 ? (
+                <div className="shrink-0 border-b border-neutral-100 px-4 pb-3 pt-16">
+                  <p className="mb-2 text-[11px] font-semibold uppercase tracking-wide text-neutral-400">
+                    Switch account
+                  </p>
+                  <div className="space-y-1">
+                    {accounts.map((account) => {
+                      const isActive = account.id === activeAccountId;
+                      return (
+                        <button
+                          key={account.id}
+                          type="button"
+                          disabled={switchingAccount || isActive}
+                          onClick={() => void handleSwitchAccount(account.id)}
+                          className={cn(
+                            "flex w-full items-center gap-3 rounded-xl px-2.5 py-2.5 text-left transition-colors",
+                            isActive
+                              ? "bg-neutral-100"
+                              : "hover:bg-neutral-50 disabled:opacity-60",
+                          )}
+                        >
+                          <span
+                            className={cn(
+                              "flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-lg",
+                              account.accountType === "organization"
+                                ? "bg-violet-100 text-violet-700"
+                                : "bg-neutral-100 text-neutral-600",
+                            )}
+                          >
+                            {account.iconUrl ||
+                            (account.accountType === "personal" && avatarUrl) ? (
+                              // eslint-disable-next-line @next/next/no-img-element
+                              <img
+                                src={
+                                  account.iconUrl ??
+                                  (avatarUrl as string)
+                                }
+                                alt=""
+                                className="h-full w-full object-cover"
+                              />
+                            ) : account.accountType === "organization" ? (
+                              <Building2 className="h-4 w-4" />
+                            ) : (
+                              <span className="text-sm font-semibold">
+                                {account.name.trim().charAt(0).toUpperCase() ||
+                                  "?"}
+                              </span>
+                            )}
+                          </span>
+                          <span className="min-w-0 flex-1">
+                            <span
+                              className={cn(
+                                "block truncate text-sm text-foreground",
+                                isActive ? "font-semibold" : "font-medium",
+                              )}
+                            >
+                              {account.name}
+                            </span>
+                            <span className="block text-xs text-neutral-500">
+                              {account.accountType === "organization"
+                                ? "Organization"
+                                : "Account"}
+                            </span>
+                          </span>
+                          {isActive ? (
+                            <Check
+                              className="h-4 w-4 shrink-0 text-foreground"
+                              strokeWidth={2.75}
+                            />
+                          ) : null}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              ) : null}
 
               {/* Carousel Menu */}
               <div className="flex flex-col items-center justify-center flex-1 py-16 px-4">

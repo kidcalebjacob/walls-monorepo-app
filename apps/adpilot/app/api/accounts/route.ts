@@ -4,9 +4,12 @@ import { cookies, headers } from "next/headers";
 import {
   ACTIVE_ACCOUNT_COOKIE,
   getActiveAccountCookieOptions,
+  userHasAppAccessForAccount,
 } from "@walls/auth/active-account";
+import { createClient } from "@walls/supabase/server";
 import {
   ADPILOT_ACCOUNT_COOKIE,
+  ADPILOT_APP_SLUG,
   getAccountMembership,
   getCurrentUserId,
   listAccountsForUser,
@@ -46,6 +49,20 @@ export async function POST(request: Request) {
   if (!membership) {
     return NextResponse.json(
       { error: "You are not a member of this account" },
+      { status: 403 },
+    );
+  }
+
+  const supabase = await createClient();
+  const hasAppAccess = await userHasAppAccessForAccount(
+    supabase,
+    userId,
+    accountId,
+    ADPILOT_APP_SLUG,
+  );
+  if (!hasAppAccess) {
+    return NextResponse.json(
+      { error: "This account does not have access to AdPilot" },
       { status: 403 },
     );
   }

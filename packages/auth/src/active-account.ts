@@ -152,6 +152,75 @@ export async function userHasLegacyAppAccess(
 }
 
 /**
+ * Which of `accountIds` the user can open `appSlug` with.
+ * SaaS: account_app_user_access rows for that app.
+ * Legacy: all accountIds when user_app_access grants the app, else none.
+ * Unknown / inactive slug: fail open (same as middleware).
+ */
+export async function getAccountIdsWithAppAccess(
+  supabase: SupabaseClient,
+  userId: string,
+  appSlug: string,
+  accountIds: string[],
+): Promise<Set<string>> {
+  if (accountIds.length === 0) {
+    return new Set();
+  }
+
+  const { data: appRow, error: appError } = await supabase
+    .from("apps")
+    .select("id")
+    .eq("is_active", true)
+    .eq("slug", appSlug)
+    .maybeSingle();
+
+  if (appError || !appRow?.id) {
+    return new Set(accountIds);
+  }
+
+  const appId = appRow.id as string;
+  const onSaaS = await userHasAccountAppGrants(supabase, userId);
+  if (!onSaaS) {
+    const hasLegacy = await userHasLegacyAppAccess(supabase, userId, appId);
+    return hasLegacy ? new Set(accountIds) : new Set();
+  }
+
+  const { data, error } = await supabase
+    .from("account_app_user_access")
+    .select("account_id")
+    .eq("user_id", userId)
+    .eq("app_id", appId)
+    .in("account_id", accountIds);
+
+  if (error) {
+    console.error("[auth] Error listing account_app_user_access:", error);
+    return new Set();
+  }
+
+  return new Set(
+    (data ?? [])
+      .map((row) => row.account_id as string)
+      .filter((id): id is string => !!id),
+  );
+}
+
+/** True when the user can open `appSlug` under a specific account. */
+export async function userHasAppAccessForAccount(
+  supabase: SupabaseClient,
+  userId: string,
+  accountId: string,
+  appSlug: string,
+): Promise<boolean> {
+  const allowed = await getAccountIdsWithAppAccess(
+    supabase,
+    userId,
+    appSlug,
+    [accountId],
+  );
+  return allowed.has(accountId);
+}
+
+/**
  * Kenoo SaaS: gate on account_app_user_access for the active account.
  * Legacy walls-app: fall back to user_app_access when the user has no
  * account-level grants yet.

@@ -1,6 +1,9 @@
 import { cookies } from "next/headers";
 
-import { ACTIVE_ACCOUNT_COOKIE } from "@walls/auth/active-account";
+import {
+  ACTIVE_ACCOUNT_COOKIE,
+  getAccountIdsWithAppAccess,
+} from "@walls/auth/active-account";
 import { createClient } from "@walls/supabase/server";
 
 /**
@@ -12,6 +15,9 @@ import { createClient } from "@walls/supabase/server";
 
 export const PROJECTS_ACCOUNT_COOKIE = "projects_account_id";
 
+export const PROJECTS_APP_SLUG =
+  process.env.NEXT_PUBLIC_PROJECTS_APP_SLUG || "projects";
+
 export type ProjectsAccountType = "personal" | "organization";
 
 export type ProjectsAccount = {
@@ -21,6 +27,8 @@ export type ProjectsAccount = {
   iconUrl: string | null;
   role: string;
   isDefault: boolean;
+  /** Whether the user can open Projects under this account. */
+  hasAppAccess: boolean;
 };
 
 type AccountMembershipRow = {
@@ -52,6 +60,8 @@ function mapMembership(row: AccountMembershipRow): ProjectsAccount | null {
     iconUrl: account.icon_url,
     role: row.role,
     isDefault: row.is_default,
+    // Filled by listAccountsForUser after checking grants for this app.
+    hasAppAccess: true,
   };
 }
 
@@ -87,7 +97,22 @@ export async function listAccountsForUser(
     .map((row) => mapMembership(row as AccountMembershipRow))
     .filter((account): account is ProjectsAccount => account !== null);
 
-  return accounts.sort((left, right) => {
+  const allowedIds = await getAccountIdsWithAppAccess(
+    supabase,
+    userId,
+    PROJECTS_APP_SLUG,
+    accounts.map((account) => account.id),
+  );
+
+  const withAccess = accounts.map((account) => ({
+    ...account,
+    hasAppAccess: allowedIds.has(account.id),
+  }));
+
+  return withAccess.sort((left, right) => {
+    if (left.hasAppAccess !== right.hasAppAccess) {
+      return left.hasAppAccess ? -1 : 1;
+    }
     if (left.isDefault !== right.isDefault) return left.isDefault ? -1 : 1;
     return left.name.localeCompare(right.name);
   });

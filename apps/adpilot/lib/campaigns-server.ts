@@ -22,6 +22,8 @@ export type EntityPerformanceRow = {
   id: string;
   entityType: CampaignEntityType;
   name: string;
+  /** Ad platform provider (e.g. `meta`). From `ad_entities.provider`. */
+  provider: string;
   status: string | null;
   objective: string | null;
   objectiveBucket: DashboardObjectiveBucket | null;
@@ -73,6 +75,7 @@ type EntityRecord = {
   id: string;
   entity_type: CampaignEntityType;
   name: string | null;
+  provider: string;
   status: string | null;
   objective: string | null;
   parent_id: string | null;
@@ -317,7 +320,7 @@ export async function listCampaignPerformance(input: {
     supabase
       .from("ad_entities")
       .select(
-        "id, entity_type, name, status, objective, parent_id, account_connection_id, last_synced_at, daily_budget_micros, learning_status",
+        "id, entity_type, name, provider, status, objective, parent_id, account_connection_id, last_synced_at, daily_budget_micros, learning_status",
       )
       .eq("provider", META_PROVIDER)
       .eq("entity_type", input.entityType),
@@ -475,6 +478,7 @@ export async function listCampaignPerformance(input: {
       id: entity.id,
       entityType: entity.entity_type,
       name: entity.name ?? "Untitled",
+      provider: entity.provider,
       status: entity.status,
       objective:
         entity.entity_type === "campaign" ? entity.objective : campaignObjective,

@@ -43,6 +43,8 @@ import {
   LearningBadge,
 } from "@/components/campaigns/entity-detail-shared";
 import { useResizableColumns } from "@/components/campaigns/use-resizable-columns";
+import { MetaIcon } from "@/components/settings/meta-icon";
+import { META_PROVIDER } from "@/lib/connections";
 import { SegmentToggle } from "@/components/ui/segment-toggle";
 
 const PAGE_SIZE = 25;
@@ -50,6 +52,7 @@ const COLUMN_WIDTHS_STORAGE_KEY = "adpilot-campaigns-column-widths";
 
 const CAMPAIGN_COLUMN_IDS = [
   "name",
+  "platform",
   "context",
   "account",
   "status",
@@ -68,6 +71,7 @@ type CampaignColumnId = (typeof CAMPAIGN_COLUMN_IDS)[number];
 
 const DEFAULT_CAMPAIGN_COLUMN_WIDTHS: Record<CampaignColumnId, number> = {
   name: 220,
+  platform: 88,
   context: 160,
   account: 140,
   status: 120,
@@ -104,6 +108,7 @@ type CampaignTimeRange = (typeof TIME_RANGE_OPTIONS)[number]["value"];
 function columnLabel(id: CampaignColumnId, entityType: CampaignEntityType): string {
   const labels: Record<CampaignColumnId, string> = {
     name: "Name",
+    platform: "Platform",
     context: entityType === "campaign" ? "Objective" : "Parent",
     account: "Account",
     status: "Status",
@@ -118,6 +123,23 @@ function columnLabel(id: CampaignColumnId, entityType: CampaignEntityType): stri
     roas: "ROAS",
   };
   return labels[id];
+}
+
+function PlatformCell({ provider }: { provider: string }) {
+  if (provider === META_PROVIDER) {
+    return (
+      <span className="inline-flex items-center" title="Meta">
+        <MetaIcon className="h-4 w-4 shrink-0" />
+        <span className="sr-only">Meta</span>
+      </span>
+    );
+  }
+
+  return (
+    <span className="text-xs font-light capitalize text-neutral-500">
+      {provider || "—"}
+    </span>
+  );
 }
 
 function ResizableHeader({
@@ -726,6 +748,9 @@ export function CampaignsPage() {
                         ) : null}
                         <LearningBadge status={row.learningStatus} />
                       </div>
+                    </td>
+                    <td className="py-4 pr-4 pl-3">
+                      <PlatformCell provider={row.provider} />
                     </td>
                     <td className="overflow-hidden py-4 pr-4 pl-3 text-xs font-light text-neutral-500">
                       <span className="block truncate">

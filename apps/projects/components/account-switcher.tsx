@@ -54,7 +54,15 @@ export function AccountSwitcher() {
     accounts.find((account) => account.id === activeAccountId) ?? accounts[0];
 
   const handleSelect = async (accountId: string) => {
-    if (accountId === activeAccountId || switching) return;
+    const target = accounts.find((account) => account.id === accountId);
+    if (
+      !target ||
+      target.hasAppAccess === false ||
+      accountId === activeAccountId ||
+      switching
+    ) {
+      return;
+    }
     setSwitching(true);
     try {
       const response = await fetch("/api/accounts", {
@@ -80,7 +88,7 @@ export function AccountSwitcher() {
     return <AccountSwitcherSkeleton />;
   }
 
-  if (!activeAccount) return null;
+  if (!activeAccount || accounts.length < 2) return null;
 
   return (
     <DropdownMenu open={open} onOpenChange={setOpen}>
@@ -124,17 +132,30 @@ export function AccountSwitcher() {
         <div className="mt-1 space-y-0.5">
           {accounts.map((account) => {
             const isActive = account.id === activeAccount.id;
+            const hasAppAccess = account.hasAppAccess !== false;
             return (
               <DropdownMenuItem
                 key={account.id}
+                disabled={!hasAppAccess}
                 onSelect={(event) => {
                   event.preventDefault();
+                  if (!hasAppAccess) return;
                   void handleSelect(account.id);
                 }}
                 className={cn(
-                  "cursor-pointer rounded-xl p-2 transition-colors focus:bg-transparent",
-                  isActive ? "bg-neutral-100" : "hover:bg-kenoo-white",
+                  "rounded-xl p-2 transition-colors focus:bg-transparent",
+                  hasAppAccess
+                    ? cn(
+                        "cursor-pointer",
+                        isActive ? "bg-neutral-100" : "hover:bg-kenoo-white",
+                      )
+                    : "cursor-not-allowed opacity-50 data-[disabled]:opacity-50",
                 )}
+                title={
+                  hasAppAccess
+                    ? undefined
+                    : "This account does not have access to Projects"
+                }
               >
                 <div className="flex w-full items-center gap-3">
                   <AccountAvatar account={account} size="md" />
@@ -143,14 +164,21 @@ export function AccountSwitcher() {
                       className={cn(
                         "truncate text-sm text-foreground",
                         isActive ? "font-semibold" : "font-medium",
+                        !hasAppAccess && "text-neutral-500",
                       )}
                     >
                       {account.name}
                     </p>
-                    <AccountTypeBadge
-                      account={account}
-                      className="mt-0.5"
-                    />
+                    {hasAppAccess ? (
+                      <AccountTypeBadge
+                        account={account}
+                        className="mt-0.5"
+                      />
+                    ) : (
+                      <span className="mt-0.5 block text-xs text-neutral-400">
+                        No Projects access
+                      </span>
+                    )}
                   </div>
                   {isActive ? (
                     <Check
@@ -251,7 +279,7 @@ function AccountTypeBadge({
   className?: string;
 }) {
   const label =
-    account.accountType === "organization" ? "Organization" : "Personal";
+    account.accountType === "organization" ? "Organization" : "Account";
 
   return (
     <span className={cn("block text-xs text-neutral-500", className)}>

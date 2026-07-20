@@ -44,7 +44,7 @@ export function PortalAccountSwitcher({
   const activeAccount =
     accounts.find((account) => account.id === activeAccountId) ?? accounts[0];
 
-  if (accounts.length === 0) return null;
+  if (accounts.length < 2) return null;
 
   const handleSelect = async (accountId: string) => {
     if (accountId === activeAccountId || switching) return;
@@ -75,38 +75,6 @@ export function PortalAccountSwitcher({
 
   if (!activeAccount) return null;
 
-  const trigger = (
-    <div className="flex w-full items-center gap-3">
-      <AccountAvatar account={activeAccount} userAvatarUrl={userAvatarUrl} />
-      <span className="min-w-0 flex-1">
-        <span className="block truncate text-sm font-semibold text-neutral-900">
-          {activeAccount.name}
-        </span>
-        <span className="mt-0.5 block text-xs text-neutral-500">
-          {activeAccount.accountType === "organization"
-            ? "Organization"
-            : "Personal"}
-        </span>
-      </span>
-      {accounts.length > 1 ? (
-        <ChevronDown
-          className={cn(
-            "h-4 w-4 shrink-0 text-neutral-400 transition-transform",
-            open && "rotate-180",
-          )}
-        />
-      ) : null}
-    </div>
-  );
-
-  if (accounts.length === 1) {
-    return (
-      <div className="flex min-w-0 max-w-[min(100vw-4rem,280px)] items-center gap-3 rounded-xl bg-kenoo-white px-3 py-2.5">
-        {trigger}
-      </div>
-    );
-  }
-
   return (
     <DropdownMenu open={open} onOpenChange={setOpen}>
       <DropdownMenuTrigger asChild>
@@ -121,7 +89,25 @@ export function PortalAccountSwitcher({
             open && "bg-neutral-50",
           )}
         >
-          {trigger}
+          <div className="flex w-full items-center gap-3">
+            <AccountAvatar account={activeAccount} userAvatarUrl={userAvatarUrl} />
+            <span className="min-w-0 flex-1">
+              <span className="block truncate text-sm font-semibold text-neutral-900">
+                {activeAccount.name}
+              </span>
+              <span className="mt-0.5 block text-xs text-neutral-500">
+                {activeAccount.accountType === "organization"
+                  ? "Organization"
+                  : "Account"}
+              </span>
+            </span>
+            <ChevronDown
+              className={cn(
+                "h-4 w-4 shrink-0 text-neutral-400 transition-transform",
+                open && "rotate-180",
+              )}
+            />
+          </div>
         </button>
       </DropdownMenuTrigger>
 
@@ -166,7 +152,7 @@ export function PortalAccountSwitcher({
                     <p className="mt-0.5 text-xs text-neutral-500">
                       {account.accountType === "organization"
                         ? "Organization"
-                        : "Personal"}
+                        : "Account"}
                     </p>
                   </div>
                   {isActive ? (

@@ -15,7 +15,6 @@ const navItems = [
   { href: "/solutions", label: "Solutions" },
   { href: "/resources", label: "Resources" },
   { href: "/enterprise", label: "Enterprise" },
-  { href: "/pricing", label: "Pricing" },
 ];
 
 const headerEase = [0.22, 1, 0.36, 1] as const;

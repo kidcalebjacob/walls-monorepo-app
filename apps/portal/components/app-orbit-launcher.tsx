@@ -321,7 +321,7 @@ export function AppOrbitLauncher({
                   </p>
                 </div>
               ) : null}
-              {accounts.length > 0 && onAccountChange ? (
+              {accounts.length > 1 && onAccountChange ? (
                 <div className="mt-1">
                   <PortalAccountSwitcher
                     accounts={accounts}
