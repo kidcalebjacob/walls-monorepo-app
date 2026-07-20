@@ -11,6 +11,7 @@ import {
   isMfaSecondFactorPending,
   isTotpMfaSecondFactorPending,
   sanitizePostLoginRedirect,
+  writeActiveAccountIdToDocumentCookie,
 } from "@walls/auth";
 import { Button } from "@walls/ui/button";
 import { Input } from "@walls/ui/input";
@@ -301,11 +302,7 @@ function LoginPageContent() {
         }
 
         if (!hasRedirectParam) {
-          const [apps, accountPayload] = await Promise.all([
-            fetchUserLauncherApps(authUser.id),
-            fetchPortalAccounts(authUser.id),
-          ]);
-          setLauncherApps(apps);
+          const accountPayload = await fetchPortalAccounts(authUser.id);
           setPortalAccounts(
             accountPayload.accounts.map((account) => ({
               id: account.id,
@@ -315,6 +312,11 @@ function LoginPageContent() {
             })),
           );
           setActiveAccountId(accountPayload.activeAccountId);
+          const apps = await fetchUserLauncherApps(
+            authUser.id,
+            accountPayload.activeAccountId,
+          );
+          setLauncherApps(apps);
         }
       } catch (err) {
         console.error("Error fetching user data:", err);
@@ -650,10 +652,13 @@ function LoginPageContent() {
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ accountId }),
               });
+              // Always mirror on the client so launcher reads the same account
+              // immediately (avoids stale host-only vs .kenoo.io cookie pairs).
+              writeActiveAccountIdToDocumentCookie(accountId);
               if (!response.ok) {
-                // Localhost fallback: set the cookie from the client.
-                const maxAge = 60 * 60 * 24 * 365;
-                document.cookie = `kenoo_account_id=${encodeURIComponent(accountId)}; path=/; max-age=${maxAge}; samesite=lax`;
+                console.warn(
+                  "[portal] account switch API failed; using client cookie only",
+                );
               }
               setActiveAccountId(accountId);
               const supabase = getSupabaseClient();
@@ -662,7 +667,7 @@ function LoginPageContent() {
               } = await supabase.auth.getUser();
               if (!user) return;
               setAppsLoading(true);
-              const apps = await fetchUserLauncherApps(user.id);
+              const apps = await fetchUserLauncherApps(user.id, accountId);
               setLauncherApps(apps);
             } finally {
               setAppsLoading(false);

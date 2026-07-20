@@ -195,17 +195,47 @@ export async function userHasAppAccessForActiveAccount(
   return userHasLegacyAppAccess(supabase, userId, appRow.id as string);
 }
 
+function browserHostname(): string | undefined {
+  if (typeof globalThis === "undefined") return undefined;
+  const loc = (globalThis as { location?: { hostname?: string } }).location;
+  return loc?.hostname;
+}
+
 /** Browser helper — reads the shared active-account cookie when present. */
 export function readActiveAccountIdFromDocumentCookie(): string | null {
   if (typeof document === "undefined") return null;
-  const match = document.cookie
+  const prefix = `${ACTIVE_ACCOUNT_COOKIE}=`;
+  const matches = document.cookie
     .split("; ")
-    .find((row) => row.startsWith(`${ACTIVE_ACCOUNT_COOKIE}=`));
-  if (!match) return null;
-  const value = match.slice(ACTIVE_ACCOUNT_COOKIE.length + 1);
+    .filter((row) => row.startsWith(prefix));
+  if (matches.length === 0) return null;
+  // Prefer the last match — host-only and domain cookies can coexist in prod.
+  const value = matches[matches.length - 1]!.slice(prefix.length);
   try {
     return decodeURIComponent(value) || null;
   } catch {
     return value || null;
   }
+}
+
+/** Persist active account for portal launcher + middleware (client-side). */
+export function writeActiveAccountIdToDocumentCookie(
+  accountId: string,
+  hostname?: string,
+): void {
+  if (typeof document === "undefined") return;
+
+  const host = hostname ?? browserHostname();
+  const options = getActiveAccountCookieOptions(host);
+  const maxAge = 60 * 60 * 24 * 365;
+  const secure = options?.secure ? "; secure" : "";
+  const domainOpt = options?.domain ? `; domain=${options.domain}` : "";
+
+  // Clear stale host-only and domain-scoped cookies before writing.
+  document.cookie = `${ACTIVE_ACCOUNT_COOKIE}=; path=/; max-age=0; samesite=lax`;
+  if (options?.domain) {
+    document.cookie = `${ACTIVE_ACCOUNT_COOKIE}=; path=/; max-age=0; domain=${options.domain}; samesite=lax${secure}`;
+  }
+
+  document.cookie = `${ACTIVE_ACCOUNT_COOKIE}=${encodeURIComponent(accountId)}; path=/; max-age=${maxAge}; samesite=lax${secure}${domainOpt}`;
 }

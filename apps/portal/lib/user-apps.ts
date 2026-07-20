@@ -1,8 +1,8 @@
 import {
-  ACTIVE_ACCOUNT_COOKIE,
   getSupabaseClient,
   readActiveAccountIdFromDocumentCookie,
   resolveAppHref,
+  writeActiveAccountIdToDocumentCookie,
 } from "@walls/auth";
 
 export type PortalLauncherApp = {
@@ -116,16 +116,37 @@ export async function fetchPortalAccounts(userId: string): Promise<{
   const fromCookie = preferredAccountId
     ? accounts.find((account) => account.id === preferredAccountId)
     : undefined;
-  const activeAccountId =
+  let activeAccountId =
     fromCookie?.id ??
     accounts.find((account) => account.isDefault)?.id ??
     accounts[0]?.id ??
     null;
 
-  // Persist so middleware / other apps agree on the same active account.
-  if (activeAccountId && typeof document !== "undefined") {
-    const maxAge = 60 * 60 * 24 * 365;
-    document.cookie = `${ACTIVE_ACCOUNT_COOKIE}=${encodeURIComponent(activeAccountId)}; path=/; max-age=${maxAge}; samesite=lax`;
+  // Avoid landing on a default org/personal account with zero app grants when
+  // the user has access elsewhere (common after SaaS cutover).
+  if (activeAccountId && !fromCookie) {
+    const { data: userGrants } = await supabase
+      .from("account_app_user_access")
+      .select("account_id")
+      .eq("user_id", userId);
+
+    const grantAccountIds = new Set(
+      (userGrants ?? [])
+        .map((row) => row.account_id as string)
+        .filter(Boolean),
+    );
+
+    if (grantAccountIds.size > 0 && !grantAccountIds.has(activeAccountId)) {
+      const fallback =
+        accounts.find((account) => grantAccountIds.has(account.id)) ?? null;
+      if (fallback) {
+        activeAccountId = fallback.id;
+      }
+    }
+  }
+
+  if (activeAccountId) {
+    writeActiveAccountIdToDocumentCookie(activeAccountId);
   }
 
   return { accounts, activeAccountId };
@@ -138,6 +159,7 @@ export async function fetchPortalAccounts(userId: string): Promise<{
  */
 export async function fetchUserLauncherApps(
   userId: string,
+  explicitAccountId?: string | null,
 ): Promise<PortalLauncherApp[]> {
   const supabase = getSupabaseClient();
 
@@ -162,7 +184,8 @@ export async function fetchUserLauncherApps(
     .filter((id): id is string => !!id);
   const legacyAccessRows = legacyAccessResult.data ?? [];
 
-  const preferredAccountId = readActiveAccountIdFromDocumentCookie();
+  const preferredAccountId =
+    explicitAccountId ?? readActiveAccountIdFromDocumentCookie();
   const defaultMembership = memberships.find((row) => row.is_default === true);
   const activeAccountId =
     (preferredAccountId && accountIds.includes(preferredAccountId)

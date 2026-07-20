@@ -14,6 +14,7 @@ export {
   accountUserHasAppAccess,
   getActiveAccountCookieOptions,
   readActiveAccountIdFromDocumentCookie,
+  writeActiveAccountIdToDocumentCookie,
   resolveActiveAccountId,
   userHasAccountAppGrants,
   userHasAppAccessForActiveAccount,
