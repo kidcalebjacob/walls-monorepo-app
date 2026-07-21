@@ -114,7 +114,25 @@ export function AccountSwitcher() {
     return <AccountSwitcherSkeleton />;
   }
 
-  if (!activeAccount || accounts.length < 2) return null;
+  if (!activeAccount) return null;
+
+  // Single linked account: show the account label without a switcher control.
+  if (accounts.length < 2) {
+    return (
+      <div
+        className="mt-2 flex min-w-0 max-w-[min(100vw-8rem,280px)] items-center gap-3 rounded-xl bg-kenoo-white px-3 py-2.5"
+        aria-label={`Current account: ${activeAccount.name}`}
+      >
+        <AccountAvatar account={activeAccount} size="md" />
+        <span className="min-w-0 flex-1">
+          <span className="block truncate text-sm font-semibold text-foreground">
+            {activeAccount.name}
+          </span>
+          <AccountTypeBadge account={activeAccount} className="mt-0.5" />
+        </span>
+      </div>
+    );
+  }
 
   return (
     <DropdownMenu open={open} onOpenChange={setOpen}>

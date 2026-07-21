@@ -245,10 +245,36 @@ function ProfileAccountSwitcher({
   const activeAccount =
     accounts.find((account) => account.id === activeAccountId) ?? accounts[0];
 
-  if (!activeAccount || accounts.length < 2) return null;
+  if (!activeAccount) return null;
 
   const accountKindLabel =
     activeAccount.accountType === "organization" ? "Organization" : "Account";
+
+  // Single linked account: show the account chip without an expand control.
+  if (accounts.length < 2) {
+    return (
+      <div className="mt-3">
+        <div
+          className="flex w-full items-center gap-2 rounded-xl bg-white/[0.06] px-2.5 py-2"
+          aria-label={`Current account: ${activeAccount.name}`}
+        >
+          <ProfileAccountAvatar
+            account={activeAccount}
+            userAvatarUrl={userAvatarUrl}
+            size="xs"
+          />
+          <span className="min-w-0 flex-1">
+            <span className="block text-[10px] font-medium uppercase tracking-wide text-white/45">
+              {accountKindLabel}
+            </span>
+            <span className="block truncate text-xs font-medium text-white/90">
+              {activeAccount.name}
+            </span>
+          </span>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="mt-3">
