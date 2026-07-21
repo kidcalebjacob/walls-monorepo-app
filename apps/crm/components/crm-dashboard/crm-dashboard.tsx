@@ -695,7 +695,7 @@ function ContactPanel({ contact }: { contact: FeaturedContact | null }) {
 
 function DashboardSkeleton() {
   return (
-    <div className="mx-auto flex h-full max-w-[1400px] flex-col gap-6 px-4 py-6 sm:px-6 lg:px-8">
+    <div className="app-sidebar-pad mx-auto flex h-full max-w-[1400px] flex-col gap-6 py-6 pr-4 sm:pr-6 lg:pr-8">
       <div className="flex flex-wrap items-center justify-center gap-x-12 gap-y-6 py-2">
         <Skeleton className="h-14 w-52 rounded-2xl bg-white/50" />
         <Skeleton className="h-14 w-44 rounded-2xl bg-white/50" />
@@ -728,7 +728,7 @@ export function CrmDashboard() {
       : undefined;
 
   return (
-    <div className="mx-auto flex min-h-full max-w-[1400px] flex-col gap-6 bg-kenoo-white px-4 py-6 sm:px-6 lg:px-8">
+    <div className="app-sidebar-pad mx-auto flex min-h-full max-w-[1400px] flex-col gap-6 bg-kenoo-white py-6 pr-4 sm:pr-6 lg:pr-8">
       {/* KPIs */}
       <div className="flex flex-wrap items-center justify-center gap-x-12 gap-y-6 py-1 sm:gap-x-16 lg:gap-x-20">
         <KpiBlock

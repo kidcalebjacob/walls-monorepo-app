@@ -259,7 +259,7 @@ export function PitchesFilter({
       className={cn(
         "fixed inset-y-0 left-0 w-80 bg-white/80 backdrop-blur-xl border-r border-white/30 transform transition-transform duration-200 ease-in-out rounded-none shadow-2xl",
         isOpen ? "translate-x-0" : "-translate-x-full",
-        "z-50"
+        "z-[110]"
       )}
     >
       <div className="h-full flex flex-col">
@@ -305,7 +305,7 @@ export function PitchesFilter({
                     </SelectValue>
                   </div>
                 </SelectTrigger>
-                <SelectContent className="">
+                <SelectContent className="z-[120]">
                   <SelectItem value="all" className="">--</SelectItem>
                   {agents
                     .filter(agent => agent.id && agent.displayName)
@@ -351,7 +351,7 @@ export function PitchesFilter({
                     </SelectValue>
                   </div>
                 </SelectTrigger>
-                <SelectContent className="">
+                <SelectContent className="z-[120]">
                   <SelectItem value="all" className="">--</SelectItem>
                   {filteredContacts
                     .filter(contact => contact.email && contact.firstName && contact.lastName)
@@ -406,7 +406,7 @@ export function PitchesFilter({
                     </SelectValue>
                   </div>
                 </SelectTrigger>
-                <SelectContent className="">
+                <SelectContent className="z-[120]">
                   <SelectItem value="all" className="">--</SelectItem>
                   {filteredCompanies
                     .filter(company => company.website && company.name)
@@ -468,7 +468,7 @@ export function PitchesFilter({
                     </SelectValue>
                   </div>
                 </SelectTrigger>
-                <SelectContent className="">
+                <SelectContent className="z-[120]">
                   <SelectItem value="all" className="">--</SelectItem>
                   {filteredCreators
                     .filter(creator => creator.creatorAlias)

@@ -407,9 +407,9 @@ export function DealsKanban({
   };
 
   return (
-    <div className="flex-1 min-h-0 pl-8 pr-4 overflow-x-auto overflow-y-hidden overscroll-contain flex flex-col">
+    <div className="flex flex-1 min-h-0 flex-col overflow-x-auto overflow-y-hidden overscroll-contain pr-4">
       {loading ? (
-        <div className="flex flex-1 min-h-0 gap-6 pb-0 min-w-max">
+        <div className="app-sidebar-pad flex flex-1 min-h-0 gap-6 pb-0 min-w-max">
           {[1, 2, 3, 4].map((i) => (
             <div
               key={i}
@@ -418,7 +418,7 @@ export function DealsKanban({
           ))}
         </div>
       ) : stages.length === 0 ? (
-        <div className="flex-1 flex items-center justify-center">
+        <div className="app-sidebar-pad flex flex-1 items-center justify-center">
           <p className="text-muted-foreground font-light">No deal stages configured.</p>
         </div>
       ) : (
@@ -428,7 +428,7 @@ export function DealsKanban({
           onDragStart={handleDragStart}
           onDragEnd={handleDragEnd}
         >
-          <div className="flex flex-1 min-h-0 gap-6 pb-0 min-w-max">
+          <div className="app-sidebar-pad flex flex-1 min-h-0 gap-6 pb-0 min-w-max">
             {stages.map((stage) => (
               <DealsKanbanColumn
                 key={stage.id}

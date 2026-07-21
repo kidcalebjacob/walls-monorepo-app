@@ -49,8 +49,9 @@ export function AppSidebar({ headerVisible = true }: { headerVisible?: boolean }
       <nav
         className={cn(
           "pointer-events-auto flex flex-col items-stretch gap-1 overflow-hidden",
-          "rounded-[2rem] bg-white/85 p-2 backdrop-blur-md",
-          "shadow-[0_10px_32px_rgba(15,23,42,0.08),0_2px_8px_rgba(15,23,42,0.04)]",
+          "rounded-[2rem] bg-white/70 p-2 backdrop-blur-xl",
+          "shadow-[0_12px_40px_rgba(15,23,42,0.10),0_2px_8px_rgba(15,23,42,0.04)]",
+          "ring-1 ring-white/60",
           "transition-[width] duration-300 ease-in-out",
           isExpanded ? "w-[11.5rem]" : "w-14",
         )}

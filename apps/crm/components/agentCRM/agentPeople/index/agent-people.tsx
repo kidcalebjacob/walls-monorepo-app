@@ -781,7 +781,7 @@ function AgentLeadsContent({ analyticsData }: AgentLeadsProps) {
           }}
         />
 
-        <div className="flex-1 overflow-y-auto overscroll-none pl-8 pr-0">
+        <div className="app-sidebar-pad flex-1 overflow-y-auto overscroll-none pr-0">
           <TooltipPrimitive.Provider delayDuration={200}>
             <div ref={tableWrapperRef} className="flex flex-col gap-0 min-h-full">
             {/* Header Row - Always visible */}

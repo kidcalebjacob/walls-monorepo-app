@@ -28,7 +28,7 @@ export const CompaniesTableToolbar = ({
   };
 
   return (
-    <div className="flex-shrink-0 w-full mt-4 pl-8 pr-0">
+    <div className="app-sidebar-pad mt-4 w-full flex-shrink-0 pr-0">
       <div className="flex justify-between items-end mb-6 gap-4">
         <div className="flex items-center gap-4 flex-1">
           {/* Filter Button */}
