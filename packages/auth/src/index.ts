@@ -24,6 +24,7 @@ export {
 } from "./active-account";
 export {
   buildPortalCreatePasswordUrl,
+  buildPortalInviteRedirectUrl,
   buildPortalLoginUrl,
   normalizePortalOrigin,
   resolvePortalLoginOrigin,

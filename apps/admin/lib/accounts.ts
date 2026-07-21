@@ -1,5 +1,5 @@
 import {
-  buildPortalCreatePasswordUrl,
+  buildPortalInviteRedirectUrl,
   buildPortalLoginUrl,
 } from "@walls/auth/portal-url";
 import { createAdminClient } from "@walls/supabase/admin";
@@ -264,7 +264,7 @@ async function inviteAuthUserByEmail(input: {
 > {
   const admin = createAdminClient();
   const email = input.email.trim().toLowerCase();
-  const redirectTo = buildPortalCreatePasswordUrl();
+  const redirectTo = buildPortalInviteRedirectUrl();
   const metadata = {
     first_name: input.firstName?.trim() || emailLocalPart(email),
     last_name: input.lastName?.trim() || null,

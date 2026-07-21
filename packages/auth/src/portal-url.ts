@@ -123,3 +123,29 @@ export function buildPortalCreatePasswordUrl(
     resolvePortalLoginOrigin(currentAppOrigin),
   ).toString();
 }
+
+/**
+ * redirectTo embedded in Supabase invite emails.
+ *
+ * Invite links are opened from email clients (often on another device), and
+ * hosted Supabase rejects localhost redirectTo values that aren't allow-listed —
+ * falling back to Site URL (`https://portal.kenoo.io`), which our portal then
+ * bounces to `/login`. Always prefer the production portal for invite emails
+ * when the resolved portal origin is local.
+ */
+export function buildPortalInviteRedirectUrl(
+  currentAppOrigin?: string,
+): string {
+  const origin = resolvePortalLoginOrigin(currentAppOrigin);
+
+  try {
+    const { hostname } = new URL(origin);
+    if (hostname === "localhost" || hostname === "127.0.0.1") {
+      return new URL("/create-password", DEFAULT_PROD_PORTAL_ORIGIN).toString();
+    }
+  } catch {
+    // fall through
+  }
+
+  return new URL("/create-password", origin).toString();
+}
