@@ -932,13 +932,13 @@ export default function Tasks({ sequenceId }: TasksProps) {
         {/* Table Skeleton */}
         <div className="min-h-0 flex-1 overflow-y-auto overflow-x-auto overscroll-none px-8 pb-8">
           <table className="w-full text-sm min-w-[760px]">
-            <thead className="sticky top-0 z-10 border-b border-neutral-100 bg-gray-50">
+            <thead className="sticky top-0 z-10 border-b border-neutral-100 bg-kenoo-white">
               <tr>
-                <th className="w-10 pb-3 bg-gray-50" />
-                <th className="text-left pb-3 pr-4 font-medium text-neutral-400 text-xs uppercase tracking-wide whitespace-nowrap bg-gray-50 w-[260px]">Task</th>
-                <th className="text-left pb-3 pr-4 font-medium text-neutral-400 text-xs uppercase tracking-wide whitespace-nowrap bg-gray-50 w-[220px]">Contact</th>
-                <th className="text-left pb-3 pr-4 font-medium text-neutral-400 text-xs uppercase tracking-wide whitespace-nowrap bg-gray-50 w-[200px]">Scheduled For</th>
-                <th className="text-left pb-3 pr-4 font-medium text-neutral-400 text-xs uppercase tracking-wide whitespace-nowrap bg-gray-50 w-[120px]">Step</th>
+                <th className="w-10 pb-3 bg-kenoo-white" />
+                <th className="text-left pb-3 pr-4 font-medium text-neutral-400 text-xs uppercase tracking-wide whitespace-nowrap bg-kenoo-white w-[260px]">Task</th>
+                <th className="text-left pb-3 pr-4 font-medium text-neutral-400 text-xs uppercase tracking-wide whitespace-nowrap bg-kenoo-white w-[220px]">Contact</th>
+                <th className="text-left pb-3 pr-4 font-medium text-neutral-400 text-xs uppercase tracking-wide whitespace-nowrap bg-kenoo-white w-[200px]">Scheduled For</th>
+                <th className="text-left pb-3 pr-4 font-medium text-neutral-400 text-xs uppercase tracking-wide whitespace-nowrap bg-kenoo-white w-[120px]">Step</th>
               </tr>
             </thead>
             <tbody>
@@ -1102,19 +1102,19 @@ export default function Tasks({ sequenceId }: TasksProps) {
       {/* Table */}
       <div className="min-h-0 flex-1 overflow-y-auto overflow-x-auto overscroll-none px-8 pb-8">
         <table className="w-full text-sm min-w-[760px]">
-          <thead className="sticky top-0 z-10 border-b border-neutral-100 bg-gray-50">
+          <thead className="sticky top-0 z-10 border-b border-neutral-100 bg-kenoo-white">
             <tr>
-              <th className="w-10 pb-3 bg-gray-50" />
-              <th className="text-left pb-3 pr-4 font-medium text-neutral-400 text-xs uppercase tracking-wide whitespace-nowrap bg-gray-50 w-[260px]">
+              <th className="w-10 pb-3 bg-kenoo-white" />
+              <th className="text-left pb-3 pr-4 font-medium text-neutral-400 text-xs uppercase tracking-wide whitespace-nowrap bg-kenoo-white w-[260px]">
                 Task
               </th>
-              <th className="text-left pb-3 pr-4 font-medium text-neutral-400 text-xs uppercase tracking-wide whitespace-nowrap bg-gray-50 w-[220px]">
+              <th className="text-left pb-3 pr-4 font-medium text-neutral-400 text-xs uppercase tracking-wide whitespace-nowrap bg-kenoo-white w-[220px]">
                 Contact
               </th>
-              <th className="text-left pb-3 pr-4 font-medium text-neutral-400 text-xs uppercase tracking-wide whitespace-nowrap bg-gray-50 w-[200px]">
+              <th className="text-left pb-3 pr-4 font-medium text-neutral-400 text-xs uppercase tracking-wide whitespace-nowrap bg-kenoo-white w-[200px]">
                 Scheduled For
               </th>
-              <th className="text-left pb-3 pr-4 font-medium text-neutral-400 text-xs uppercase tracking-wide whitespace-nowrap bg-gray-50 w-[120px]">
+              <th className="text-left pb-3 pr-4 font-medium text-neutral-400 text-xs uppercase tracking-wide whitespace-nowrap bg-kenoo-white w-[120px]">
                 Step
               </th>
             </tr>

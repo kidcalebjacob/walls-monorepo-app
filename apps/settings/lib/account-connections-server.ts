@@ -7,7 +7,28 @@ import {
   type AccountConnectionRecord,
   type SafeAccountConnection,
 } from "./account-connections";
-import { getAccountMembershipForUser } from "./accounts";
+
+async function getAccountMembershipForUser(
+  userId: string,
+  accountId: string,
+): Promise<{ role: string; isDefault: boolean } | null> {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("account_users")
+    .select("role, is_default")
+    .eq("user_id", userId)
+    .eq("account_id", accountId)
+    .maybeSingle();
+
+  if (error || !data) {
+    return null;
+  }
+
+  return {
+    role: data.role as string,
+    isDefault: data.is_default,
+  };
+}
 
 export async function listSafeConnectionsForAccount(
   accountId: string,

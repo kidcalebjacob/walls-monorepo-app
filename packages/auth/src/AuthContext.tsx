@@ -15,6 +15,7 @@ export interface User {
 /** Profile data loaded once globally and consumed by UserProfileButton and others. */
 export interface UserProfileApp {
   app_id: string;
+  slug: string;
   name: string;
   icon: string;
   /**
@@ -32,6 +33,7 @@ export interface UserProfile {
   userFullName: string;
   initials: string | undefined;
   userType: string | null;
+  isAdmin: boolean;
   userApps: UserProfileApp[];
 }
 

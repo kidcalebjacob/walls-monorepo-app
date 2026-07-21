@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.49.8",
+    "@walls/billing": "workspace:*",
     "@walls/config": "workspace:*",
     "@walls/supabase": "workspace:*",
     "@walls/ui": "workspace:*",

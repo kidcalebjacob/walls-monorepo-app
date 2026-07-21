@@ -1,202 +1,250 @@
-'use client';
+"use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
-import { cn } from "@/lib/utils";
-import { Button } from "@/components/ui/button";
+import { usePathname, useSearchParams } from "next/navigation";
+import { Suspense, useState } from "react";
+import { cn } from "@walls/utils";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { motion, AnimatePresence } from "framer-motion";
 import {
-  Lock,
-  ChevronLeft,
-  UserCircle,
-  Users,
+  ArrowRight,
+  Award,
+  ChevronDown,
+  CreditCard,
+  Home,
   LayoutGrid,
-  ListTodo,
-  Building2,
+  Receipt,
+  Settings,
+  UserPlus,
+  Users,
 } from "lucide-react";
-import { useAdminSidebar } from "./AdminSidebarContext";
+import { useActiveAccount } from "@/components/active-account-context";
+import { ChromeFrame } from "@/components/ui/chrome-frame";
 
-const menuItems = [
-  { name: "Users", href: "/users", Icon: UserCircle },
-  { name: "Accounts", href: "/accounts", Icon: Building2 },
-  { name: "Apps", href: "/apps", Icon: LayoutGrid },
-  { name: "Jobs", href: "/jobs", Icon: ListTodo },
-  { name: "Teams", href: "/teams", Icon: Users },
-];
+type NavChild = {
+  name: string;
+  href: string;
+  Icon: typeof Users;
+  match?: "exact" | "invite" | "payment";
+};
 
-export function AdminSidebar() {
+type NavItem = {
+  name: string;
+  href: string;
+  Icon: typeof Home;
+  exact?: boolean;
+  children?: NavChild[];
+};
+
+function AdminSidebarNav() {
   const pathname = usePathname();
-  const { isCollapsed, setIsCollapsed, isHoverExpanded, setIsHoverExpanded } = useAdminSidebar();
-  const isExpanded = !isCollapsed || isHoverExpanded;
+  const searchParams = useSearchParams();
+  const { activeAccountId } = useActiveAccount();
+
+  const menuItems: NavItem[] = [
+    { name: "Home", href: "/", Icon: Home, exact: true },
+    ...(activeAccountId
+      ? [
+          {
+            name: "Apps",
+            href: `/accounts/${activeAccountId}`,
+            Icon: LayoutGrid,
+          },
+        ]
+      : []),
+    {
+      name: "Users",
+      href: "/users",
+      Icon: Users,
+      children: [
+        { name: "All users", href: "/users", Icon: Users, match: "exact" },
+        {
+          name: "Add user",
+          href: "/users?invite=1",
+          Icon: UserPlus,
+          match: "invite",
+        },
+      ],
+    },
+    {
+      name: "Billing",
+      href: "/billing",
+      Icon: CreditCard,
+      children: [
+        {
+          name: "Subscriptions",
+          href: "/billing",
+          Icon: Receipt,
+          match: "exact",
+        },
+        {
+          name: "Payment method",
+          href: "/billing?section=payment",
+          Icon: CreditCard,
+          match: "payment",
+        },
+      ],
+    },
+    { name: "Account", href: "/account", Icon: Settings },
+  ];
+
+  const initiallyOpen = menuItems
+    .filter((item) => item.children?.length)
+    .filter((item) => {
+      const base = item.href.split("?")[0];
+      return pathname === base || pathname.startsWith(`${base}/`);
+    })
+    .map((item) => item.name);
+
+  const [openSections, setOpenSections] = useState<string[]>(initiallyOpen);
+
+  const toggleSection = (name: string) => {
+    setOpenSections((current) =>
+      current.includes(name)
+        ? current.filter((item) => item !== name)
+        : [...current, name],
+    );
+  };
+
+  const isPathActive = (href: string, exact?: boolean) => {
+    const base = href.split("?")[0];
+    if (exact) return pathname === base;
+    return pathname === base || pathname.startsWith(`${base}/`);
+  };
+
+  const isChildActive = (child: NavChild) => {
+    const base = child.href.split("?")[0];
+    if (pathname !== base) return false;
+    if (child.match === "invite") return searchParams.get("invite") === "1";
+    if (child.match === "payment")
+      return searchParams.get("section") === "payment";
+    return (
+      !searchParams.get("invite") && searchParams.get("section") !== "payment"
+    );
+  };
 
   return (
-    <div
-      className={cn(
-        "fixed top-0 left-0 h-screen z-50",
-        "transition-all duration-500 ease-in-out",
-        "bg-gray-50",
-        "hidden md:block",
-        isExpanded ? "w-40" : "w-16"
-      )}
-      onMouseEnter={() => setIsHoverExpanded(true)}
-      onMouseLeave={() => setIsHoverExpanded(false)}
-    >
-      <div className="flex h-full flex-col relative">
-        <ScrollArea className="flex-1">
-          <div className="space-y-1 p-2 pt-48">
-            {/* Collapse Button */}
-            <Button
-              variant="ghost"
-              size="icon"
+    <nav className="space-y-0.5 px-2 pb-4 pt-3">
+      {menuItems.map((item) => {
+        const hasChildren = Boolean(item.children?.length);
+        const isOpen = openSections.includes(item.name);
+        const isActive =
+          isPathActive(item.href, item.exact) ||
+          (hasChildren && item.children!.some((child) => isChildActive(child)));
+
+        if (!hasChildren) {
+          return (
+            <Link
+              key={item.name}
+              href={item.href}
               className={cn(
-                "w-full justify-start text-slate-600 transition-all duration-500 ease-in-out",
-                "relative group hover:bg-transparent",
-                !isExpanded ? "px-2" : ""
+                "flex h-10 items-center gap-3 rounded-full px-3 text-sm transition-colors",
+                isActive
+                  ? "bg-[#e8f0fe] font-medium text-[#1967d2]"
+                  : "font-normal text-[#3c4043] hover:bg-[#e8eaed]",
               )}
-              onClick={() => setIsCollapsed(!isCollapsed)}
             >
-              <div className={cn(
-                "flex items-center relative z-10",
-                !isExpanded ? "justify-center" : ""
-              )}>
-                <div className="relative group">
-                  <div className="
-                    relative z-10 p-3
-                    rounded-full
-                    border border-transparent
-                    transition-all duration-300 ease-in-out
-                    group-hover:bg-gray-50 group-hover:border-neutral-200
-                    group-hover:scale-95
-                    group-hover:shadow-[inset_0_4px_8px_rgba(0,0,0,0.15)]
-                  ">
-                    <div className="h-[18px] w-[18px] relative flex items-center justify-center">
-                      <AnimatePresence mode="wait" initial={false}>
-                        {!isCollapsed ? (
-                          <motion.div
-                            key="lock"
-                            initial={{ opacity: 0, scale: 0.5 }}
-                            animate={{ opacity: 1, scale: 1 }}
-                            exit={{ opacity: 0, scale: 0.5 }}
-                            transition={{ duration: 0.2, ease: "easeInOut" }}
-                            className="absolute inset-0 flex items-center justify-center"
-                          >
-                            <Lock className="h-[18px] w-[18px] stroke-[1.5] text-slate-600" />
-                          </motion.div>
-                        ) : (
-                          <motion.div
-                            key="chevron"
-                            initial={{ opacity: 0, scale: 0.5 }}
-                            animate={{
-                              opacity: 1,
-                              scale: 1,
-                              rotate: isExpanded ? 0 : 180,
-                            }}
-                            exit={{ opacity: 0, scale: 0.5 }}
-                            transition={{
-                              opacity: { duration: 0.2, ease: "easeInOut" },
-                              scale: { duration: 0.2, ease: "easeInOut" },
-                              rotate: { duration: 0.5, ease: "easeInOut" },
-                            }}
-                            className="absolute inset-0 flex items-center justify-center"
-                          >
-                            <ChevronLeft className="h-[18px] w-[18px] stroke-[1.5] text-slate-600" />
-                          </motion.div>
-                        )}
-                      </AnimatePresence>
-                    </div>
-                  </div>
-                </div>
-                <motion.div
-                  className="overflow-hidden flex items-center"
-                  initial={false}
-                  animate={{
-                    width: isExpanded ? 80 : 0,
-                    opacity: isExpanded ? 1 : 0,
-                    marginLeft: isExpanded ? 12 : 0,
-                  }}
-                  transition={{ duration: 0.5, ease: "easeInOut" }}
-                >
-                  <motion.div
-                    className="overflow-hidden"
-                    initial={false}
-                    animate={{
-                      opacity: !isCollapsed ? 1 : 0,
-                      x: !isCollapsed ? 0 : -8,
-                    }}
-                    transition={{ duration: 0.5, ease: "easeInOut" }}
-                  >
-                    <span className="font-light whitespace-nowrap">
-                      Locked
-                    </span>
-                  </motion.div>
-                </motion.div>
+              <item.Icon
+                className={cn(
+                  "h-[18px] w-[18px] shrink-0 stroke-[1.5]",
+                  isActive ? "text-[#1967d2]" : "text-[#5f6368]",
+                )}
+              />
+              <span className="truncate">{item.name}</span>
+            </Link>
+          );
+        }
+
+        return (
+          <div key={item.name} className="space-y-0.5">
+            <button
+              type="button"
+              onClick={() => toggleSection(item.name)}
+              className={cn(
+                "flex h-10 w-full items-center gap-1 rounded-full px-2 text-sm transition-colors",
+                isActive
+                  ? "bg-[#e8f0fe] font-medium text-[#1967d2]"
+                  : "font-normal text-[#3c4043] hover:bg-[#e8eaed]",
+              )}
+            >
+              <ChevronDown
+                className={cn(
+                  "h-4 w-4 shrink-0 text-[#5f6368] transition-transform",
+                  !isOpen && "-rotate-90",
+                  isActive && "text-[#1967d2]",
+                )}
+              />
+              <item.Icon
+                className={cn(
+                  "h-[18px] w-[18px] shrink-0 stroke-[1.5]",
+                  isActive ? "text-[#1967d2]" : "text-[#5f6368]",
+                )}
+              />
+              <span className="ml-2 truncate">{item.name}</span>
+            </button>
+
+            {isOpen && (
+              <div className="ml-4 space-y-0.5 border-l border-[#e8eaed] pl-2">
+                {item.children!.map((child) => {
+                  const childActive = isChildActive(child);
+                  return (
+                    <Link
+                      key={child.name}
+                      href={child.href}
+                      className={cn(
+                        "flex h-9 items-center gap-3 rounded-full px-3 text-[13px] transition-colors",
+                        childActive
+                          ? "bg-[#e8f0fe]/70 font-medium text-[#1967d2]"
+                          : "font-normal text-[#5f6368] hover:bg-[#e8eaed] hover:text-[#202124]",
+                      )}
+                    >
+                      <child.Icon className="h-4 w-4 shrink-0 stroke-[1.5]" />
+                      <span className="truncate">{child.name}</span>
+                    </Link>
+                  );
+                })}
               </div>
-            </Button>
-
-            {/* Navigation Items */}
-            {menuItems.map(({ name, href, Icon }) => {
-              const isActive =
-                pathname === href || pathname.startsWith(`${href}/`);
-
-              return (
-                <Button
-                  key={name}
-                  variant="ghost"
-                  className={cn(
-                    "w-full justify-start text-slate-600 transition-all duration-500 ease-in-out",
-                    "relative group hover:bg-transparent",
-                    !isExpanded ? "px-2" : "",
-                    isActive ? "text-black" : ""
-                  )}
-                  asChild
-                >
-                  <Link href={href}>
-                    <div className={cn(
-                      "flex items-center relative z-10",
-                      !isExpanded ? "justify-center" : ""
-                    )}>
-                      <div className="relative group">
-                        <div className={cn(
-                          "relative z-10 p-3 rounded-full border border-transparent transition-all duration-300 ease-in-out",
-                          "group-hover:bg-gray-50 group-hover:border-neutral-200",
-                          "group-hover:scale-95",
-                          isActive
-                            ? [
-                                "shadow-[0_0_0_1px_rgba(110,173,192,0.4),0_0_12px_rgba(110,173,192,0.4)]",
-                                "group-hover:shadow-[inset_0_4px_8px_rgba(0,0,0,0.15),0_0_0_1px_rgba(110,173,192,0.4),0_0_12px_rgba(110,173,192,0.4)]",
-                              ]
-                            : "group-hover:shadow-[inset_0_4px_8px_rgba(0,0,0,0.15)]"
-                        )}>
-                          <Icon className={cn(
-                            "h-[18px] w-[18px] stroke-[1.5]",
-                            "text-neutral-500"
-                          )} />
-                        </div>
-                      </div>
-                      <motion.div
-                        className="overflow-hidden flex items-center"
-                        initial={false}
-                        animate={{
-                          width: isExpanded ? 80 : 0,
-                          opacity: isExpanded ? 1 : 0,
-                          marginLeft: isExpanded ? 12 : 0,
-                        }}
-                        transition={{ duration: 0.5, ease: "easeInOut" }}
-                      >
-                        <span className="font-light whitespace-nowrap">
-                          {name}
-                        </span>
-                      </motion.div>
-                    </div>
-                  </Link>
-                </Button>
-              );
-            })}
-
+            )}
           </div>
+        );
+      })}
+    </nav>
+  );
+}
+
+export function AdminSidebar({
+  headerVisible = true,
+}: {
+  headerVisible?: boolean;
+}) {
+  return (
+    <aside
+      className={cn(
+        "fixed left-0 z-40 hidden w-60 bg-kenoo-white md:block",
+        headerVisible ? "top-16 h-[calc(100vh-4rem)]" : "top-0 h-screen",
+      )}
+    >
+      <div className="flex h-full flex-col">
+        <ScrollArea className="flex-1">
+          <Suspense fallback={<div className="h-40" />}>
+            <AdminSidebarNav />
+          </Suspense>
         </ScrollArea>
+
+        <div className="border-t border-[#e8eaed] p-3">
+          <ChromeFrame className="w-full" contentClassName="w-full">
+            <Link
+              href="/billing"
+              className="inline-flex h-11 w-full items-center justify-between rounded-[10.5px] bg-kenoo-white px-4 text-sm font-medium text-[#111111] transition-colors hover:bg-[#efefef]"
+            >
+              <span className="flex items-center gap-2">
+                <Award className="h-4 w-4 shrink-0 stroke-[1.75]" />
+                Upgrade
+              </span>
+              <ArrowRight className="h-4 w-4 shrink-0 stroke-[1.75] text-[#5f6368]" />
+            </Link>
+          </ChromeFrame>
+        </div>
       </div>
-    </div>
+    </aside>
   );
 }

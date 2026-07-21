@@ -738,7 +738,7 @@ export default function AgentDeals({ analyticsData }: AgentDealsProps) {
             onDealClick={handleDealClick}
           />
         ) : (
-          <div className="flex-1 overflow-y-auto overscroll-none pl-8 pr-0">
+          <div className="app-sidebar-pad flex-1 overflow-y-auto overscroll-none pr-0">
             <TooltipPrimitive.Provider delayDuration={200}>
               <div ref={tableWrapperRef} className="flex flex-col gap-0 min-h-full">
               {/* Header Row - Always visible */}
@@ -749,7 +749,7 @@ export default function AgentDeals({ analyticsData }: AgentDealsProps) {
               />
 
               {/* Content Area - Loading or Data */}
-              <div className="flex-1 bg-gray-50 flex flex-col">
+              <div className="flex-1 bg-kenoo-white flex flex-col">
               {loading ? (
                 <CRMSkeleton count={12} />
               ) : (
@@ -788,7 +788,7 @@ export default function AgentDeals({ analyticsData }: AgentDealsProps) {
                 totalPages={totalPages}
                 onPageChange={handlePageChange}
                 buttonVariant="scouter"
-                className="bg-gray-50 shadow-none backdrop-blur-none border-t-0"
+                className="bg-kenoo-white shadow-none backdrop-blur-none border-t-0"
               />
             </div>
             </TooltipPrimitive.Provider>

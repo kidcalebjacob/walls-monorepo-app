@@ -134,17 +134,17 @@ export const PeopleTableRow = ({
         className="absolute top-0 bottom-0 w-px z-10 bg-neutral-300 pointer-events-none"
         style={{ left: `${columnWidths.name}px` }}
       ></div>
-      <Card className="w-full rounded-none bg-gray-50 backdrop-blur-md border-b border-r border-l-0 border-t-0 border-neutral-300 transition-all duration-300 group relative overflow-visible box-border">
+      <Card className="w-full rounded-none bg-kenoo-white backdrop-blur-md border-b border-r border-l-0 border-t-0 border-neutral-300 transition-all duration-300 group relative overflow-visible box-border">
         <CardContent className="py-3 relative z-10">
           <div className="flex items-stretch">
             {/* Sticky Left Section - Name & Company */}
             <div
-              className="flex items-stretch gap-4 flex-shrink-0 sticky left-0 z-10 pr-0 self-stretch overflow-visible bg-gray-50"
+              className="flex items-stretch gap-4 flex-shrink-0 sticky left-0 z-10 pr-0 self-stretch overflow-visible bg-kenoo-white"
               style={{ width: `${columnWidths.name}px` }}
             >
               <div
                 onClick={(e) => onPersonClick(lead.id, e)}
-                className="flex items-center gap-4 flex-1 cursor-pointer transition-all duration-200 -my-3 py-3 pl-6 relative bg-gray-50 hover:bg-gray-200/60 max-w-full min-h-full"
+                className="flex items-center gap-4 flex-1 cursor-pointer transition-all duration-200 -my-3 py-3 pl-6 relative bg-kenoo-white hover:bg-gray-200/60 max-w-full min-h-full"
               >
                 <PersonRowAvatar
                   lead={lead}
@@ -201,7 +201,7 @@ export const PeopleTableRow = ({
                         <DynamicTooltip content="Send email">
                           <button
                             onClick={(e) => onEmailClick(lead.email, lead.id, e)}
-                            className="flex items-center justify-center w-8 h-8 rounded-lg border-[0.5px] border-solid border-neutral-300 bg-gray-50 shadow-none transition-all duration-300 hover:border-neutral-200/80 hover:shadow-[inset_0_4px_8px_rgba(0,0,0,0.14)] hover:scale-[0.98] cursor-pointer"
+                            className="flex items-center justify-center w-8 h-8 rounded-lg border-[0.5px] border-solid border-neutral-300 bg-kenoo-white shadow-none transition-all duration-300 hover:border-neutral-200/80 hover:shadow-[inset_0_4px_8px_rgba(0,0,0,0.14)] hover:scale-[0.98] cursor-pointer"
                           >
                             <Mail className="w-4 h-4 flex-shrink-0 text-neutral-500" />
                           </button>
@@ -211,7 +211,7 @@ export const PeopleTableRow = ({
                         <DynamicTooltip content="Add to Sequence">
                           <button
                             onClick={(e) => onAddToSequence(lead.id, e)}
-                            className="flex items-center justify-center w-8 h-8 rounded-lg border-[0.5px] border-solid border-neutral-300 bg-gray-50 shadow-none transition-all duration-300 hover:border-neutral-200/80 hover:shadow-[inset_0_4px_8px_rgba(0,0,0,0.14)] hover:scale-[0.98] cursor-pointer"
+                            className="flex items-center justify-center w-8 h-8 rounded-lg border-[0.5px] border-solid border-neutral-300 bg-kenoo-white shadow-none transition-all duration-300 hover:border-neutral-200/80 hover:shadow-[inset_0_4px_8px_rgba(0,0,0,0.14)] hover:scale-[0.98] cursor-pointer"
                           >
                             <SendHorizontal className="w-4 h-4 flex-shrink-0 text-neutral-500" />
                           </button>
@@ -223,7 +223,7 @@ export const PeopleTableRow = ({
                             href={lead.linkedin.startsWith("http") ? lead.linkedin : `https://linkedin.com/in/${lead.linkedin}`}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="flex items-center justify-center w-8 h-8 rounded-lg border-[0.5px] border-solid border-neutral-300 bg-gray-50 shadow-none transition-all duration-300 hover:border-neutral-200/80 hover:shadow-[inset_0_4px_8px_rgba(0,0,0,0.14)] hover:scale-[0.98] cursor-pointer"
+                            className="flex items-center justify-center w-8 h-8 rounded-lg border-[0.5px] border-solid border-neutral-300 bg-kenoo-white shadow-none transition-all duration-300 hover:border-neutral-200/80 hover:shadow-[inset_0_4px_8px_rgba(0,0,0,0.14)] hover:scale-[0.98] cursor-pointer"
                           >
                             <FaLinkedin className="w-4 h-4 flex-shrink-0 text-neutral-500" />
                           </a>

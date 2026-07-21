@@ -50,7 +50,10 @@ export function SiteFooter() {
 
       <div className="border-t border-kenoo-border">
         <div className="mx-auto flex max-w-6xl flex-col gap-2 px-5 py-5 text-xs text-kenoo-muted md:flex-row md:items-center md:justify-between md:px-8">
-          <p>© {new Date().getFullYear()} Kenoo. All rights reserved.</p>
+          <p>
+            © {new Date().getFullYear()} WALLS Entertainment Group Inc. d/b/a
+            Kenoo. All rights reserved.
+          </p>
           <div className="flex gap-5">
             <span className="cursor-default">Privacy</span>
             <span className="cursor-default">Terms</span>

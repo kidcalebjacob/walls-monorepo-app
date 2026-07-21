@@ -44,7 +44,7 @@
   html[data-app="admin"],
   html[data-app="admin"] body {
     min-height: 100%;
-    background-color: #f9fafb;
+    background-color: var(--kenoo-white);
     color: #0a0a0a;
   }
 
@@ -124,5 +124,80 @@
 
   .scrollbar-hide::-webkit-scrollbar {
     display: none;
+  }
+
+  .admin-shell {
+    background-color: var(--kenoo-white);
+  }
+}
+
+/* Chrome glow — matches public-site Get started CTA */
+@property --kenoo-chrome-reveal {
+  syntax: "<angle>";
+  inherits: false;
+  initial-value: 0deg;
+}
+
+@keyframes kenoo-chrome-orbit {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes kenoo-chrome-flow-in {
+  0% {
+    opacity: 0;
+    --kenoo-chrome-reveal: 0deg;
+    filter: brightness(2.4) saturate(1.5);
+  }
+  28% {
+    opacity: 1;
+    filter: brightness(1.7) saturate(1.3);
+  }
+  100% {
+    opacity: 1;
+    --kenoo-chrome-reveal: 360deg;
+    filter: brightness(1) saturate(1);
+  }
+}
+
+.kenoo-chrome-orbit {
+  will-change: transform, filter, opacity;
+  background: conic-gradient(
+    from 0deg,
+    #ffffff 0deg,
+    #c5e7ff 40deg,
+    #e8e8ec 80deg,
+    #ffffff 120deg,
+    #ffd2e8 160deg,
+    #bdbdc6 200deg,
+    #ffffff 240deg,
+    #d2ffe9 280deg,
+    #d6e8ff 320deg,
+    #ffffff 360deg
+  );
+  -webkit-mask-image: conic-gradient(
+    from -90deg,
+    #000 0deg,
+    #000 var(--kenoo-chrome-reveal),
+    transparent var(--kenoo-chrome-reveal)
+  );
+  mask-image: conic-gradient(
+    from -90deg,
+    #000 0deg,
+    #000 var(--kenoo-chrome-reveal),
+    transparent var(--kenoo-chrome-reveal)
+  );
+  animation:
+    kenoo-chrome-flow-in 1.2s cubic-bezier(0.16, 1, 0.3, 1) forwards,
+    kenoo-chrome-orbit 7s linear 1.05s infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .kenoo-chrome-orbit {
+    --kenoo-chrome-reveal: 360deg;
+    animation: none;
+    opacity: 1;
+    filter: none;
   }
 }

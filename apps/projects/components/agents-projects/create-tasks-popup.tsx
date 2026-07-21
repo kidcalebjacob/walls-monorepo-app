@@ -1,9 +1,9 @@
 "use client";
 
-import React, { useState, useEffect, useRef, useMemo } from "react";
+import React, { useState, useEffect, useRef, useMemo, useCallback } from "react";
 import { getSupabaseClient } from "@walls/auth";
 import { useAuth } from "@walls/auth";
-import { Save, Trash2 } from "lucide-react";
+import { Save, Trash2, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
   Project,
@@ -40,7 +40,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { MiniCalendar } from "@/components/ui/mini-calendar";
+import { MiniDatePicker } from "@/components/ui/mini-date-picker";
 import { SequenceSwitch as Switch } from "@/components/ui/sequence-switch";
 import { motion } from "framer-motion";
 import { format, isValid, parseISO } from "date-fns";
@@ -52,10 +52,14 @@ import {
 } from "@/lib/user-notifications";
 import { useActiveAccount } from "@/components/active-account-context";
 import { loadAccessibleProjects as fetchAccessibleProjects } from "./load-accessible-projects";
+import {
+  getTaskAssigneeIds,
+  syncProjectTaskAssignees,
+} from "./task-assignee";
 
 /* ─── Form config ────────────────────────────────────────────────────────── */
 const popupButtonOuterClass =
-  "w-10 h-10 p-0 text-slate-600 hover:bg-transparent flex items-center justify-center shadow-none relative group flex-shrink-0 disabled:opacity-50 disabled:cursor-not-allowed";
+  "w-10 h-10 p-0 text-slate-600 hover:bg-transparent flex items-center justify-center shadow-none relative group flex-shrink-0 cursor-pointer disabled:cursor-not-allowed disabled:opacity-50";
 const popupButtonInnerClass =
   "relative z-10 p-3 rounded-full transition-all duration-300 ease-in-out group-hover:bg-kenoo-white group-hover:border group-hover:border-neutral-200 group-hover:shadow-[inset_0_4px_8px_rgba(0,0,0,0.15)] group-hover:scale-95";
 const fieldLabelClass =
@@ -70,8 +74,8 @@ interface TaskFormState {
   due_date: string;
   priority: string;
   project_id: string;
-  assignee_id: string;
-  /** When false (default), task is private (is_private = true). */
+  assignee_ids: string[];
+  /** When true (default), task is public (is_private = false). */
   is_public: boolean;
 }
 
@@ -82,8 +86,8 @@ const EMPTY_TASK_FORM: TaskFormState = {
   due_date: "",
   priority: "3",
   project_id: "",
-  assignee_id: "",
-  is_public: false,
+  assignee_ids: [],
+  is_public: true,
 };
 
 function projectSwatchColor(project: Project): string {
@@ -104,13 +108,20 @@ function withOwnerAsMember(
   return [ownerId, ...memberIds];
 }
 
-/** Set when assignee is someone other than the actor; null for self-assign or no assignee. */
+/** Set when any assignee is someone other than the actor; null for self-only or none. */
 function resolveAssignedBy(
-  assigneeId: string | null,
+  assigneeIds: string[],
   actorUserId: string | null
 ): string | null {
-  if (!assigneeId || !actorUserId || assigneeId === actorUserId) return null;
+  if (!actorUserId || assigneeIds.length === 0) return null;
+  if (assigneeIds.every((id) => id === actorUserId)) return null;
   return actorUserId;
+}
+
+function toggleAssigneeId(ids: string[], agentId: string): string[] {
+  return ids.includes(agentId)
+    ? ids.filter((id) => id !== agentId)
+    : [...ids, agentId];
 }
 
 /* ─── Props ───────────────────────────────────────────────────────────────── */
@@ -141,15 +152,96 @@ export function CreateTasksPopup({
   const [form, setForm] = useState<TaskFormState>(EMPTY_TASK_FORM);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [assigneeDisplayName, setAssigneeDisplayName] = useState<string | null>(null);
+  const [assigneeDisplayNames, setAssigneeDisplayNames] = useState<
+    Record<string, string>
+  >({});
   const [assigneePopoverOpen, setAssigneePopoverOpen] = useState(false);
+  const [duePopoverOpen, setDuePopoverOpen] = useState(false);
+  const [projectSelectOpen, setProjectSelectOpen] = useState(false);
+  const [statusSelectOpen, setStatusSelectOpen] = useState(false);
+  const [prioritySelectOpen, setPrioritySelectOpen] = useState(false);
+  /** True while a nested dropdown is open, and briefly after — blocks dialog dismiss / overlay click-through. */
+  const [blockDialogDismiss, setBlockDialogDismiss] = useState(false);
+  const blockDialogDismissRef = useRef(false);
+  const blockDialogDismissTimerRef = useRef<ReturnType<typeof setTimeout> | null>(
+    null
+  );
+
+  const armDialogDismissBlock = useCallback(() => {
+    if (blockDialogDismissTimerRef.current) {
+      clearTimeout(blockDialogDismissTimerRef.current);
+      blockDialogDismissTimerRef.current = null;
+    }
+    blockDialogDismissRef.current = true;
+    setBlockDialogDismiss(true);
+  }, []);
+
+  const releaseDialogDismissBlock = useCallback(() => {
+    if (blockDialogDismissTimerRef.current) {
+      clearTimeout(blockDialogDismissTimerRef.current);
+    }
+    blockDialogDismissRef.current = true;
+    setBlockDialogDismiss(true);
+    blockDialogDismissTimerRef.current = setTimeout(() => {
+      blockDialogDismissRef.current = false;
+      setBlockDialogDismiss(false);
+      blockDialogDismissTimerRef.current = null;
+    }, 250);
+  }, []);
+
+  const clearDialogDismissBlock = useCallback(() => {
+    if (blockDialogDismissTimerRef.current) {
+      clearTimeout(blockDialogDismissTimerRef.current);
+      blockDialogDismissTimerRef.current = null;
+    }
+    blockDialogDismissRef.current = false;
+    setBlockDialogDismiss(false);
+  }, []);
+
+  const forceCloseDialog = useCallback(() => {
+    clearDialogDismissBlock();
+    setAssigneePopoverOpen(false);
+    setDuePopoverOpen(false);
+    setProjectSelectOpen(false);
+    setStatusSelectOpen(false);
+    setPrioritySelectOpen(false);
+    onClose();
+  }, [clearDialogDismissBlock, onClose]);
+
+  const setNestedDropdownOpen = useCallback(
+    (setter: React.Dispatch<React.SetStateAction<boolean>>) => (next: boolean) => {
+      if (next) {
+        armDialogDismissBlock();
+        setter(true);
+        return;
+      }
+      setter(false);
+      releaseDialogDismissBlock();
+    },
+    [armDialogDismissBlock, releaseDialogDismissBlock]
+  );
+
+  const handleAssigneePopoverOpenChange = useCallback(
+    (next: boolean) => {
+      if (next && !form.project_id) return;
+      setNestedDropdownOpen(setAssigneePopoverOpen)(next);
+    },
+    [form.project_id, setNestedDropdownOpen]
+  );
   const projectNameRef = useRef<HTMLSpanElement | null>(null);
   const [isProjectNameTruncated, setIsProjectNameTruncated] = useState(false);
-  const [duePopoverOpen, setDuePopoverOpen] = useState(false);
   const [projectMemberIds, setProjectMemberIds] = useState<string[]>([]);
   const [loadingProjectMembers, setLoadingProjectMembers] = useState(false);
   const [accessibleProjects, setAccessibleProjects] = useState<Project[]>([]);
   const [loadingAccessibleProjects, setLoadingAccessibleProjects] = useState(false);
+
+  useEffect(() => {
+    return () => {
+      if (blockDialogDismissTimerRef.current) {
+        clearTimeout(blockDialogDismissTimerRef.current);
+      }
+    };
+  }, []);
 
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   useEffect(() => {
@@ -251,7 +343,7 @@ export function CreateTasksPopup({
         due_date: existing.due_date ?? "",
         priority: existing.priority?.toString() ?? "3",
         project_id: existing.project_id,
-        assignee_id: existing.assignee_id ?? "",
+        assignee_ids: getTaskAssigneeIds(existing),
         is_public: existing.is_private === false,
       });
     } else {
@@ -272,7 +364,7 @@ export function CreateTasksPopup({
         ...EMPTY_TASK_FORM,
         status: defaultStatus,
         project_id: initialProjectId,
-        assignee_id: currentUserId ?? "",
+        assignee_ids: currentUserId ? [currentUserId] : [],
       });
     }
     setError(null);
@@ -316,7 +408,9 @@ export function CreateTasksPopup({
   // When currentUserId resolves after dialog open, set assignee only if not already chosen
   useEffect(() => {
     if (!open || existing || !currentUserId) return;
-    setForm((f) => (f.assignee_id ? f : { ...f, assignee_id: currentUserId }));
+    setForm((f) =>
+      f.assignee_ids.length > 0 ? f : { ...f, assignee_ids: [currentUserId] }
+    );
   }, [open, existing, currentUserId]);
 
   useEffect(() => {
@@ -391,44 +485,53 @@ export function CreateTasksPopup({
     if (loadingProjectMembers) return;
 
     if (!form.project_id) {
-      setForm((f) => (f.assignee_id ? { ...f, assignee_id: "" } : f));
+      setForm((f) => (f.assignee_ids.length ? { ...f, assignee_ids: [] } : f));
       return;
     }
 
     if (projectMemberIds.length === 0) return;
 
     setForm((f) => {
-      if (f.assignee_id && projectMemberIds.includes(f.assignee_id)) return f;
+      const kept = f.assignee_ids.filter((id) => projectMemberIds.includes(id));
+      if (kept.length > 0) {
+        if (kept.length === f.assignee_ids.length) return f;
+        return { ...f, assignee_ids: kept };
+      }
       const nextAssignee =
         currentUserId && projectMemberIds.includes(currentUserId)
-          ? currentUserId
-          : "";
-      if (f.assignee_id === nextAssignee) return f;
-      return { ...f, assignee_id: nextAssignee };
+          ? [currentUserId]
+          : [];
+      if (
+        nextAssignee.length === f.assignee_ids.length &&
+        nextAssignee.every((id, i) => id === f.assignee_ids[i])
+      ) {
+        return f;
+      }
+      return { ...f, assignee_ids: nextAssignee };
     });
   }, [loadingProjectMembers, projectMemberIds, form.project_id, currentUserId]);
 
   useEffect(() => {
-    if (!form.assignee_id) {
-      setAssigneeDisplayName(null);
+    if (form.assignee_ids.length === 0) {
+      setAssigneeDisplayNames({});
       return;
     }
-    const fetchName = async () => {
+    const fetchNames = async () => {
       const supabase = getSupabaseClient();
       const { data } = await supabase
         .from("users")
-        .select("first_name, last_name, email")
-        .eq("id", form.assignee_id)
-        .maybeSingle();
-      if (!data) {
-        setAssigneeDisplayName(null);
-        return;
+        .select("id, first_name, last_name, email")
+        .in("id", form.assignee_ids);
+      const next: Record<string, string> = {};
+      for (const row of data ?? []) {
+        const name =
+          `${(row.first_name ?? "").trim()} ${(row.last_name ?? "").trim()}`.trim();
+        next[row.id] = name || row.email || "Assigned";
       }
-      const name = `${(data.first_name ?? "").trim()} ${(data.last_name ?? "").trim()}`.trim();
-      setAssigneeDisplayName(name || data.email || "Assigned");
+      setAssigneeDisplayNames(next);
     };
-    fetchName();
-  }, [form.assignee_id]);
+    void fetchNames();
+  }, [form.assignee_ids.join(",")]);
 
   const selectedProject = projectsForSelect.find(
     (project) => project.id === form.project_id
@@ -492,7 +595,17 @@ export function CreateTasksPopup({
       const actorUserId = currentUserId ?? authUser?.id ?? null;
       const actorName = await resolveActorDisplayName(supabase, actorUserId);
       const taskTitle = form.title.trim();
-      const previousAssigneeId = existing?.assignee_id ?? null;
+      const previousAssigneeIds = existing ? getTaskAssigneeIds(existing) : [];
+      const assigneeIds = [...new Set(form.assignee_ids.filter(Boolean))];
+      const primaryAssigneeId = assigneeIds[0] ?? null;
+      const assignedBy = resolveAssignedBy(assigneeIds, actorUserId);
+      const newlyAdded = assigneeIds.filter(
+        (id) => !previousAssigneeIds.includes(id)
+      );
+      const assigneesChanged =
+        assigneeIds.length !== previousAssigneeIds.length ||
+        assigneeIds.some((id) => !previousAssigneeIds.includes(id));
+
       const payload: Record<string, unknown> = {
         title: form.title.trim(),
         description: form.description.trim() || null,
@@ -500,18 +613,16 @@ export function CreateTasksPopup({
         due_date: form.due_date || null,
         priority: form.priority ? parseInt(form.priority, 10) : null,
         project_id: form.project_id,
-        assignee_id: form.assignee_id || null,
+        assignee_id: primaryAssigneeId,
         is_private: !form.is_public,
       };
       if (threadId) payload.thread_id = threadId;
 
-      const assigneeId = form.assignee_id || null;
-      const assigneeChanged = assigneeId !== previousAssigneeId;
-      const shouldNotifyAssignee = !!assigneeId && assigneeChanged;
-
-      if (assigneeChanged) {
-        payload.assigned_by = resolveAssignedBy(assigneeId, actorUserId);
+      if (assigneesChanged) {
+        payload.assigned_by = assignedBy;
       }
+
+      let taskId = existing?.id ?? null;
 
       if (existing) {
         const { error: err } = await supabase
@@ -519,39 +630,41 @@ export function CreateTasksPopup({
           .update(payload)
           .eq("id", existing.id);
         if (err) throw err;
-
-        if (shouldNotifyAssignee && assigneeId) {
-          await notifyTaskAssignee(supabase, {
-            assigneeId,
-            taskId: existing.id,
-            taskTitle,
-            projectId: form.project_id,
-            projectName: selectedProject?.name,
-            actorUserId,
-            actorName,
-          });
-        }
+        taskId = existing.id;
       } else {
-        payload.assigned_by = resolveAssignedBy(assigneeId, actorUserId);
+        payload.assigned_by = assignedBy;
         const { data: newTask, error: err } = await supabase
           .from("project_tasks")
           .insert(payload)
           .select("id")
           .single();
         if (err) throw err;
+        taskId = newTask?.id ?? null;
+      }
 
-        if (shouldNotifyAssignee && assigneeId && newTask?.id) {
-          await notifyTaskAssignee(supabase, {
+      if (!taskId) throw new Error("Failed to save task.");
+
+      await syncProjectTaskAssignees(
+        supabase,
+        taskId,
+        assigneeIds,
+        assignedBy
+      );
+
+      await Promise.all(
+        newlyAdded.map((assigneeId) =>
+          notifyTaskAssignee(supabase, {
             assigneeId,
-            taskId: newTask.id,
+            taskId: taskId!,
             taskTitle,
             projectId: form.project_id,
             projectName: selectedProject?.name,
             actorUserId,
             actorName,
-          });
-        }
-      }
+          })
+        )
+      );
+
       onSaved();
       onClose();
     } catch (e: unknown) {
@@ -565,8 +678,41 @@ export function CreateTasksPopup({
   const dueDate = parsedDueDate && isValid(parsedDueDate) ? parsedDueDate : null;
 
   return (
-    <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
-      <DialogContent className="sm:max-w-[900px] [&>button]:focus:outline-none [&>button]:focus:ring-0 [&>button]:focus-visible:ring-0 [&>button]:ring-0" onOpenAutoFocus={(e) => e.preventDefault()}>
+    <Dialog
+      open={open}
+      onOpenChange={(next) => {
+        if (!next && blockDialogDismissRef.current) return;
+        if (!next) onClose();
+      }}
+    >
+      <DialogContent
+        showCloseButton={false}
+        className="sm:max-w-[900px] [&>button]:focus:outline-none [&>button]:focus:ring-0 [&>button]:focus-visible:ring-0 [&>button]:ring-0"
+        overlayClassName={blockDialogDismiss ? "pointer-events-none" : undefined}
+        onOpenAutoFocus={(e) => e.preventDefault()}
+        onPointerDownOutside={(e) => {
+          if (blockDialogDismissRef.current) e.preventDefault();
+        }}
+        onInteractOutside={(e) => {
+          if (blockDialogDismissRef.current) e.preventDefault();
+        }}
+        onFocusOutside={(e) => {
+          e.preventDefault();
+        }}
+        onEscapeKeyDown={(e) => {
+          // Always allow Escape to close the task popup.
+          e.preventDefault();
+          forceCloseDialog();
+        }}
+      >
+        <button
+          type="button"
+          onClick={forceCloseDialog}
+          className="absolute right-6 top-4 z-20 cursor-pointer rounded-sm opacity-70 transition-opacity hover:opacity-100 focus:outline-none focus:ring-0 focus-visible:ring-0"
+          aria-label="Close"
+        >
+          <X className="h-6 w-6 text-foreground" strokeWidth={1.5} />
+        </button>
         <DialogHeader />
 
         <div className="grid grid-cols-[2fr_1fr] divide-x divide-gray-200 gap-6 py-4">
@@ -601,6 +747,8 @@ export function CreateTasksPopup({
             <Select
               value={form.project_id}
               onValueChange={(v) => setForm((f) => ({ ...f, project_id: v }))}
+              open={projectSelectOpen}
+              onOpenChange={setNestedDropdownOpen(setProjectSelectOpen)}
               disabled={saving || (loadingAccessibleProjects && projectOptions.length === 0)}
             >
               <TooltipProvider delayDuration={180}>
@@ -609,7 +757,7 @@ export function CreateTasksPopup({
                     <motion.div
                       layout
                       transition={{ type: "spring", stiffness: 350, damping: 30 }}
-                      className="inline-flex max-w-full overflow-hidden"
+                      className="inline-flex max-w-full cursor-pointer overflow-hidden"
                     >
                       <SelectTrigger className="w-auto max-w-full border-0 rounded-full bg-transparent hover:bg-gray-100 focus:ring-0 focus-visible:ring-0 px-4 [&>svg]:hidden">
                         <div className="inline-flex items-center gap-2 min-w-0">
@@ -676,33 +824,37 @@ export function CreateTasksPopup({
               </SelectContent>
             </Select>
 
-            {/* Assignee */}
+            {/* Assignees */}
             <Popover
+              modal={false}
               open={assigneePopoverOpen}
-              onOpenChange={(next) => {
-                if (next && !form.project_id) return;
-                setAssigneePopoverOpen(next);
-              }}
+              onOpenChange={handleAssigneePopoverOpenChange}
             >
               <PopoverTrigger asChild>
                 <button
                   type="button"
                   disabled={saving || !form.project_id}
-                  className="w-full flex items-center gap-2 rounded-full px-4 py-2 hover:bg-gray-100 focus:outline-none text-left disabled:opacity-50"
+                  className="w-full flex cursor-pointer items-center gap-2 rounded-full px-4 py-2 hover:bg-gray-100 focus:outline-none text-left disabled:cursor-not-allowed disabled:opacity-50"
                 >
-                  <span className={cn("shrink-0", fieldLabelClass)}>Assignee:</span>
+                  <span className={cn("shrink-0", fieldLabelClass)}>Assignees:</span>
                   <span
                     className={cn(
                       "flex-1 truncate",
                       fieldValueClass,
-                      !(assigneeDisplayName || form.assignee_id) && fieldPlaceholderClass
+                      form.assignee_ids.length === 0 && fieldPlaceholderClass
                     )}
                   >
                     {!form.project_id
                       ? "Select a project"
-                      : form.assignee_id && form.assignee_id === currentUserId
-                        ? "You"
-                        : assigneeDisplayName ?? "No assignee"}
+                      : form.assignee_ids.length === 0
+                        ? "No assignees"
+                        : form.assignee_ids
+                            .map((id) =>
+                              id === currentUserId
+                                ? "You"
+                                : assigneeDisplayNames[id] ?? "Assigned"
+                            )
+                            .join(", ")}
                   </span>
                 </button>
               </PopoverTrigger>
@@ -718,12 +870,15 @@ export function CreateTasksPopup({
                 ) : (
                   <AgentSearch
                     key={form.project_id}
-                    value={form.assignee_id}
+                    multiple
+                    values={form.assignee_ids}
                     allowedUserIds={projectMemberIds}
                     emptyMessage="No project members found"
                     onSelect={(agentId) => {
-                      setForm((f) => ({ ...f, assignee_id: agentId }));
-                      setAssigneePopoverOpen(false);
+                      setForm((f) => ({
+                        ...f,
+                        assignee_ids: toggleAssigneeId(f.assignee_ids, agentId),
+                      }));
                     }}
                   />
                 )}
@@ -734,6 +889,8 @@ export function CreateTasksPopup({
             <Select
               value={form.status}
               onValueChange={(v) => setForm((f) => ({ ...f, status: v as TaskStatus }))}
+              open={statusSelectOpen}
+              onOpenChange={setNestedDropdownOpen(setStatusSelectOpen)}
               disabled={saving}
             >
               <SelectTrigger className="border-0 rounded-full bg-transparent hover:bg-gray-100 focus:ring-0 focus-visible:ring-0 px-4 [&>svg]:hidden">
@@ -757,6 +914,8 @@ export function CreateTasksPopup({
             <Select
               value={form.priority}
               onValueChange={(v) => setForm((f) => ({ ...f, priority: v }))}
+              open={prioritySelectOpen}
+              onOpenChange={setNestedDropdownOpen(setPrioritySelectOpen)}
               disabled={saving}
             >
               <SelectTrigger className="border-0 rounded-full bg-transparent hover:bg-gray-100 focus:ring-0 focus-visible:ring-0 px-4 [&>svg]:hidden">
@@ -777,42 +936,44 @@ export function CreateTasksPopup({
             </Select>
 
             {/* Due date */}
-            <Popover open={duePopoverOpen} onOpenChange={setDuePopoverOpen}>
-              <PopoverTrigger asChild>
-                <button
-                  type="button"
-                  disabled={saving}
-                  className="w-full h-10 flex items-center gap-2 rounded-full px-4 hover:bg-gray-100 focus:outline-none text-left disabled:opacity-50"
-                >
-                  <span className={cn("shrink-0", fieldLabelClass)}>Due:</span>
-                  <span
-                    className={cn(
-                      fieldValueClass,
-                      !dueDate && fieldPlaceholderClass
-                    )}
-                  >
-                    {dueDate ? format(dueDate, "MMM d, yyyy") : "Select date"}
-                  </span>
-                </button>
-              </PopoverTrigger>
-              <PopoverContent className="w-auto p-0 border-0 rounded-3xl shadow-[0_14px_32px_rgba(0,0,0,0.18)]" align="start">
-                <MiniCalendar
-                  showClearButton
-                  selected={dueDate ?? undefined}
-                  onSelect={(date) => {
-                    setForm((f) => ({
-                      ...f,
-                      due_date: date ? format(date, "yyyy-MM-dd") : "",
-                    }));
-                    setDuePopoverOpen(false);
-                  }}
-                  initialFocus
-                />
-              </PopoverContent>
-            </Popover>
+            <MiniDatePicker
+              label="Due:"
+              value={dueDate}
+              onChange={(date) => {
+                setForm((f) => ({
+                  ...f,
+                  due_date: date ? format(date, "yyyy-MM-dd") : "",
+                }));
+              }}
+              showClearButton
+              disabled={saving}
+              open={duePopoverOpen}
+              onOpenChange={setNestedDropdownOpen(setDuePopoverOpen)}
+              labelClassName={fieldLabelClass}
+              valueClassName={fieldValueClass}
+              placeholderClassName={fieldPlaceholderClass}
+            />
 
             {/* Visibility */}
-            <div className="flex h-10 items-center gap-2.5 rounded-full px-4 hover:bg-gray-100">
+            <div
+              role="button"
+              tabIndex={saving ? -1 : 0}
+              onClick={() => {
+                if (saving) return;
+                setForm((f) => ({ ...f, is_public: !f.is_public }));
+              }}
+              onKeyDown={(e) => {
+                if (saving) return;
+                if (e.key === "Enter" || e.key === " ") {
+                  e.preventDefault();
+                  setForm((f) => ({ ...f, is_public: !f.is_public }));
+                }
+              }}
+              className={cn(
+                "flex h-10 items-center gap-2.5 rounded-full px-4 hover:bg-gray-100",
+                saving ? "cursor-not-allowed opacity-50" : "cursor-pointer"
+              )}
+            >
               <span className={fieldLabelClass}>Public:</span>
               <Switch
                 checked={form.is_public}
@@ -821,6 +982,7 @@ export function CreateTasksPopup({
                 }
                 disabled={saving}
                 aria-label="Make task public"
+                onClick={(e) => e.stopPropagation()}
               />
             </div>
           </div>

@@ -26,7 +26,7 @@ import { SmartSearchPopup, getCountryNameFromCode, type SmartSearchFilters } fro
 const ITEMS_PER_PAGE = 10;
 
 const tableHeaderClass =
-  "text-left pb-3 pr-4 font-medium text-neutral-400 text-xs uppercase tracking-wide whitespace-nowrap bg-gray-50";
+  "text-left pb-3 pr-4 font-medium text-neutral-400 text-xs uppercase tracking-wide whitespace-nowrap bg-kenoo-white";
 
 function getTotalPages(totalCount: number) {
   return Math.max(1, Math.ceil(totalCount / ITEMS_PER_PAGE));
@@ -775,7 +775,7 @@ export default function DepartmentHeadcount({ formData, handleInputChange, compa
                   onTouchCancel={cancelSmartSearchHold}
                   disabled={smartSearchLoading || !apolloOrganizationId}
                   className={cn(
-                    "relative flex items-center gap-2 px-3 py-1.5 rounded-md bg-gray-50 transition-all duration-300 ease-in-out cursor-pointer text-xs font-light text-foreground disabled:opacity-50 disabled:cursor-not-allowed overflow-hidden",
+                    "relative flex items-center gap-2 px-3 py-1.5 rounded-md bg-kenoo-white transition-all duration-300 ease-in-out cursor-pointer text-xs font-light text-foreground disabled:opacity-50 disabled:cursor-not-allowed overflow-hidden",
                     isSmartSearchPressed
                       ? "scale-[0.98] shadow-[inset_0_4px_8px_rgba(0,0,0,0.15)]"
                       : "hover:scale-[0.98] hover:shadow-[inset_0_4px_8px_rgba(0,0,0,0.15)]"
@@ -816,7 +816,7 @@ export default function DepartmentHeadcount({ formData, handleInputChange, compa
               />
               <div className="overflow-x-auto pb-8">
                 <table className="w-full text-sm">
-                  <thead className="sticky top-0 z-10 border-b border-neutral-100 bg-gray-50">
+                  <thead className="sticky top-0 z-10 border-b border-neutral-100 bg-kenoo-white">
                     <tr>
                       <th className={tableHeaderClass}>Name</th>
                       <th className={tableHeaderClass}>Actions</th>
@@ -939,7 +939,7 @@ export default function DepartmentHeadcount({ formData, handleInputChange, compa
                 <div className="px-2 sm:px-4">
                   <div className="overflow-x-auto pb-8">
                     <table className="w-full text-sm">
-                      <thead className="sticky top-0 z-10 border-b border-neutral-100 bg-gray-50">
+                      <thead className="sticky top-0 z-10 border-b border-neutral-100 bg-kenoo-white">
                         <tr>
                           <th className={tableHeaderClass}>Name</th>
                           <th className={tableHeaderClass}>Actions</th>

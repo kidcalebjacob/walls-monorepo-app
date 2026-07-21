@@ -179,6 +179,16 @@ export async function getAccountIdsWithAppAccess(
   }
 
   const appId = appRow.id as string;
+
+  // Console is staff-only (`users.is_admin`). Admin uses account grants below.
+  if (isConsoleAppSlug(appSlug)) {
+    if (await userIsStaffAdmin(supabase, userId)) {
+      return new Set(accountIds);
+    }
+    const hasLegacy = await userHasLegacyAppAccess(supabase, userId, appId);
+    return hasLegacy ? new Set(accountIds) : new Set();
+  }
+
   const onSaaS = await userHasAccountAppGrants(supabase, userId);
   if (!onSaaS) {
     const hasLegacy = await userHasLegacyAppAccess(supabase, userId, appId);
@@ -202,6 +212,33 @@ export async function getAccountIdsWithAppAccess(
       .map((row) => row.account_id as string)
       .filter((id): id is string => !!id),
   );
+}
+
+/** Internal console — access is user-level (`users.is_admin`), not account-scoped. */
+function consoleAppSlug(): string {
+  return process.env.NEXT_PUBLIC_CONSOLE_APP_SLUG || "console";
+}
+
+function isConsoleAppSlug(appSlug: string): boolean {
+  return appSlug === consoleAppSlug();
+}
+
+async function userIsStaffAdmin(
+  supabase: SupabaseClient,
+  userId: string,
+): Promise<boolean> {
+  const { data: userRow, error: userError } = await supabase
+    .from("users")
+    .select("is_admin")
+    .eq("id", userId)
+    .maybeSingle();
+
+  if (userError) {
+    console.error("[auth] Error checking is_admin:", userError);
+    return false;
+  }
+
+  return userRow?.is_admin === true;
 }
 
 /** True when the user can open `appSlug` under a specific account. */
@@ -241,6 +278,14 @@ export async function userHasAppAccessForActiveAccount(
   if (appError || !appRow?.id) {
     // Unknown / inactive slug: fail open (same as previous middleware).
     return true;
+  }
+
+  // Console is staff-only. Admin and all other apps use account grants below.
+  if (isConsoleAppSlug(appSlug)) {
+    if (await userIsStaffAdmin(supabase, userId)) {
+      return true;
+    }
+    return userHasLegacyAppAccess(supabase, userId, appRow.id as string);
   }
 
   const onSaaS = await userHasAccountAppGrants(supabase, userId);

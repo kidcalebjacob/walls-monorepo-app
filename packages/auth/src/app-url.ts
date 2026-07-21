@@ -14,6 +14,7 @@ const LOCAL_DEV_PORTS: Record<string, number> = {
   calendar: 3006,
   projects: 3007,
   admin: 3008,
+  console: 3011,
   crm: 3009,
   ledger: 3010,
 };
@@ -66,6 +67,7 @@ export function originForAppSlug(slug: string): string | null {
     calendar: process.env.NEXT_PUBLIC_CALENDAR_URL,
     projects: process.env.NEXT_PUBLIC_PROJECTS_URL,
     admin: process.env.NEXT_PUBLIC_ADMIN_URL,
+    console: process.env.NEXT_PUBLIC_CONSOLE_URL,
     crm: process.env.NEXT_PUBLIC_CRM_URL,
     ledger: process.env.NEXT_PUBLIC_LEDGER_URL,
   };

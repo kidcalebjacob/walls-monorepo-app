@@ -90,9 +90,30 @@
   textarea:focus-visible,
   select:focus,
   select:focus-visible,
+  button:focus,
+  button:focus-visible,
+  [role="button"]:focus,
+  [role="button"]:focus-visible {
+    outline: none !important;
+    outline-offset: 0;
+    /* Kill focus rings (Tailwind ring-* uses box-shadow). Hover insets live on child nodes. */
+    box-shadow: none !important;
+  }
+
   [role="combobox"]:focus,
   [role="combobox"]:focus-visible {
-    outline: none;
+    outline: none !important;
+    outline-offset: 0;
+  }
+
+  input:focus,
+  input:focus-visible,
+  textarea:focus,
+  textarea:focus-visible,
+  select:focus,
+  select:focus-visible,
+  [role="combobox"]:focus,
+  [role="combobox"]:focus-visible {
     box-shadow: none;
   }
 
@@ -123,6 +144,18 @@
 
   .scrollbar-hide::-webkit-scrollbar {
     display: none;
+  }
+
+  /* Clears the floating sidebar; use on page toolbars / list content. */
+  .app-sidebar-pad {
+    padding-left: 2rem;
+  }
+
+  @media (min-width: 768px) {
+    .app-sidebar-pad {
+      padding-left: calc(var(--app-sidebar-inset, 5.25rem) + 2rem);
+      transition: padding-left 300ms ease-in-out;
+    }
   }
 }
 

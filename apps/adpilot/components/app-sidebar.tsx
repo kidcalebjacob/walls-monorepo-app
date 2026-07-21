@@ -1,7 +1,6 @@
 "use client";
 
 import { useAuth } from "@walls/auth";
-import { Button } from "@walls/ui/button";
 import { cn } from "@walls/utils";
 import { AnimatePresence, motion } from "framer-motion";
 import {
@@ -25,7 +24,7 @@ const navItems = [
 export function AppSidebar({ headerVisible = true }: { headerVisible?: boolean }) {
   const { isLoading } = useAuth();
   const pathname = usePathname();
-  const { isCollapsed, setIsCollapsed, isHoverExpanded, setIsHoverExpanded, isExpanded } =
+  const { isCollapsed, setIsCollapsed, setIsHoverExpanded, isExpanded } =
     useAppSidebar();
 
   if (isLoading) return null;
@@ -33,159 +32,133 @@ export function AppSidebar({ headerVisible = true }: { headerVisible?: boolean }
   return (
     <div
       className={cn(
-        "fixed left-0 z-40 hidden bg-transparent md:block",
-        "transition-all duration-300 ease-in-out",
+        "fixed left-0 z-40 hidden md:flex",
+        "pointer-events-none items-center justify-start pl-3",
+        "transition-[padding-top] duration-300 ease-in-out",
         headerVisible ? "top-16 h-[calc(100vh-4rem)]" : "top-0 h-screen",
-        isExpanded ? "w-40" : "w-16",
       )}
       onMouseEnter={() => setIsHoverExpanded(true)}
       onMouseLeave={() => setIsHoverExpanded(false)}
     >
-      <div className="relative flex h-full flex-col overflow-y-auto pr-6 -mr-6">
-        <div className="space-y-4 p-2 pt-44">
-            <Button
-              variant="ghost"
-              size="icon"
+      <nav
+        className={cn(
+          "pointer-events-auto flex flex-col items-stretch gap-1 overflow-hidden",
+          "rounded-[2rem] bg-white/85 p-2 backdrop-blur-md",
+          "shadow-[0_10px_32px_rgba(15,23,42,0.08),0_2px_8px_rgba(15,23,42,0.04)]",
+          "transition-[width] duration-300 ease-in-out",
+          isExpanded ? "w-[11.5rem]" : "w-14",
+        )}
+        aria-label="AdPilot navigation"
+      >
+        <button
+          type="button"
+          title={isCollapsed ? "Expand sidebar" : "Lock sidebar open"}
+          onClick={() => setIsCollapsed(!isCollapsed)}
+          className="group flex h-10 w-full items-center justify-start rounded-full transition-colors duration-200 hover:bg-neutral-100/90"
+        >
+          <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-neutral-100 text-neutral-500 transition group-hover:bg-neutral-200/80 group-hover:text-neutral-700">
+            <span className="relative flex h-[18px] w-[18px] items-center justify-center">
+              <AnimatePresence mode="wait" initial={false}>
+                {!isCollapsed ? (
+                  <motion.span
+                    key="lock"
+                    initial={{ opacity: 0, scale: 0.5 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0.5 }}
+                    transition={{ duration: 0.18, ease: "easeInOut" }}
+                    className="absolute inset-0 flex items-center justify-center"
+                  >
+                    <Lock className="h-[18px] w-[18px] stroke-[1.5]" />
+                  </motion.span>
+                ) : (
+                  <motion.span
+                    key="chevron"
+                    initial={{ opacity: 0, scale: 0.5 }}
+                    animate={{
+                      opacity: 1,
+                      scale: 1,
+                      rotate: isExpanded ? 0 : 180,
+                    }}
+                    exit={{ opacity: 0, scale: 0.5 }}
+                    transition={{
+                      opacity: { duration: 0.18, ease: "easeInOut" },
+                      scale: { duration: 0.18, ease: "easeInOut" },
+                      rotate: { duration: 0.4, ease: "easeInOut" },
+                    }}
+                    className="absolute inset-0 flex items-center justify-center"
+                  >
+                    <ChevronLeft className="h-[18px] w-[18px] stroke-[1.5]" />
+                  </motion.span>
+                )}
+              </AnimatePresence>
+            </span>
+          </span>
+          <motion.span
+            className="overflow-hidden whitespace-nowrap text-[13px] font-medium text-neutral-400"
+            initial={false}
+            animate={{
+              width: isExpanded ? 88 : 0,
+              opacity: isExpanded ? 1 : 0,
+              marginLeft: isExpanded ? 10 : 0,
+            }}
+            transition={{ duration: 0.28, ease: "easeInOut" }}
+          >
+            {isCollapsed ? "Expand" : "Pinned"}
+          </motion.span>
+        </button>
+
+        <div className="my-1 ml-2 h-px w-6 bg-neutral-200/90" />
+
+        {navItems.map((item) => {
+          const Icon = item.icon;
+          const isActive =
+            item.href === "/"
+              ? pathname === "/"
+              : pathname === item.href || pathname.startsWith(`${item.href}/`);
+
+          return (
+            <Link
+              key={item.href}
+              href={item.href}
+              title={item.label}
               className={cn(
-                "group relative w-full justify-start text-slate-600 transition-all duration-500 ease-in-out hover:bg-transparent",
-                !isExpanded ? "px-2" : "",
+                "group flex h-10 w-full items-center justify-start rounded-full transition-colors duration-200",
+                isActive ? "bg-neutral-100/90" : "hover:bg-neutral-100/70",
               )}
-              onClick={() => setIsCollapsed(!isCollapsed)}
             >
-              <div
+              <span
                 className={cn(
-                  "relative z-10 flex items-center",
-                  !isExpanded ? "justify-center" : "",
+                  "flex h-10 w-10 shrink-0 items-center justify-center rounded-full transition-all duration-200",
+                  isActive
+                    ? [
+                        "bg-white text-neutral-800",
+                        "shadow-[0_4px_14px_rgba(15,23,42,0.08),inset_0_1px_0_rgba(255,255,255,0.9)]",
+                        "ring-1 ring-black/[0.04]",
+                      ]
+                    : "bg-neutral-100 text-neutral-500 group-hover:bg-neutral-200/70 group-hover:text-neutral-700",
                 )}
               >
-                <div className="group relative">
-                  <div className="relative z-10 rounded-full border border-transparent p-3 transition-all duration-300 ease-in-out group-hover:scale-95 group-hover:border-neutral-200 group-hover:bg-kenoo-white group-hover:shadow-[inset_0_4px_8px_rgba(0,0,0,0.15)]">
-                    <div className="relative flex h-[18px] w-[18px] items-center justify-center">
-                      <AnimatePresence mode="wait" initial={false}>
-                        {!isCollapsed ? (
-                          <motion.div
-                            key="lock"
-                            initial={{ opacity: 0, scale: 0.5 }}
-                            animate={{ opacity: 1, scale: 1 }}
-                            exit={{ opacity: 0, scale: 0.5 }}
-                            transition={{ duration: 0.2, ease: "easeInOut" }}
-                            className="absolute inset-0 flex items-center justify-center"
-                          >
-                            <Lock className="h-[18px] w-[18px] stroke-[1.5] text-slate-600" />
-                          </motion.div>
-                        ) : (
-                          <motion.div
-                            key="chevron"
-                            initial={{ opacity: 0, scale: 0.5 }}
-                            animate={{
-                              opacity: 1,
-                              scale: 1,
-                              rotate: isExpanded ? 0 : 180,
-                            }}
-                            exit={{ opacity: 0, scale: 0.5 }}
-                            transition={{
-                              opacity: { duration: 0.2, ease: "easeInOut" },
-                              scale: { duration: 0.2, ease: "easeInOut" },
-                              rotate: { duration: 0.5, ease: "easeInOut" },
-                            }}
-                            className="absolute inset-0 flex items-center justify-center"
-                          >
-                            <ChevronLeft className="h-[18px] w-[18px] stroke-[1.5] text-slate-600" />
-                          </motion.div>
-                        )}
-                      </AnimatePresence>
-                    </div>
-                  </div>
-                </div>
-                <motion.div
-                  className="flex items-center overflow-hidden"
-                  initial={false}
-                  animate={{
-                    width: isExpanded ? 80 : 0,
-                    opacity: isExpanded ? 1 : 0,
-                    marginLeft: isExpanded ? 12 : 0,
-                  }}
-                  transition={{ duration: 0.5, ease: "easeInOut" }}
-                >
-                  <motion.div
-                    className="overflow-hidden"
-                    initial={false}
-                    animate={{
-                      opacity: !isCollapsed ? 1 : 0,
-                      x: !isCollapsed ? 0 : -8,
-                    }}
-                    transition={{ duration: 0.5, ease: "easeInOut" }}
-                  >
-                    <span className="whitespace-nowrap font-light">Locked</span>
-                  </motion.div>
-                </motion.div>
-              </div>
-            </Button>
-
-            {navItems.map((item) => {
-              const Icon = item.icon;
-              const isActive =
-                item.href === "/"
-                  ? pathname === "/"
-                  : pathname === item.href ||
-                    pathname.startsWith(`${item.href}/`);
-
-              return (
-                <Button
-                  key={item.href}
-                  variant="ghost"
-                  className={cn(
-                    "group relative w-full justify-start text-slate-600 transition-all duration-500 ease-in-out hover:bg-transparent",
-                    !isExpanded ? "px-2" : "",
-                    isActive && "text-black",
-                  )}
-                  asChild
-                >
-                  <Link href={item.href}>
-                    <div
-                      className={cn(
-                        "relative z-10 flex items-center",
-                        !isExpanded ? "justify-center" : "",
-                      )}
-                    >
-                      <div className="group relative">
-                        <div
-                          className={cn(
-                            "relative z-10 rounded-full border border-transparent p-3 transition-all duration-300 ease-in-out group-hover:scale-95 group-hover:border-neutral-200 group-hover:bg-kenoo-white",
-                            isActive
-                              ? [
-                                  "border-white/70 bg-white/45 backdrop-blur-md",
-                                  "shadow-[0_4px_14px_rgba(0,0,0,0.12),inset_0_1px_1px_rgba(255,255,255,0.65)]",
-                                  "group-hover:border-white/70 group-hover:bg-white/60",
-                                  "group-hover:shadow-[0_6px_18px_rgba(0,0,0,0.15),inset_0_1px_1px_rgba(255,255,255,0.7)]",
-                                ]
-                              : "group-hover:shadow-[inset_0_4px_8px_rgba(0,0,0,0.15)]",
-                          )}
-                        >
-                          <Icon className="h-[18px] w-[18px] stroke-[1.5] text-neutral-500" />
-                        </div>
-                      </div>
-                      <motion.div
-                        className="flex items-center overflow-hidden"
-                        initial={false}
-                        animate={{
-                          width: isExpanded ? 80 : 0,
-                          opacity: isExpanded ? 1 : 0,
-                          marginLeft: isExpanded ? 12 : 0,
-                        }}
-                        transition={{ duration: 0.5, ease: "easeInOut" }}
-                      >
-                        <span className="whitespace-nowrap font-light">
-                          {item.label}
-                        </span>
-                      </motion.div>
-                    </div>
-                  </Link>
-                </Button>
-              );
-            })}
-        </div>
-      </div>
+                <Icon className="h-[18px] w-[18px] stroke-[1.5]" />
+              </span>
+              <motion.span
+                className={cn(
+                  "overflow-hidden whitespace-nowrap text-[13px] font-medium",
+                  isActive ? "text-neutral-900" : "text-neutral-500 group-hover:text-neutral-700",
+                )}
+                initial={false}
+                animate={{
+                  width: isExpanded ? 88 : 0,
+                  opacity: isExpanded ? 1 : 0,
+                  marginLeft: isExpanded ? 10 : 0,
+                }}
+                transition={{ duration: 0.28, ease: "easeInOut" }}
+              >
+                {item.label}
+              </motion.span>
+            </Link>
+          );
+        })}
+      </nav>
     </div>
   );
 }

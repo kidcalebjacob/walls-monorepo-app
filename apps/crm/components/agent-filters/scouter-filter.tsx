@@ -239,7 +239,7 @@ export function ScouterFilter({
               <SelectValue />
             </div>
           </SelectTrigger>
-          <SelectContent className={isMobile ? "z-[10000]" : undefined}>
+          <SelectContent className={isMobile ? "z-[10000]" : "z-[120]"}>
             <SelectItem value="all">—</SelectItem>
             <SelectItem value="Signed">Signed</SelectItem>
             <SelectItem value="Unsigned">Unsigned</SelectItem>
@@ -260,7 +260,7 @@ export function ScouterFilter({
               <SelectValue />
             </div>
           </SelectTrigger>
-          <SelectContent className={isMobile ? "z-[10000]" : undefined}>
+          <SelectContent className={isMobile ? "z-[10000]" : "z-[120]"}>
             <SelectItem value="all">—</SelectItem>
             <SelectItem value="Contacted">Contacted</SelectItem>
             <SelectItem value="Not Contacted">Not Contacted</SelectItem>
@@ -281,7 +281,7 @@ export function ScouterFilter({
               <SelectValue />
             </div>
           </SelectTrigger>
-          <SelectContent className={isMobile ? "z-[10000]" : undefined}>
+          <SelectContent className={isMobile ? "z-[10000]" : "z-[120]"}>
             <SelectItem value="all">—</SelectItem>
             {primaryNiches.map((niche) => (
               <SelectItem
@@ -307,7 +307,7 @@ export function ScouterFilter({
               <SelectValue />
             </div>
           </SelectTrigger>
-          <SelectContent className={isMobile ? "z-[10000]" : undefined}>
+          <SelectContent className={isMobile ? "z-[10000]" : "z-[120]"}>
             <SelectItem value="all">—</SelectItem>
             {countries.map((country) => (
               <SelectItem
@@ -333,7 +333,7 @@ export function ScouterFilter({
               <SelectValue placeholder={loading.employees ? "Loading..." : "Select scout"} className={isMobile ? "text-lg" : undefined} />
             </div>
           </SelectTrigger>
-          <SelectContent className={isMobile ? "z-[10000]" : undefined}>
+          <SelectContent className={isMobile ? "z-[10000]" : "z-[120]"}>
             <SelectItem value="default">Me</SelectItem>
             <SelectItem value="all">All</SelectItem>
             {loading.employees ? (
@@ -430,7 +430,7 @@ export function ScouterFilter({
         className={cn(
           "fixed inset-y-0 left-0 w-80 bg-white/80 backdrop-blur-xl border-r border-white/30 transform transition-transform duration-200 ease-in-out rounded-none shadow-2xl",
           isOpen ? "translate-x-0" : "-translate-x-full",
-          "z-50"
+          "z-[110]"
         )}
       >
         <div className="h-full flex flex-col">

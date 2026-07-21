@@ -34,7 +34,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useActiveAccount } from "@/components/active-account-context";
-import { ProjectsHeader } from "../projects-header";
+import { ProjectsBoardFilters } from "../projects-header";
 import {
   Project,
   ProjectTask,
@@ -49,6 +49,8 @@ import {
 import {
   getTaskAssigneeDisplayName,
   getTaskAssigneeInitials,
+  getTaskAssigneesDisplayLabel,
+  isUserTaskAssignee,
   mapProjectTaskRow,
   PROJECT_TASK_SELECT_WITH_ASSIGNEE,
 } from "../task-assignee";
@@ -74,7 +76,6 @@ import {
   resolveBoardTaskScope,
   type TaskScopeMetaRow,
 } from "../board-task-scope";
-import { CreateProjectsPopup } from "../create-projects-popup";
 import {
   notifyTaskAssignerOnComplete,
   resolveActorDisplayName,
@@ -180,9 +181,9 @@ function renderMarkdownPreview(
   );
 }
 
-/* ─── Plus icon button (matches ProjectsHeader — no bg at rest, inset ring on hover) ─ */
-const KANBAN_PLUS_HOVER_RING =
-  "relative z-10 flex items-center justify-center rounded-full transition-all duration-300 ease-in-out group-hover:bg-kenoo-white group-hover:border group-hover:border-neutral-200 group-hover:shadow-[inset_0_4px_8px_rgba(0,0,0,0.15)] group-hover:scale-95";
+/* ─── Plus icon button — inset press on hover, no border ring ─ */
+const KANBAN_PLUS_HOVER =
+  "relative z-10 flex items-center justify-center rounded-full border-0 transition-all duration-300 ease-in-out group-hover:scale-95 group-hover:bg-kenoo-white group-hover:shadow-[inset_0_4px_8px_rgba(0,0,0,0.15)]";
 
 function KanbanPlusButton({
   onClick,
@@ -203,13 +204,14 @@ function KanbanPlusButton({
       title={title}
       aria-label={title}
       className={cn(
-        "relative flex shrink-0 items-center justify-center bg-transparent p-0 shadow-none group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-neutral-400 focus-visible:ring-offset-2",
+        "relative flex shrink-0 items-center justify-center bg-transparent p-0 shadow-none outline-none ring-0 group",
+        "focus:outline-none focus:ring-0 focus-visible:outline-none focus-visible:ring-0 focus-visible:ring-offset-0",
         isMd ? "h-10 w-10" : "h-8 w-8",
         className
       )}
     >
       <div className="relative">
-        <div className={cn(KANBAN_PLUS_HOVER_RING, isMd ? "p-3" : "p-2")}>
+        <div className={cn(KANBAN_PLUS_HOVER, isMd ? "p-3" : "p-2")}>
           <Plus
             className={cn(
               "stroke-[1.5] text-neutral-500",
@@ -272,27 +274,61 @@ function PriorityFlag({
 }
 
 function TaskAssignee({
-  assignee,
-  assigneeId,
+  assignees,
   currentUserId,
 }: {
-  assignee?: TaskAssignee | null;
-  assigneeId: string | null;
+  assignees?: TaskAssignee[] | null;
   currentUserId?: string | null;
 }) {
-  const label = getTaskAssigneeDisplayName(assignee, assigneeId, currentUserId);
-  const initials = getTaskAssigneeInitials(assignee);
+  const list = assignees ?? [];
+  const label = getTaskAssigneesDisplayLabel(list, currentUserId);
+  const visible = list.slice(0, 3);
+  const overflow = list.length - visible.length;
+
+  if (list.length === 0) {
+    return (
+      <div className="flex min-w-0 flex-1 items-center gap-1.5">
+        <Avatar className="h-5 w-5 shrink-0">
+          <AvatarFallback className="bg-neutral-100 text-[9px] font-medium text-neutral-500">
+            ?
+          </AvatarFallback>
+        </Avatar>
+        <span className="truncate text-[10px] font-light uppercase tracking-wider text-neutral-400">
+          Unassigned
+        </span>
+      </div>
+    );
+  }
 
   return (
     <div className="flex min-w-0 flex-1 items-center gap-1.5">
-      <Avatar className="h-5 w-5 shrink-0">
-        {assignee?.avatar_url ? (
-          <AvatarImage src={assignee.avatar_url} alt="" />
+      <div className="flex shrink-0 -space-x-1.5">
+        {visible.map((assignee) => (
+          <Avatar
+            key={assignee.id}
+            className="h-5 w-5 ring-1 ring-white"
+            title={getTaskAssigneeDisplayName(
+              assignee,
+              assignee.id,
+              currentUserId
+            )}
+          >
+            {assignee.avatar_url ? (
+              <AvatarImage src={assignee.avatar_url} alt="" />
+            ) : null}
+            <AvatarFallback className="bg-neutral-100 text-[9px] font-medium text-neutral-500">
+              {getTaskAssigneeInitials(assignee)}
+            </AvatarFallback>
+          </Avatar>
+        ))}
+        {overflow > 0 ? (
+          <Avatar className="h-5 w-5 ring-1 ring-white">
+            <AvatarFallback className="bg-neutral-100 text-[8px] font-medium text-neutral-500">
+              +{overflow}
+            </AvatarFallback>
+          </Avatar>
         ) : null}
-        <AvatarFallback className="bg-neutral-100 text-[9px] font-medium text-neutral-500">
-          {initials}
-        </AvatarFallback>
-      </Avatar>
+      </div>
       <span className="truncate text-[10px] font-light uppercase tracking-wider text-neutral-400">
         {label}
       </span>
@@ -439,8 +475,7 @@ function TaskCard({ task, isDragOverlay = false, columnStatus, onEdit }: TaskCar
       {/* Bottom row: assignee (left) + due date (right) */}
       <div className="flex items-center justify-between gap-2 pt-0.5 min-w-0">
         <TaskAssignee
-          assignee={task.assignee}
-          assigneeId={task.assignee_id}
+          assignees={task.assignees?.length ? task.assignees : task.assignee ? [task.assignee] : []}
           currentUserId={user?.id}
         />
         <div className="shrink-0">
@@ -799,7 +834,6 @@ function AgentsProjectsKanbanContent({
 
   // Dialog states
   const [taskFormOpen, setTaskFormOpen] = useState(false);
-  const [projectFormOpen, setProjectFormOpen] = useState(false);
   const [editTask, setEditTask] = useState<ProjectTask | null>(null);
   const [defaultStatus, setDefaultStatus] = useState<TaskStatus>("todo");
   const [viewTask, setViewTask] = useState<ProjectTask | null>(null);
@@ -840,9 +874,31 @@ function AgentsProjectsKanbanContent({
       if (projectIds.length > 0) {
         const { data } = await supabase
           .from("project_tasks")
-          .select("project_id, assignee_id, assigned_by, is_private")
+          .select(
+            "project_id, assignee_id, assigned_by, is_private, task_assignees:project_task_assignees(user_id)"
+          )
           .in("project_id", projectIds);
-        metaRows = (data ?? []) as TaskScopeMetaRow[];
+        metaRows = (data ?? []).map((row) => {
+          const links = (
+            row as {
+              task_assignees?: { user_id: string }[] | null;
+            }
+          ).task_assignees;
+          const fromJoin = (links ?? []).map((l) => l.user_id).filter(Boolean);
+          const assignee_ids =
+            fromJoin.length > 0
+              ? fromJoin
+              : row.assignee_id
+                ? [row.assignee_id as string]
+                : [];
+          return {
+            project_id: row.project_id as string,
+            assignee_id: (row.assignee_id as string | null) ?? null,
+            assigned_by: (row.assigned_by as string | null) ?? null,
+            is_private: Boolean(row.is_private),
+            assignee_ids,
+          };
+        });
       }
       setScopeMetaRows(metaRows);
 
@@ -870,21 +926,30 @@ function AgentsProjectsKanbanContent({
           .from("project_tasks")
           .select(taskSelect)
           .eq("assigned_by", user.id)
-          .neq("assignee_id", user.id)
           .in("project_id", loadProjectIds)
           .order("position", { ascending: true, nullsFirst: false });
-        taskRows = (data ?? []).map((row) =>
-          mapProjectTaskRow(row as Record<string, unknown>)
-        );
-      } else if (effectiveScope === "mine") {
-        const { data } = await supabase
-          .from("project_tasks")
-          .select(taskSelect)
-          .eq("assignee_id", user.id)
-          .order("position", { ascending: true, nullsFirst: false });
-        taskRows = (data ?? []).map((row) =>
-          mapProjectTaskRow(row as Record<string, unknown>)
-        );
+        taskRows = (data ?? [])
+          .map((row) => mapProjectTaskRow(row as Record<string, unknown>))
+          .filter((t) => !isUserTaskAssignee(t, user.id));
+      } else if (effectiveScope === "mine" && loadProjectIds.length > 0) {
+        const { data: assigneeLinks } = await supabase
+          .from("project_task_assignees")
+          .select("task_id")
+          .eq("user_id", user.id);
+        const mineTaskIds = [
+          ...new Set((assigneeLinks ?? []).map((r) => r.task_id as string)),
+        ];
+        if (mineTaskIds.length > 0) {
+          const { data } = await supabase
+            .from("project_tasks")
+            .select(taskSelect)
+            .in("id", mineTaskIds)
+            .in("project_id", loadProjectIds)
+            .order("position", { ascending: true, nullsFirst: false });
+          taskRows = (data ?? []).map((row) =>
+            mapProjectTaskRow(row as Record<string, unknown>)
+          );
+        }
       } else if (loadProjectIds.length > 0) {
         const { data } = await supabase
           .from("project_tasks")
@@ -1092,7 +1157,7 @@ function AgentsProjectsKanbanContent({
           targetStatus === "completed" &&
           draggedTask.status !== "completed" &&
           user?.id &&
-          draggedTask.assignee_id === user.id &&
+          isUserTaskAssignee(draggedTask, user.id) &&
           draggedTask.assigned_by &&
           draggedTask.assigned_by !== user.id
         ) {
@@ -1141,27 +1206,8 @@ function AgentsProjectsKanbanContent({
     <>
       <div className="flex h-full overflow-hidden">
         <div className="flex-1 w-full flex flex-col min-h-0">
-          {/* Header (no extra top padding; handled in ProjectsHeader).
-              Stack above the toolbar so the project filter dropdown is not covered by the refresh control. */}
-          <div className="relative z-20 flex-shrink-0 pl-8 pr-4 md:pr-6">
-            <ProjectsHeader
-              onNewTask={() => {
-                setEditTask(null);
-                setTaskFormOpen(true);
-              }}
-              onNewProject={() => setProjectFormOpen(true)}
-              taskScopeOptions={taskScopeOptions}
-              taskScopeFilter={taskScopeFilter}
-              onTaskScopeFilterChange={handleTaskScopeFilterChange}
-              projects={projects}
-              projectFilter={projectFilter}
-              onProjectFilterChange={handleProjectFilterChange}
-              projectStatusFilter={TASK_BOARD_PROJECT_STATUSES}
-            />
-          </div>
-
-          {/* Toolbar: actions */}
-          <div className="flex-shrink-0 pl-8 pr-4 pt-2 pb-4">
+          {/* Toolbar: search, actions, My Tasks / All Projects */}
+          <div className="relative z-30 flex-shrink-0 app-sidebar-pad pr-4 pt-4 pb-4">
             <div className="flex items-center gap-3 flex-wrap">
               <div className="relative flex-1 max-w-sm min-w-[12rem]">
                 <Search className="absolute left-0 top-1/2 -translate-y-1/2 h-4 w-4 text-neutral-400" />
@@ -1189,15 +1235,15 @@ function AgentsProjectsKanbanContent({
               <button
                 type="button"
                 onClick={refresh}
-                className="h-9 w-9 shrink-0 flex items-center justify-center text-xs group"
+                className="h-9 w-9 shrink-0 flex items-center justify-center text-xs group outline-none ring-0 focus:outline-none focus:ring-0 focus-visible:outline-none focus-visible:ring-0"
                 aria-label="Refresh board"
               >
                 <div
                   className={cn(
-                    "relative z-10 p-2.5 rounded-full",
+                    "relative z-10 p-2.5 rounded-full border-0",
                     "transition-all duration-300 ease-in-out",
-                    "group-hover:bg-neutral-50 group-hover:border group-hover:border-neutral-200/50",
-                    "group-hover:scale-95 group-hover:shadow-[inset_0_4px_8px_rgba(0,0,0,0.15)]"
+                    "group-hover:scale-95 group-hover:bg-neutral-50",
+                    "group-hover:shadow-[inset_0_4px_8px_rgba(0,0,0,0.15)]"
                   )}
                 >
                   <RefreshCw
@@ -1209,13 +1255,23 @@ function AgentsProjectsKanbanContent({
                   />
                 </div>
               </button>
+
+              <ProjectsBoardFilters
+                projects={projects}
+                projectFilter={projectFilter}
+                onProjectFilterChange={handleProjectFilterChange}
+                projectStatusFilter={TASK_BOARD_PROJECT_STATUSES}
+                taskScopeOptions={taskScopeOptions}
+                taskScopeFilter={taskScopeFilter}
+                onTaskScopeFilterChange={handleTaskScopeFilterChange}
+              />
             </div>
           </div>
 
           {/* Kanban board — scrollable container only; page does not scroll */}
           {loading ? (
-            <div className="flex-1 min-h-0 pl-8 pr-4 overflow-x-auto overflow-y-hidden flex flex-col">
-              <div className="flex flex-1 min-h-0 gap-6 pb-0 min-w-max">
+            <div className="flex-1 min-h-0 pr-4 overflow-x-auto overflow-y-hidden flex flex-col">
+              <div className="app-sidebar-pad flex flex-1 min-h-0 gap-6 pb-0 min-w-max">
                 {KANBAN_COLUMNS.map((col) => (
                   <div
                     key={col}
@@ -1225,7 +1281,7 @@ function AgentsProjectsKanbanContent({
               </div>
             </div>
           ) : (
-            <div className="flex-1 min-h-0 pl-8 pr-4 overflow-x-auto overflow-y-hidden overscroll-contain flex flex-col">
+            <div className="flex-1 min-h-0 pr-4 overflow-x-auto overflow-y-hidden overscroll-contain flex flex-col">
               <DndContext
                 sensors={sensors}
                 collisionDetection={closestCenter}
@@ -1233,7 +1289,7 @@ function AgentsProjectsKanbanContent({
                 onDragOver={handleDragOver}
                 onDragEnd={handleDragEnd}
               >
-                <div className="flex flex-1 min-h-0 gap-6 pb-0 min-w-max">
+                <div className="app-sidebar-pad flex flex-1 min-h-0 gap-6 pb-0 min-w-max">
                   {KANBAN_COLUMNS.map((col) => (
                     <KanbanColumn
                       key={col}
@@ -1267,13 +1323,6 @@ function AgentsProjectsKanbanContent({
           )}
         </div>
       </div>
-
-      {/* New project dialog */}
-      <CreateProjectsPopup
-        open={projectFormOpen}
-        onClose={() => setProjectFormOpen(false)}
-        onSaved={() => { setProjectFormOpen(false); refresh(); }}
-      />
 
       {/* Task form dialog */}
       <CreateTasksPopup

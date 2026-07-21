@@ -175,7 +175,7 @@ export function LeadsFilter({
       className={cn(
         "fixed inset-y-0 left-0 w-80 bg-white/80 backdrop-blur-xl border-r border-white/30 transform transition-transform duration-200 ease-in-out rounded-none shadow-2xl",
         isOpen ? "translate-x-0" : "-translate-x-full",
-        "z-50"
+        "z-[110]"
       )}
     >
       <div className="h-full flex flex-col">
@@ -206,7 +206,7 @@ export function LeadsFilter({
                     <SelectValue placeholder={loading.countries ? "Loading countries..." : ""} />
                   </div>
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className="z-[120]">
                   <SelectItem value="all">—</SelectItem>
                   {countries.map((country) => (
                     <SelectItem 
@@ -259,7 +259,7 @@ export function LeadsFilter({
                     <SelectValue />
                   </div>
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className="z-[120]">
                   <SelectItem value="all">—</SelectItem>
                   <SelectItem value="New">New</SelectItem>
                   <SelectItem value="Contacted">Contacted</SelectItem>
@@ -284,7 +284,7 @@ export function LeadsFilter({
                     <SelectValue />
                   </div>
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className="z-[120]">
                   <SelectItem value="all">—</SelectItem>
                   <SelectItem value="true">Verified</SelectItem>
                   <SelectItem value="false">Not Verified</SelectItem>
@@ -304,7 +304,7 @@ export function LeadsFilter({
                     <SelectValue placeholder={loading.sources ? "Loading sources..." : ""} />
                   </div>
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className="z-[120]">
                   <SelectItem value="all">—</SelectItem>
                   {leadSources.map((source) => (
                     <SelectItem 
@@ -330,7 +330,7 @@ export function LeadsFilter({
                     <SelectValue placeholder={loading.employees ? "Loading users..." : ""} />
                   </div>
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className="z-[120]">
                   <SelectItem value="all">—</SelectItem>
                   {employees.map((employee) => (
                     <SelectItem 

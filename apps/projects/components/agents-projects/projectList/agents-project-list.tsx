@@ -643,11 +643,37 @@ function AgentsProjectsListContent({
       const projectIds = rows.map((p) => p.id);
       const { data: taskCounts } = await supabase
         .from("project_tasks")
-        .select("project_id, status, is_private, assignee_id, assigned_by")
+        .select(
+          "project_id, status, is_private, assignee_id, assigned_by, task_assignees:project_task_assignees(user_id)"
+        )
         .in("project_id", projectIds);
       const countMap = new Map<string, { total: number; done: number }>();
       for (const t of taskCounts ?? []) {
-        if (!isTaskVisibleToUser(t, user.id)) continue;
+        const links = (
+          t as {
+            task_assignees?: { user_id: string }[] | null;
+          }
+        ).task_assignees;
+        const fromJoin = (links ?? []).map((l) => l.user_id).filter(Boolean);
+        const assignee_ids =
+          fromJoin.length > 0
+            ? fromJoin
+            : t.assignee_id
+              ? [t.assignee_id as string]
+              : [];
+        if (
+          !isTaskVisibleToUser(
+            {
+              is_private: Boolean(t.is_private),
+              assignee_id: (t.assignee_id as string | null) ?? null,
+              assigned_by: (t.assigned_by as string | null) ?? null,
+              assignee_ids,
+            },
+            user.id
+          )
+        ) {
+          continue;
+        }
         if (!countMap.has(t.project_id))
           countMap.set(t.project_id, { total: 0, done: 0 });
         const entry = countMap.get(t.project_id)!;
@@ -736,7 +762,7 @@ function AgentsProjectsListContent({
     <>
       <div className="flex h-full overflow-hidden">
         <div className="flex-1 w-full flex flex-col min-h-0">
-          <div className="flex flex-1 flex-col min-h-0 overflow-hidden pl-8 pr-4 md:pr-6">
+          <div className="app-sidebar-pad flex flex-1 flex-col min-h-0 overflow-hidden pr-4 md:pr-6">
             <div className="relative z-50 flex-shrink-0">
               <ProjectsHeader
                 onNewProject={() => {

@@ -770,14 +770,14 @@ export default function Contacts({ sequenceId }: ContactsProps) {
         {/* Table body scrolls; thead sticks within this region */}
         <div className="min-h-0 flex-1 overflow-y-auto overflow-x-auto overscroll-none px-8 pb-8">
           <table className="w-full text-sm min-w-[940px]">
-            <thead className="sticky top-0 z-10 border-b border-neutral-100 bg-gray-50">
+            <thead className="sticky top-0 z-10 border-b border-neutral-100 bg-kenoo-white">
               <tr>
-                <th className="w-10 pb-3 bg-gray-50" />
-                <th className="text-left pb-3 pr-4 font-medium text-neutral-400 text-xs uppercase tracking-wide whitespace-nowrap bg-gray-50 w-[260px]">Contact</th>
-                <th className="text-left pb-3 pr-4 font-medium text-neutral-400 text-xs uppercase tracking-wide whitespace-nowrap bg-gray-50 w-[190px]">Step</th>
-                <th className="text-left pb-3 pr-4 font-medium text-neutral-400 text-xs uppercase tracking-wide whitespace-nowrap bg-gray-50 w-[170px]">Status</th>
-                <th className="text-left pb-3 pr-4 font-medium text-neutral-400 text-xs uppercase tracking-wide whitespace-nowrap bg-gray-50 w-[160px]">Outcome</th>
-                <th className="text-left pb-3 pr-4 font-medium text-neutral-400 text-xs uppercase tracking-wide whitespace-nowrap bg-gray-50 w-[150px]">Sender</th>
+                <th className="w-10 pb-3 bg-kenoo-white" />
+                <th className="text-left pb-3 pr-4 font-medium text-neutral-400 text-xs uppercase tracking-wide whitespace-nowrap bg-kenoo-white w-[260px]">Contact</th>
+                <th className="text-left pb-3 pr-4 font-medium text-neutral-400 text-xs uppercase tracking-wide whitespace-nowrap bg-kenoo-white w-[190px]">Step</th>
+                <th className="text-left pb-3 pr-4 font-medium text-neutral-400 text-xs uppercase tracking-wide whitespace-nowrap bg-kenoo-white w-[170px]">Status</th>
+                <th className="text-left pb-3 pr-4 font-medium text-neutral-400 text-xs uppercase tracking-wide whitespace-nowrap bg-kenoo-white w-[160px]">Outcome</th>
+                <th className="text-left pb-3 pr-4 font-medium text-neutral-400 text-xs uppercase tracking-wide whitespace-nowrap bg-kenoo-white w-[150px]">Sender</th>
               </tr>
             </thead>
             <tbody>
@@ -1053,22 +1053,22 @@ export default function Contacts({ sequenceId }: ContactsProps) {
       {/* Table body scrolls; thead sticks within this region */}
       <div className="min-h-0 flex-1 overflow-y-auto overflow-x-auto overscroll-none px-8 pb-8">
         <table className="w-full text-sm min-w-[940px]">
-          <thead className="sticky top-0 z-10 border-b border-neutral-100 bg-gray-50">
+          <thead className="sticky top-0 z-10 border-b border-neutral-100 bg-kenoo-white">
             <tr>
-              <th className="w-10 pb-3 bg-gray-50" />
-              <th className="text-left pb-3 pr-4 font-medium text-neutral-400 text-xs uppercase tracking-wide whitespace-nowrap bg-gray-50 w-[260px]">
+              <th className="w-10 pb-3 bg-kenoo-white" />
+              <th className="text-left pb-3 pr-4 font-medium text-neutral-400 text-xs uppercase tracking-wide whitespace-nowrap bg-kenoo-white w-[260px]">
                 Contact
               </th>
-              <th className="text-left pb-3 pr-4 font-medium text-neutral-400 text-xs uppercase tracking-wide whitespace-nowrap bg-gray-50 w-[190px]">
+              <th className="text-left pb-3 pr-4 font-medium text-neutral-400 text-xs uppercase tracking-wide whitespace-nowrap bg-kenoo-white w-[190px]">
                 Step
               </th>
-              <th className="text-left pb-3 pr-4 font-medium text-neutral-400 text-xs uppercase tracking-wide whitespace-nowrap bg-gray-50 w-[170px]">
+              <th className="text-left pb-3 pr-4 font-medium text-neutral-400 text-xs uppercase tracking-wide whitespace-nowrap bg-kenoo-white w-[170px]">
                 Status
               </th>
-              <th className="text-left pb-3 pr-4 font-medium text-neutral-400 text-xs uppercase tracking-wide whitespace-nowrap bg-gray-50 w-[160px]">
+              <th className="text-left pb-3 pr-4 font-medium text-neutral-400 text-xs uppercase tracking-wide whitespace-nowrap bg-kenoo-white w-[160px]">
                 Outcome
               </th>
-              <th className="text-left pb-3 pr-4 font-medium text-neutral-400 text-xs uppercase tracking-wide whitespace-nowrap bg-gray-50 w-[150px]">
+              <th className="text-left pb-3 pr-4 font-medium text-neutral-400 text-xs uppercase tracking-wide whitespace-nowrap bg-kenoo-white w-[150px]">
                 Sender
               </th>
             </tr>

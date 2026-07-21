@@ -1,0 +1,28 @@
+{
+  "name": "@walls/billing",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts",
+    "./plans": "./src/plans.ts",
+    "./stripe": "./src/stripe.ts",
+    "./checkout": "./src/checkout.ts",
+    "./portal": "./src/portal.ts",
+    "./webhook": "./src/webhook.ts",
+    "./subscriptions": "./src/subscriptions.ts"
+  },
+  "scripts": {
+    "lint": "tsc --noEmit"
+  },
+  "dependencies": {
+    "stripe": "^18.5.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20",
+    "typescript": "^5"
+  },
+  "peerDependencies": {
+    "@supabase/supabase-js": "^2.49.0"
+  }
+}

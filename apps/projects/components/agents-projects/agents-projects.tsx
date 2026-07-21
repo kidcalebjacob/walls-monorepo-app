@@ -148,12 +148,15 @@ type HubTask = Pick<
   | "status"
   | "due_date"
   | "assignee_id"
+  | "assignees"
   | "assigned_by"
   | "is_private"
   | "priority"
   | "updated_at"
   | "completed_at"
->;
+> & {
+  assignee_ids?: string[];
+};
 
 type MemberUser = {
   id: string;
@@ -474,7 +477,7 @@ function AgentsProjectsContent({ analyticsData: _analyticsData }: AgentsProjects
         supabase
           .from("project_tasks")
           .select(
-            "id, project_id, title, status, due_date, assignee_id, assigned_by, is_private, priority, updated_at, completed_at"
+            "id, project_id, title, status, due_date, assignee_id, assigned_by, is_private, priority, updated_at, completed_at, task_assignees:project_task_assignees(user_id)"
           )
           .in("project_id", projectIds),
         supabase
@@ -483,9 +486,27 @@ function AgentsProjectsContent({ analyticsData: _analyticsData }: AgentsProjects
           .in("project_id", projectIds),
       ]);
 
-      const visibleTasks = (taskRows ?? []).filter((t) =>
-        isTaskVisibleToUser(t, user.id)
-      ) as HubTask[];
+      const visibleTasks = (taskRows ?? []).map((row) => {
+        const links = (
+          row as {
+            task_assignees?: { user_id: string }[] | null;
+          }
+        ).task_assignees;
+        const fromJoin = (links ?? []).map((l) => l.user_id).filter(Boolean);
+        const assignee_ids =
+          fromJoin.length > 0
+            ? fromJoin
+            : row.assignee_id
+              ? [row.assignee_id as string]
+              : [];
+        const { task_assignees: _ta, ...rest } = row as Record<string, unknown> & {
+          task_assignees?: unknown;
+        };
+        return {
+          ...(rest as Omit<HubTask, "assignee_ids">),
+          assignee_ids,
+        } as HubTask;
+      }).filter((t) => isTaskVisibleToUser(t, user.id));
 
       const countMap = new Map<string, { total: number; done: number }>();
       for (const t of visibleTasks) {
@@ -573,7 +594,12 @@ function AgentsProjectsContent({ analyticsData: _analyticsData }: AgentsProjects
       .filter((t) => t.due_date && daysFromToday(t.due_date) <= 0)
       .sort((a, b) => (a.priority ?? 99) - (b.priority ?? 99));
     const mine = openTasks
-      .filter((t) => t.assignee_id === user?.id)
+      .filter((t) => {
+        if (!user?.id) return false;
+        return (
+          t.assignee_ids ?? (t.assignee_id ? [t.assignee_id] : [])
+        ).includes(user.id);
+      })
       .sort((a, b) => {
         if (!a.due_date && !b.due_date) return (a.priority ?? 99) - (b.priority ?? 99);
         if (!a.due_date) return 1;
@@ -603,7 +629,12 @@ function AgentsProjectsContent({ analyticsData: _analyticsData }: AgentsProjects
     const overdue = openTasks
       .filter((t) => t.due_date && daysFromToday(t.due_date) < 0)
       .sort((a, b) => (a.due_date ?? "").localeCompare(b.due_date ?? ""));
-    const mine = openTasks.filter((t) => t.assignee_id === user?.id);
+    const mine = openTasks.filter((t) => {
+      if (!user?.id) return false;
+      return (
+        t.assignee_ids ?? (t.assignee_id ? [t.assignee_id] : [])
+      ).includes(user.id);
+    });
     const seen = new Set<string>();
     const feed: HubTask[] = [];
     for (const t of [...overdue, ...mine, ...openTasks]) {
@@ -618,8 +649,11 @@ function AgentsProjectsContent({ analyticsData: _analyticsData }: AgentsProjects
   const rankPerformance = useMemo(() => {
     const counts = new Map<string, number>();
     for (const t of tasks) {
-      if (t.status !== "completed" || !t.assignee_id) continue;
-      counts.set(t.assignee_id, (counts.get(t.assignee_id) ?? 0) + 1);
+      if (t.status !== "completed") continue;
+      const ids = t.assignee_ids ?? (t.assignee_id ? [t.assignee_id] : []);
+      for (const id of ids) {
+        counts.set(id, (counts.get(id) ?? 0) + 1);
+      }
     }
     return Array.from(counts.entries())
       .map(([id, points]) => {
@@ -683,7 +717,7 @@ function AgentsProjectsContent({ analyticsData: _analyticsData }: AgentsProjects
         <div className="flex min-h-0 w-full flex-1 flex-col">
           <div className="flex min-h-0 flex-1 flex-col overflow-hidden bg-kenoo-white">
             {/* Padding lives on the scroller so card shadows aren't clipped at the sidebar edge */}
-            <div className="min-h-0 flex-1 overflow-y-auto overscroll-none px-8 pb-10 pt-4 md:pr-6">
+            <div className="app-sidebar-pad min-h-0 flex-1 overflow-y-auto overscroll-none pb-10 pt-4 pr-8 md:pr-6">
               {showLoading ? (
                 <DashboardSkeleton />
               ) : total === 0 ? (
@@ -791,7 +825,7 @@ function AgentsProjectsContent({ analyticsData: _analyticsData }: AgentsProjects
                     >
                       {todayTasks.length === 0 ? (
                         <div className="flex min-h-[180px] items-center justify-center text-sm font-light text-neutral-400">
-                          Nothing due today — nice.
+                          Nothing due today.
                         </div>
                       ) : (
                         <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
@@ -1011,8 +1045,11 @@ function AgentsProjectsContent({ analyticsData: _analyticsData }: AgentsProjects
                         <ul className="space-y-2.5">
                           {attentionFeed.map((task, i) => {
                             const project = projectById.get(task.project_id);
+                            const assigneeIds =
+                              task.assignee_ids ??
+                              (task.assignee_id ? [task.assignee_id] : []);
                             const assignee =
-                              allMembers.find((m) => m.id === task.assignee_id) ??
+                              allMembers.find((m) => m.id === assigneeIds[0]) ??
                               project?.members[0];
                             const highlight = i === 0;
                             const status = TASK_STATUS_CONFIG[task.status];

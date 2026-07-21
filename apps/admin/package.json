@@ -9,6 +9,7 @@
     "lint": "eslint"
   },
   "dependencies": {
+    "@aws-sdk/client-ses": "^3.876.0",
     "@radix-ui/react-dialog": "^1.1.14",
     "@radix-ui/react-popover": "^1.1.14",
     "@radix-ui/react-select": "^2.1.1",
@@ -16,6 +17,7 @@
     "@radix-ui/react-switch": "^1.2.5",
     "@supabase/ssr": "^0.6.1",
     "@walls/auth": "workspace:*",
+    "@walls/billing": "workspace:*",
     "@walls/config": "workspace:*",
     "@walls/storage": "workspace:*",
     "@walls/supabase": "workspace:*",

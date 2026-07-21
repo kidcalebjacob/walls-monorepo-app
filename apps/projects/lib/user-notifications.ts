@@ -170,6 +170,7 @@ type TaskCompletionNotifyRow = {
   project_id: string;
   assignee_id: string | null;
   assigned_by: string | null;
+  assignees?: { id: string }[] | null;
   projects?: { name: string } | { name: string }[] | null;
 };
 
@@ -179,6 +180,14 @@ function projectNameFromTaskRow(
   if (!projects) return null;
   const row = Array.isArray(projects) ? projects[0] : projects;
   return row?.name ?? null;
+}
+
+function taskHasAssignee(
+  task: TaskCompletionNotifyRow,
+  userId: string
+): boolean {
+  if (task.assignees?.some((a) => a.id === userId)) return true;
+  return task.assignee_id === userId;
 }
 
 /** Notify `assigned_by` when the assignee marks a task complete. */
@@ -236,7 +245,7 @@ export async function notifyAssignersForCompletedTasks(
       if (!task.assigned_by || task.assigned_by === completerUserId) {
         return Promise.resolve();
       }
-      if (task.assignee_id !== completerUserId) {
+      if (!taskHasAssignee(task, completerUserId)) {
         return Promise.resolve();
       }
       return notifyTaskAssignerOnComplete(supabase, {

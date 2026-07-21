@@ -16,7 +16,8 @@ export default function SettingsFooter({ inView = true }: SettingsFooterProps) {
     )}>
       <div className="rounded-full bg-background px-6 py-3">
         <p className="text-xs text-muted-foreground">
-          &copy; {currentYear} WALLS Entertainment Group Inc., All rights reserved.
+          &copy; {currentYear} WALLS Entertainment Group Inc. d/b/a Kenoo. All
+          rights reserved.
         </p>
       </div>
       <div className="flex gap-4">

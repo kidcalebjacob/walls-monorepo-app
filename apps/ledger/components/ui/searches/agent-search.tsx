@@ -111,7 +111,7 @@ export function AgentSearch({
   teamGroupId,
   idField = "user",
   allowedUserIds,
-  emptyMessage = "No agents found",
+  emptyMessage = "No people found",
 }: AgentSearchProps) {
   const { user } = useAuth();
   const [agents, setAgents] = useState<Agent[]>([]);
@@ -284,7 +284,7 @@ export function AgentSearch({
               e.stopPropagation();
               if (e.key === "Escape") setSearchQuery("");
             }}
-            placeholder="Search agents…"
+            placeholder="Search…"
             className={cn(
               "w-full rounded-none border-0 border-b bg-transparent py-2 pl-6 pr-2 text-sm font-light transition-colors placeholder:text-neutral-300 focus:border-b-[var(--kenoo-sky)] focus:outline-none focus-visible:outline-none",
               searchQuery.trim()

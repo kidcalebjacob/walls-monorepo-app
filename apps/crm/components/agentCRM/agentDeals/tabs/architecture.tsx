@@ -35,7 +35,7 @@ const numberInputNoSpinnerClass =
   "[appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none";
 const addFieldWrapperClass = "rounded-full bg-transparent hover:bg-transparent px-4 py-2";
 const tableHeaderClass =
-  "text-left pb-3 pr-4 font-medium text-neutral-400 text-xs uppercase tracking-wide whitespace-nowrap bg-gray-50";
+  "text-left pb-3 pr-4 font-medium text-neutral-400 text-xs uppercase tracking-wide whitespace-nowrap bg-kenoo-white";
 const selectTriggerClass =
   "w-full border-0 rounded-none px-0 py-2 font-light bg-transparent shadow-none min-h-10 h-10 flex items-center justify-between focus:outline-none focus-visible:outline-none focus-visible:ring-0 focus:ring-0 hover:bg-transparent";
 const ITEMS_PER_PAGE = 5;
@@ -489,12 +489,12 @@ export default function Architecture({ formData, setFormData }: ArchitectureProp
             />
             <div className="overflow-x-auto pb-8">
             <table className="w-full text-sm">
-              <thead className="sticky top-0 z-10 border-b border-neutral-100 bg-gray-50">
+              <thead className="sticky top-0 z-10 border-b border-neutral-100 bg-kenoo-white">
                 <tr>
                   <th className={tableHeaderClass}>Name</th>
                   <th className={tableHeaderClass}>Role</th>
                   <th className={tableHeaderClass}>Commission %</th>
-                  <th className="w-10 pb-3 bg-gray-50" />
+                  <th className="w-10 pb-3 bg-kenoo-white" />
                 </tr>
               </thead>
               <tbody>
@@ -621,11 +621,11 @@ export default function Architecture({ formData, setFormData }: ArchitectureProp
           />
           <div className="overflow-x-auto pb-8">
           <table className="w-full text-sm">
-            <thead className="sticky top-0 z-10 border-b border-neutral-100 bg-gray-50">
+            <thead className="sticky top-0 z-10 border-b border-neutral-100 bg-kenoo-white">
               <tr>
                 <th className={tableHeaderClass}>Company</th>
                 <th className={tableHeaderClass}>Role</th>
-                <th className="w-10 pb-3 bg-gray-50" />
+                <th className="w-10 pb-3 bg-kenoo-white" />
               </tr>
             </thead>
             <tbody>
@@ -734,12 +734,12 @@ export default function Architecture({ formData, setFormData }: ArchitectureProp
           />
           <div className="overflow-x-auto pb-8">
           <table className="w-full text-sm">
-            <thead className="sticky top-0 z-10 border-b border-neutral-100 bg-gray-50">
+            <thead className="sticky top-0 z-10 border-b border-neutral-100 bg-kenoo-white">
               <tr>
                 <th className={tableHeaderClass}>Name</th>
                 <th className={tableHeaderClass}>Role</th>
                 <th className={tableHeaderClass}>Commission %</th>
-                <th className="w-10 pb-3 bg-gray-50" />
+                <th className="w-10 pb-3 bg-kenoo-white" />
               </tr>
             </thead>
             <tbody>
@@ -856,12 +856,12 @@ export default function Architecture({ formData, setFormData }: ArchitectureProp
           />
           <div className="overflow-x-auto pb-8">
           <table className="w-full text-sm">
-            <thead className="sticky top-0 z-10 border-b border-neutral-100 bg-gray-50">
+            <thead className="sticky top-0 z-10 border-b border-neutral-100 bg-kenoo-white">
               <tr>
                 <th className={tableHeaderClass}>Name</th>
                 <th className={tableHeaderClass}>Email</th>
                 <th className={tableHeaderClass}>Role</th>
-                <th className="w-10 pb-3 bg-gray-50" />
+                <th className="w-10 pb-3 bg-kenoo-white" />
               </tr>
             </thead>
             <tbody>

@@ -104,17 +104,17 @@ export const DealsTableRow = ({
         className="absolute top-0 bottom-0 w-px z-10 bg-neutral-300 pointer-events-none"
         style={{ left: `${columnWidths.name}px` }}
       ></div>
-      <Card className="w-full rounded-none bg-gray-50 backdrop-blur-md border-b border-r border-l-0 border-t-0 border-neutral-300 transition-all duration-300 group relative overflow-visible box-border">
+      <Card className="w-full rounded-none bg-kenoo-white backdrop-blur-md border-b border-r border-l-0 border-t-0 border-neutral-300 transition-all duration-300 group relative overflow-visible box-border">
         <CardContent className="py-3 relative z-10">
           <div className="flex items-stretch">
             {/* Sticky Left Section - Deal Name */}
             <div
-              className="flex items-center gap-4 flex-shrink-0 sticky left-0 z-10 pr-0 self-stretch overflow-visible bg-gray-50"
+              className="flex items-center gap-4 flex-shrink-0 sticky left-0 z-10 pr-0 self-stretch overflow-visible bg-kenoo-white"
               style={{ width: `${columnWidths.name}px` }}
             >
               <div
                 onClick={(e) => onDealClick(deal.id, e)}
-                className="flex items-center gap-4 flex-1 cursor-pointer transition-all duration-200 -my-3 py-3 pl-6 relative bg-gray-50 hover:bg-gray-200/60 max-w-full min-h-full"
+                className="flex items-center gap-4 flex-1 cursor-pointer transition-all duration-200 -my-3 py-3 pl-6 relative bg-kenoo-white hover:bg-gray-200/60 max-w-full min-h-full"
               >
                 <div
                   className={

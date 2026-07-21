@@ -84,8 +84,12 @@ export interface ProjectTask {
   completed_at: string | null;
   position: number | null;
   priority: number | null;
+  /** Primary / first assignee — kept in sync with `assignees[0]` for backward compat. */
   assignee_id: string | null;
+  /** @deprecated Prefer `assignees`; still populated as the primary assignee. */
   assignee?: TaskAssignee | null;
+  /** All tagged assignees for this task. */
+  assignees?: TaskAssignee[];
   assigned_by: string | null;
   is_private: boolean;
   estimated_minutes: number | null;

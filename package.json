@@ -13,6 +13,7 @@
     "dev:calendar": "turbo dev --filter=calendar",
     "dev:projects": "turbo dev --filter=projects",
     "dev:admin": "turbo dev --filter=admin",
+    "dev:console": "turbo dev --filter=console",
     "dev:crm": "turbo dev --filter=crm",
     "dev:ledger": "turbo dev --filter=ledger",
     "dev:wallie-mobile": "pnpm --filter wallie-mobile dev",

@@ -1440,7 +1440,7 @@ function AgentsLedgerContent({ analyticsData: _analyticsData }: AgentsLedgerProp
       <Dialog open={agentSwapIndex !== null} onOpenChange={(open) => !open && setAgentSwapIndex(null)}>
         <DialogContent className="max-w-[380px] p-0 gap-0 overflow-hidden">
           <DialogHeader className="px-4 pt-4 pb-2">
-            <DialogTitle>Select agent</DialogTitle>
+            <DialogTitle>Select person</DialogTitle>
           </DialogHeader>
           <div className="px-4 pb-4">
             <AgentSearch

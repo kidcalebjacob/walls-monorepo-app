@@ -140,7 +140,7 @@ export function DealsFilter({
       className={cn(
         "fixed inset-y-0 left-0 w-80 bg-white/80 backdrop-blur-xl border-r border-white/30 transform transition-transform duration-200 ease-in-out rounded-none shadow-2xl",
         isOpen ? "translate-x-0" : "-translate-x-full",
-        "z-50"
+        "z-[110]"
       )}
     >
       <div className="h-full flex flex-col">
@@ -171,7 +171,7 @@ export function DealsFilter({
                     <SelectValue />
                   </div>
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className="z-[120]">
                   <SelectItem value="active">Active</SelectItem>
                   <SelectItem value="all">—</SelectItem>
                   <SelectItem value="won">Won</SelectItem>
@@ -192,7 +192,7 @@ export function DealsFilter({
                     <SelectValue placeholder={loading.stages ? "Loading stages..." : ""} />
                   </div>
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className="z-[120]">
                   <SelectItem value="all">—</SelectItem>
                   {stages.map((stage) => (
                     <SelectItem
@@ -218,7 +218,7 @@ export function DealsFilter({
                     <SelectValue placeholder={loading.owners ? "Loading..." : ""} />
                   </div>
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className="z-[120]">
                   <SelectItem value="me">Me</SelectItem>
                   <SelectItem value="all">—</SelectItem>
                   {owners.map((owner) => (
@@ -245,7 +245,7 @@ export function DealsFilter({
                     <SelectValue />
                   </div>
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className="z-[120]">
                   <SelectItem value="all">—</SelectItem>
                   <SelectItem value="0-1000">$0 - $1,000</SelectItem>
                   <SelectItem value="1000-5000">$1,000 - $5,000</SelectItem>

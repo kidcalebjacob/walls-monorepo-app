@@ -5,7 +5,14 @@ export type TaskScopeMetaRow = {
   assignee_id: string | null;
   assigned_by: string | null;
   is_private: boolean;
+  /** Assignees from join table; falls back to assignee_id when missing. */
+  assignee_ids?: string[];
 };
+
+function rowAssigneeIds(row: TaskScopeMetaRow): string[] {
+  if (row.assignee_ids && row.assignee_ids.length > 0) return row.assignee_ids;
+  return row.assignee_id ? [row.assignee_id] : [];
+}
 
 /** Scope flags for a set of projects (pass all accessible ids, or one selected project). */
 export function getTaskScopeFlags(
@@ -22,13 +29,12 @@ export function getTaskScopeFlags(
 
   for (const row of rows) {
     if (!idSet.has(row.project_id)) continue;
-    if (row.assigned_by === userId && row.assignee_id !== userId) {
+    const assigneeIds = rowAssigneeIds(row);
+    const userIsAssignee = assigneeIds.includes(userId);
+    if (row.assigned_by === userId && !userIsAssignee) {
       assignedByUser += 1;
     }
-    if (
-      !row.is_private &&
-      (row.assignee_id !== userId || row.assignee_id == null)
-    ) {
+    if (!row.is_private && (!userIsAssignee || assigneeIds.length === 0)) {
       othersVisible += 1;
     }
   }

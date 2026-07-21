@@ -35,7 +35,7 @@ export function CompanyFilter({
       className={cn(
         "fixed inset-y-0 left-0 w-80 bg-white/80 backdrop-blur-xl border-r border-white/30 transform transition-transform duration-200 ease-in-out rounded-none shadow-2xl",
         isOpen ? "translate-x-0" : "-translate-x-full",
-        "z-50"
+        "z-[110]"
       )}
     >
       <div className="h-full flex flex-col">
@@ -66,7 +66,7 @@ export function CompanyFilter({
                     <SelectValue />
                   </div>
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className="z-[120]">
                   <SelectItem value="all">—</SelectItem>
                   <SelectItem value="Technology">Technology</SelectItem>
                   <SelectItem value="Retail">Retail</SelectItem>
@@ -90,7 +90,7 @@ export function CompanyFilter({
                     <SelectValue />
                   </div>
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className="z-[120]">
                   <SelectItem value="all">—</SelectItem>
                   <SelectItem value="Active">Active</SelectItem>
                   <SelectItem value="Inactive">Inactive</SelectItem>
@@ -113,7 +113,7 @@ export function CompanyFilter({
                     <SelectValue />
                   </div>
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className="z-[120]">
                   <SelectItem value="all">—</SelectItem>
                   <SelectItem value="1-10">1-10</SelectItem>
                   <SelectItem value="11-50">11-50</SelectItem>
@@ -137,7 +137,7 @@ export function CompanyFilter({
                     <SelectValue />
                   </div>
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className="z-[120]">
                   <SelectItem value="all">—</SelectItem>
                   <SelectItem value="0-1M">$0 - $1M</SelectItem>
                   <SelectItem value="1M-10M">$1M - $10M</SelectItem>
@@ -160,7 +160,7 @@ export function CompanyFilter({
                     <SelectValue />
                   </div>
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className="z-[120]">
                   <SelectItem value="all">—</SelectItem>
                   <SelectItem value="USA">USA</SelectItem>
                   <SelectItem value="UK">UK</SelectItem>

@@ -259,7 +259,7 @@ export function PitchesFilter({
       className={cn(
         "fixed inset-y-0 left-0 w-80 bg-white/80 backdrop-blur-xl border-r border-white/30 transform transition-transform duration-200 ease-in-out rounded-none shadow-2xl",
         isOpen ? "translate-x-0" : "-translate-x-full",
-        "z-50"
+        "z-[110]"
       )}
     >
       <div className="h-full flex flex-col">
@@ -287,7 +287,7 @@ export function PitchesFilter({
                 <SelectTrigger className="border border-transparent rounded-full focus:ring-0 focus-visible:ring-0 px-4 [&>svg]:hidden hover:bg-gray-50 hover:border-neutral-200 hover:scale-95 hover:shadow-[inset_0_4px_8px_rgba(0,0,0,0.15)] transition-all duration-300">
                   <div className="flex items-center gap-2">
                     <span className="text-neutral-700">Pitched By:</span>
-                    <SelectValue placeholder={loading.agents ? "Loading agents..." : "Select agent"}>
+                    <SelectValue placeholder={loading.agents ? "Loading…" : "Select person"}>
                       {filters.pitchedBy && (
                         <div className="flex items-center gap-2">
                           <div className="relative w-6 h-6 rounded-full overflow-hidden">
@@ -305,7 +305,7 @@ export function PitchesFilter({
                     </SelectValue>
                   </div>
                 </SelectTrigger>
-                <SelectContent className="">
+                <SelectContent className="z-[120]">
                   <SelectItem value="all" className="">--</SelectItem>
                   {agents
                     .filter(agent => agent.id && agent.displayName)
@@ -351,7 +351,7 @@ export function PitchesFilter({
                     </SelectValue>
                   </div>
                 </SelectTrigger>
-                <SelectContent className="">
+                <SelectContent className="z-[120]">
                   <SelectItem value="all" className="">--</SelectItem>
                   {filteredContacts
                     .filter(contact => contact.email && contact.firstName && contact.lastName)
@@ -406,7 +406,7 @@ export function PitchesFilter({
                     </SelectValue>
                   </div>
                 </SelectTrigger>
-                <SelectContent className="">
+                <SelectContent className="z-[120]">
                   <SelectItem value="all" className="">--</SelectItem>
                   {filteredCompanies
                     .filter(company => company.website && company.name)
@@ -468,7 +468,7 @@ export function PitchesFilter({
                     </SelectValue>
                   </div>
                 </SelectTrigger>
-                <SelectContent className="">
+                <SelectContent className="z-[120]">
                   <SelectItem value="all" className="">--</SelectItem>
                   {filteredCreators
                     .filter(creator => creator.creatorAlias)

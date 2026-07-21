@@ -5,7 +5,7 @@ import Image from "next/image";
 import { getSupabaseClient } from "@walls/auth";
 import { useAuth } from "@walls/auth";
 import { Plus, Save, Trash2, X } from "lucide-react";
-import { MiniCalendar } from "@/components/ui/mini-calendar";
+import { MiniDatePicker } from "@/components/ui/mini-date-picker";
 import { format, isValid, parseISO } from "date-fns";
 import { cn } from "@/lib/utils";
 import {
@@ -466,80 +466,42 @@ export function CreateProjectsPopup({
             </Select>
 
             {/* Start date */}
-            <Popover open={startPopoverOpen} onOpenChange={setStartPopoverOpen}>
-              <PopoverTrigger asChild>
-                <button
-                  type="button"
-                  disabled={saving}
-                  className="w-full h-10 flex items-center gap-2 rounded-full px-4 hover:bg-gray-100 focus:outline-none text-left disabled:opacity-50"
-                >
-                  <span className={cn("shrink-0", fieldLabelClass)}>Start:</span>
-                  <span
-                    className={cn(
-                      fieldValueClass,
-                      !form.start_date && fieldPlaceholderClass
-                    )}
-                  >
-                    {form.start_date ? format(parseDateValue(form.start_date) ?? new Date(), "MMM d, yyyy") : "Select date"}
-                  </span>
-                </button>
-              </PopoverTrigger>
-              <PopoverContent
-                className="w-auto p-0 border-0 rounded-3xl shadow-[0_14px_32px_rgba(0,0,0,0.18)]"
-                align="start"
-              >
-                <MiniCalendar
-                  showClearButton
-                  selected={parseDateValue(form.start_date)}
-                  onSelect={(date) => {
-                    setForm((f) => ({
-                      ...f,
-                      start_date: date ? format(date, "yyyy-MM-dd") : "",
-                    }));
-                    setStartPopoverOpen(false);
-                  }}
-                  initialFocus
-                />
-              </PopoverContent>
-            </Popover>
+            <MiniDatePicker
+              label="Start:"
+              value={parseDateValue(form.start_date)}
+              onChange={(date) => {
+                setForm((f) => ({
+                  ...f,
+                  start_date: date ? format(date, "yyyy-MM-dd") : "",
+                }));
+              }}
+              showClearButton
+              disabled={saving}
+              open={startPopoverOpen}
+              onOpenChange={setStartPopoverOpen}
+              labelClassName={fieldLabelClass}
+              valueClassName={fieldValueClass}
+              placeholderClassName={fieldPlaceholderClass}
+            />
 
             {/* Due date */}
-            <Popover open={duePopoverOpen} onOpenChange={setDuePopoverOpen}>
-              <PopoverTrigger asChild>
-                <button
-                  type="button"
-                  disabled={saving}
-                  className="w-full h-10 flex items-center gap-2 rounded-full px-4 hover:bg-gray-100 focus:outline-none text-left disabled:opacity-50"
-                >
-                  <span className={cn("shrink-0", fieldLabelClass)}>Due:</span>
-                  <span
-                    className={cn(
-                      fieldValueClass,
-                      !form.due_date && fieldPlaceholderClass
-                    )}
-                  >
-                    {form.due_date ? format(parseDateValue(form.due_date) ?? new Date(), "MMM d, yyyy") : "Select date"}
-                  </span>
-                </button>
-              </PopoverTrigger>
-              <PopoverContent
-                className="w-auto p-0 border-0 rounded-3xl shadow-[0_14px_32px_rgba(0,0,0,0.18)]"
-                align="start"
-              >
-                <MiniCalendar
-                  showClearButton
-                  selected={parseDateValue(form.due_date)}
-                  onSelect={(date) => {
-                    setForm((f) => ({
-                      ...f,
-                      due_date: date ? format(date, "yyyy-MM-dd") : "",
-                    }));
-                    setDuePopoverOpen(false);
-                  }}
-                  initialFocus
-                />
-              </PopoverContent>
-            </Popover>
+            <MiniDatePicker
+              label="Due:"
+              value={parseDateValue(form.due_date)}
+              onChange={(date) => {
+                setForm((f) => ({
+                  ...f,
+                  due_date: date ? format(date, "yyyy-MM-dd") : "",
+                }));
+              }}
+              showClearButton
+              disabled={saving}
+              open={duePopoverOpen}
+              onOpenChange={setDuePopoverOpen}
+              labelClassName={fieldLabelClass}
+              valueClassName={fieldValueClass}
+              placeholderClassName={fieldPlaceholderClass}
+            />
 
             {/* Members */}
             <Popover open={membersPopoverOpen} onOpenChange={setMembersPopoverOpen}>

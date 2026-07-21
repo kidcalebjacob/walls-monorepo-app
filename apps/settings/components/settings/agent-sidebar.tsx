@@ -34,11 +34,6 @@ const navItems = [
     name: "Security & Privacy",
     href: "/security",
   },
-  {
-    id: "organization",
-    name: "Organization",
-    href: "/organization",
-  },
 ];
 
 function isNavItemActive(pathname: string, item: (typeof navItems)[number]) {

@@ -21,7 +21,12 @@ interface Agent {
 }
 
 interface AgentSearchProps {
-  value: string;
+  /** Selected agent id (single-select). Ignored when `multiple` is true. */
+  value?: string;
+  /** Selected agent ids when `multiple` is true. */
+  values?: string[];
+  /** Toggle multi-select mode (click adds/removes without closing). */
+  multiple?: boolean;
   onSelect: (agentId: string) => void;
   /** Limit list to members of this team group (management header switcher). */
   teamGroupId?: string;
@@ -110,13 +115,18 @@ function mapUserRowToAgent(u: {
 }
 
 export function AgentSearch({
-  value,
+  value = "",
+  values,
+  multiple = false,
   onSelect,
   teamGroupId,
   idField = "user",
   allowedUserIds,
-  emptyMessage = "No agents found",
+  emptyMessage = "No people found",
 }: AgentSearchProps) {
+  const selectedIds = multiple
+    ? new Set(values ?? [])
+    : new Set(value ? [value] : []);
   const { user } = useAuth();
   const [agents, setAgents] = useState<Agent[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
@@ -299,7 +309,7 @@ export function AgentSearch({
               e.stopPropagation();
               if (e.key === "Escape") setSearchQuery("");
             }}
-            placeholder="Search agents…"
+            placeholder="Search…"
             className={cn(
               "w-full rounded-none border-0 border-b bg-transparent py-2 pl-6 pr-2 text-sm font-light transition-colors placeholder:text-neutral-300 focus:border-b-[var(--kenoo-sky)] focus:outline-none focus-visible:outline-none",
               searchQuery.trim() ? "border-b-[var(--kenoo-sky)]" : "border-neutral-200"
@@ -316,7 +326,7 @@ export function AgentSearch({
           <div className="px-4 py-2 text-sm font-light text-gray-500">{emptyMessage}</div>
         ) : (
           filteredAgents.map((agent) => {
-            const isSelected = value === agent.id;
+            const isSelected = selectedIds.has(agent.id);
             const label = agentLabel(agent);
 
             return (
@@ -332,11 +342,12 @@ export function AgentSearch({
                   e.stopPropagation();
                 }}
                 className={cn(
-                  "relative flex cursor-pointer items-center rounded-none px-4 py-2 pr-16 hover:bg-neutral-100/60 focus:bg-neutral-100/60",
+                  "relative flex cursor-pointer items-center rounded-none px-4 py-2 hover:bg-neutral-100/60 focus:bg-neutral-100/60",
+                  !multiple && "pr-16",
                   isSelected && "bg-neutral-100/60"
                 )}
               >
-                <div className="flex min-w-0 w-full items-center space-x-3">
+                <div className="flex min-w-0 w-full items-center gap-3">
                   <AgentAvatar
                     name={label}
                     avatarUrl={agent.avatarUrl}
@@ -351,6 +362,11 @@ export function AgentSearch({
                       </span>
                     ) : null}
                   </div>
+                  {multiple && isSelected ? (
+                    <span className="ml-auto shrink-0 pl-2 text-[11px] font-light uppercase tracking-wider text-[var(--kenoo-sky-hover)]">
+                      Tagged
+                    </span>
+                  ) : null}
                 </div>
               </div>
             );

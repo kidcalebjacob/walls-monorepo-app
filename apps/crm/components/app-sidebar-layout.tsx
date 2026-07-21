@@ -1,5 +1,6 @@
 "use client";
 
+import type { CSSProperties, ReactNode } from "react";
 import { useAppHeaderVisible } from "@walls/ui/private-app-chrome";
 import { cn } from "@walls/utils";
 
@@ -7,7 +8,7 @@ import { AppSidebar } from "./app-sidebar";
 import { useAppSidebar } from "./app-sidebar-context";
 
 type AppSidebarLayoutProps = {
-  children: React.ReactNode;
+  children: ReactNode;
   className?: string;
 };
 
@@ -19,13 +20,28 @@ function AppSidebarContent({ children, className }: AppSidebarLayoutProps) {
   return (
     <>
       <AppSidebar headerVisible={headerVisible} />
+      {/* Soft white veil at the page edge — content scrolls under the floating rail */}
+      <div
+        aria-hidden
+        className={cn(
+          "pointer-events-none fixed left-0 z-30 hidden md:block",
+          "w-20 bg-gradient-to-r from-kenoo-white via-kenoo-white/75 to-transparent",
+          "transition-[top,height] duration-300 ease-in-out",
+          headerVisible ? "top-16 h-[calc(100vh-4rem)]" : "top-0 h-screen",
+        )}
+      />
       <div
         className={cn(
-          "flex h-screen min-w-0 flex-col overflow-hidden bg-kenoo-white transition-[margin-left,padding-top] duration-300",
+          // Full-bleed canvas so the glass rail floats over content (no opaque left wall).
+          "flex h-screen min-w-0 flex-col overflow-hidden bg-kenoo-white transition-[padding-top] duration-300",
           headerVisible ? "pt-16" : "pt-0",
-          isExpanded ? "md:ml-40" : "md:ml-16",
           className,
         )}
+        style={
+          {
+            "--app-sidebar-inset": isExpanded ? "13.25rem" : "5.25rem",
+          } as CSSProperties
+        }
       >
         <main
           data-app-scroll-container
@@ -38,7 +54,7 @@ function AppSidebarContent({ children, className }: AppSidebarLayoutProps) {
   );
 }
 
-/** Mirrors walls-app `CRMSidebarWrapper` — fixed rail + margin-offset main column. */
+/** Floating glass rail over a full-bleed main column. */
 export function AppSidebarLayout({ children, className }: AppSidebarLayoutProps) {
   return <AppSidebarContent className={className}>{children}</AppSidebarContent>;
 }

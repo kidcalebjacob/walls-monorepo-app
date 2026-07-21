@@ -1,5 +1,5 @@
-import { AdminUsers } from "@/components/admin/adminUsers/admin-users";
+import { AdminUsersPage } from "@/components/admin/admin-users";
 
-export default function AdminUsersPage() {
-  return <AdminUsers />;
+export default function UsersPage() {
+  return <AdminUsersPage />;
 }

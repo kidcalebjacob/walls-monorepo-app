@@ -2,10 +2,10 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 
 import { createWallsMetadata } from "@walls/config/metadata";
-import { AppHeaderVisibilityProvider } from "@walls/ui/private-app-chrome";
 import { AccountSwitcher } from "@/components/account-switcher";
 import { AppSidebarLayout } from "@/components/app-sidebar-layout";
 import { AppTopChrome } from "@/components/app-top-chrome";
+import { ProjectsHeaderVisibility } from "@/components/projects-header-visibility";
 import { Providers } from "@/components/providers";
 
 import "./globals.css";
@@ -43,13 +43,13 @@ export default function RootLayout({
       <body className="h-screen overflow-hidden bg-kenoo-white text-foreground">
         <div className="h-full overscroll-none overflow-hidden">
           <Providers>
-            <AppHeaderVisibilityProvider autoHideOnScroll>
+            <ProjectsHeaderVisibility>
               <AppTopChrome
                 dashboardPath="/"
                 leftContent={<AccountSwitcher />}
               />
               <AppSidebarLayout>{children}</AppSidebarLayout>
-            </AppHeaderVisibilityProvider>
+            </ProjectsHeaderVisibility>
           </Providers>
         </div>
       </body>

@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Toaster } from "@/components/ui/toaster";
-import { Copy, Eye, EyeOff, Loader2, Plug, Shield, ShieldCheck } from "lucide-react";
+import { Eye, EyeOff, Loader2, Plug, Shield, ShieldCheck } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { MultiFactorPopup } from "./ui/multi-factor-popup";
 
@@ -16,11 +16,6 @@ export default function SecurityPrivacyPage() {
   const { user } = useAuth();
 
   type TotpFactor = { id: string; status?: string; friendly_name?: string };
-
-  // ── Talent key ─────────────────────────────────────────────────────────────
-  const [talentKey, setTalentKey] = useState("");
-  const [talentKeyLoading, setTalentKeyLoading] = useState(true);
-  const [showTalentKey, setShowTalentKey] = useState(false);
 
   // ── 2FA state ──────────────────────────────────────────────────────────────
   const [mfaFactors, setMfaFactors] = useState<{ totp?: TotpFactor[] } | null>(null);
@@ -46,32 +41,6 @@ export default function SecurityPrivacyPage() {
   const [passwordLoading, setPasswordLoading] = useState(false);
   const [passwordError, setPasswordError] = useState("");
   const [passwordSuccess, setPasswordSuccess] = useState("");
-
-  // ── Fetch talent key on mount ──────────────────────────────────────────────
-  useEffect(() => {
-    const fetchTalentKey = async () => {
-      try {
-        const supabase = getSupabaseClient();
-        const { data: keyData, error } = await supabase
-          .from("access_keys")
-          .select("raw_key")
-          .eq("type", "talent_page")
-          .is("user_id", null)
-          .single();
-
-        if (!error && keyData?.raw_key) {
-          setTalentKey(keyData.raw_key);
-        }
-      } catch (error) {
-        console.error("Error fetching talent key:", error);
-        wallsToast.error("Error", "Failed to load talent key");
-      } finally {
-        setTalentKeyLoading(false);
-      }
-    };
-
-    fetchTalentKey();
-  }, []);
 
   // ── Fetch MFA factors on mount ─────────────────────────────────────────────
   useEffect(() => {
@@ -352,18 +321,6 @@ export default function SecurityPrivacyPage() {
     }
   };
 
-  const copyTalentKey = () => {
-    if (talentKeyLoading || !talentKey) return;
-    navigator.clipboard
-      .writeText(talentKey)
-      .then(() => {
-        wallsToast.success("", "Talent key copied to clipboard");
-      })
-      .catch(() => {
-        wallsToast.error("Error", "Failed to copy talent key to clipboard");
-      });
-  };
-
   return (
     <div className="flex flex-col h-full overflow-y-auto overscroll-none bg-kenoo-white">
       <div className="w-full">
@@ -371,52 +328,14 @@ export default function SecurityPrivacyPage() {
           <div className="mb-8 pt-8">
             <h1 className="text-3xl font-bold text-foreground">Security &amp; Privacy</h1>
             <p className="text-sm font-light text-neutral-500">
-              Manage two-factor authentication, your password, and your talent key.
+              Manage two-factor authentication and your password.
             </p>
           </div>
 
           <div className="space-y-8">
 
-            {/* Talent key */}
-            <div className="flex items-center mb-8">
-              <span className="text-black font-black text-4xl mr-4">Talent key</span>
-              <div className="flex-1 border-t border-black h-[1px]" />
-            </div>
-
-            <section className="space-y-4">
-              <p className="text-sm font-light text-neutral-500">
-                This key is required for accessing the talent roster. It changes on the first of every month.
-              </p>
-
-              <div className="relative">
-                <button
-                  type="button"
-                  onClick={() => setShowTalentKey(!showTalentKey)}
-                  className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-500 hover:text-foreground transition-colors z-10"
-                  disabled={talentKeyLoading}
-                >
-                  {showTalentKey ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
-                </button>
-                <input
-                  type={showTalentKey ? "text" : "password"}
-                  value={talentKeyLoading ? "Loading..." : talentKey}
-                  readOnly
-                  className="w-full bg-neutral-100 backdrop-blur-md shadow-inner border border-neutral-200/50 text-neutral-800 font-normal pl-10 pr-10 py-3 rounded-xl focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent cursor-not-allowed opacity-75"
-                  disabled={talentKeyLoading}
-                />
-                <button
-                  type="button"
-                  onClick={copyTalentKey}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-neutral-500 hover:text-foreground transition-colors z-10"
-                  disabled={talentKeyLoading}
-                >
-                  <Copy className="h-4 w-4" />
-                </button>
-              </div>
-            </section>
-
             {/* Two-factor authentication */}
-            <div className="flex items-center mb-8 mt-8">
+            <div className="flex items-center mb-8">
               <span className="text-black font-black text-4xl mr-4">Two-factor authentication</span>
               <div className="flex-1 border-t border-black h-[1px]" />
             </div>

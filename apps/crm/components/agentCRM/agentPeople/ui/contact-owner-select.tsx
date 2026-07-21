@@ -192,7 +192,7 @@ export function ContactOwnerSelect({
               e.stopPropagation();
               if (e.key === "Escape") setSearchQuery("");
             }}
-            placeholder="Search agents..."
+            placeholder="Search…"
             className="w-full px-3 py-2 text-sm border-1 rounded-md bg-black/10 backdrop-blur-xl focus:outline-none placeholder:text-gray-600"
             onClick={(e) => e.stopPropagation()}
           />
@@ -212,7 +212,7 @@ export function ContactOwnerSelect({
               <span className="text-sm font-light text-muted-foreground">Unassigned</span>
             </SelectItem>
             {filteredAgents.length === 0 ? (
-              <div className="py-2 px-4 text-sm text-gray-500">No agents found</div>
+              <div className="py-2 px-4 text-sm text-gray-500">No people found</div>
             ) : (
               filteredAgents.map((agent) => (
                 <SelectItem

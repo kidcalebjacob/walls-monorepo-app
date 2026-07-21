@@ -65,7 +65,13 @@ const nextConfig: NextConfig = {
       },
     ],
   },
-  transpilePackages: ["@walls/config", "@walls/supabase", "@walls/ui", "@walls/utils"],
+  transpilePackages: [
+    "@walls/billing",
+    "@walls/config",
+    "@walls/supabase",
+    "@walls/ui",
+    "@walls/utils",
+  ],
   turbopack: {
     root: monorepoRoot,
   },

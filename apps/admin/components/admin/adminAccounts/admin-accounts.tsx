@@ -1,11 +1,11 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { createPortal } from "react-dom";
 import Link from "next/link";
-import { Building2, Search, User } from "lucide-react";
+import { Building2, Search, User, Users, LayoutGrid } from "lucide-react";
+import { motion } from "framer-motion";
 import { getSupabaseClient } from "@/lib/auth";
-import { cn } from "@/lib/utils";
+import { cn } from "@walls/utils";
 
 type AccountRow = {
   id: string;
@@ -18,17 +18,33 @@ type AccountRow = {
   app_count: number;
 };
 
+function PageHeader({
+  title,
+  description,
+}: {
+  title: string;
+  description: string;
+}) {
+  return (
+    <div className="mb-8">
+      <h1 className="text-2xl font-black tracking-tight text-neutral-900 md:text-3xl">
+        {title}
+      </h1>
+      <p className="mt-2 max-w-2xl text-sm font-light text-neutral-500">
+        {description}
+      </p>
+    </div>
+  );
+}
+
 export function AdminAccounts() {
   const [accounts, setAccounts] = useState<AccountRow[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [search, setSearch] = useState("");
-  const [typeFilter, setTypeFilter] = useState<"all" | "organization" | "personal">(
-    "organization",
-  );
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => setMounted(true), []);
+  const [typeFilter, setTypeFilter] = useState<
+    "all" | "organization" | "personal"
+  >("organization");
 
   useEffect(() => {
     let isMounted = true;
@@ -120,155 +136,148 @@ export function AdminAccounts() {
             (a.slug ?? "").toLowerCase().includes(searchLower),
         );
 
-  const headerEl =
-    mounted && typeof document !== "undefined"
-      ? document.getElementById("admin-header-left")
-      : null;
-
   return (
-    <>
-      {headerEl &&
-        createPortal(
-          <div className="flex items-center gap-x-1.5">
-            <span className="text-sm font-light uppercase tracking-wider text-neutral-800">
-              Admin
-            </span>
-            <span
-              className="text-sm font-light text-neutral-400 select-none"
-              aria-hidden
+    <div className="mx-auto max-w-6xl">
+      <PageHeader
+        title="Accounts"
+        description="Browse and manage organization accounts, members, and app access."
+      />
+
+      <div className="mb-6 flex flex-wrap items-center gap-4">
+        <div className="relative min-w-[220px] flex-1 max-w-md">
+          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-neutral-400" />
+          <input
+            type="text"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Search accounts…"
+            className="w-full rounded-xl border border-neutral-200 bg-white py-2.5 pl-10 pr-4 text-sm font-light shadow-sm transition-colors placeholder:text-neutral-300 focus:border-kenoo-blue/40 focus:outline-none focus:ring-2 focus:ring-kenoo-blue/10"
+            aria-label="Search accounts"
+          />
+        </div>
+        <div className="flex items-center gap-1 rounded-xl border border-neutral-200 bg-white p-1 shadow-sm">
+          {(
+            [
+              { value: "organization", label: "Organizations" },
+              { value: "personal", label: "Personal" },
+              { value: "all", label: "All" },
+            ] as const
+          ).map(({ value, label }) => (
+            <button
+              key={value}
+              type="button"
+              onClick={() => setTypeFilter(value)}
+              className={cn(
+                "rounded-lg px-3 py-1.5 text-xs font-medium transition-colors",
+                typeFilter === value
+                  ? "bg-neutral-900 text-white shadow-sm"
+                  : "text-neutral-500 hover:bg-neutral-50 hover:text-neutral-800",
+              )}
             >
-              /
-            </span>
-            <span className="text-sm font-light uppercase tracking-wider text-neutral-800">
-              Accounts
-            </span>
-          </div>,
-          headerEl,
+              {label}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {isLoading && (
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {Array.from({ length: 6 }).map((_, i) => (
+            <div
+              key={i}
+              className="h-36 animate-pulse rounded-2xl bg-neutral-100/80"
+            />
+          ))}
+        </div>
+      )}
+
+      {!isLoading && error && (
+        <div className="rounded-2xl border border-red-200 bg-red-50 px-6 py-10 text-center text-sm text-red-600">
+          {error}
+        </div>
+      )}
+
+      {!isLoading && !error && accounts.length === 0 && (
+        <div className="rounded-2xl border border-neutral-200 bg-white px-6 py-16 text-center shadow-sm">
+          <Building2 className="mx-auto h-10 w-10 text-neutral-300" />
+          <p className="mt-4 text-sm font-medium text-neutral-700">
+            No accounts yet
+          </p>
+          <p className="mt-1 text-sm font-light text-neutral-400">
+            Accounts will appear here once they are created.
+          </p>
+        </div>
+      )}
+
+      {!isLoading &&
+        !error &&
+        accounts.length > 0 &&
+        filtered.length === 0 && (
+          <div className="rounded-2xl border border-neutral-200 bg-white px-6 py-12 text-center text-sm font-light text-neutral-500 shadow-sm">
+            No accounts match your search.
+          </div>
         )}
 
-      <div className="space-y-4">
-        <div className="flex items-center gap-4 flex-1 flex-wrap">
-          <div className="relative flex-1 max-w-sm min-w-[200px]">
-            <Search className="absolute left-0 top-1/2 -translate-y-1/2 h-4 w-4 text-neutral-400" />
-            <input
-              type="text"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              placeholder="Search accounts…"
-              className={cn(
-                "w-full pl-6 pr-3 py-2 text-sm bg-transparent border-0 border-b focus:outline-none focus-visible:outline-none transition-colors placeholder:text-neutral-300 font-light rounded-none",
-                search.trim()
-                  ? "border-b-[var(--kenoo-sky)]"
-                  : "border-neutral-200",
-                "focus:border-b-[var(--kenoo-sky)]",
-              )}
-              aria-label="Search accounts"
-            />
-          </div>
-          <div className="flex items-center gap-1 rounded-full border border-neutral-200 bg-white p-0.5">
-            {(
-              [
-                { value: "organization", label: "Organizations" },
-                { value: "personal", label: "Personal" },
-                { value: "all", label: "All" },
-              ] as const
-            ).map(({ value, label }) => (
-              <button
-                key={value}
-                type="button"
-                onClick={() => setTypeFilter(value)}
-                className={cn(
-                  "rounded-full px-3 py-1.5 text-xs font-light transition-colors",
-                  typeFilter === value
-                    ? "bg-neutral-900 text-white"
-                    : "text-neutral-500 hover:text-neutral-800",
-                )}
+      {!isLoading && !error && filtered.length > 0 && (
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {filtered.map((account, i) => {
+            const TypeIcon =
+              account.account_type === "organization" ? Building2 : User;
+            return (
+              <motion.div
+                key={account.id}
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: Math.min(i * 0.04, 0.3) }}
               >
-                {label}
-              </button>
-            ))}
-          </div>
-        </div>
+                <Link
+                  href={`/accounts/${account.id}`}
+                  className="group flex h-full flex-col rounded-2xl border border-neutral-200/80 bg-white p-5 shadow-sm transition-all hover:-translate-y-0.5 hover:border-kenoo-blue/25 hover:shadow-md"
+                >
+                  <div className="flex items-start gap-3">
+                    <div className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-neutral-100 ring-1 ring-neutral-200/60">
+                      {account.icon_url ? (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img
+                          src={account.icon_url}
+                          alt=""
+                          className="h-full w-full object-cover"
+                        />
+                      ) : (
+                        <TypeIcon className="h-5 w-5 text-neutral-400" />
+                      )}
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate font-semibold text-neutral-900 group-hover:text-kenoo-blue">
+                        {account.name}
+                      </p>
+                      <p className="truncate text-xs font-light text-neutral-400">
+                        {account.slug ?? account.account_type}
+                      </p>
+                      <span className="mt-2 inline-flex rounded-full bg-neutral-100 px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide text-neutral-500">
+                        {account.account_type}
+                      </span>
+                    </div>
+                  </div>
 
-        <section className="max-h-[min(70vh,720px)] overflow-y-auto pr-1 -mr-1">
-          {isLoading && (
-            <p className="py-10 text-center text-sm text-zinc-500">
-              Loading accounts…
-            </p>
-          )}
-          {!isLoading && error && (
-            <p className="py-10 text-center text-sm text-red-500">{error}</p>
-          )}
-          {!isLoading && !error && accounts.length === 0 && (
-            <p className="py-10 text-center text-sm text-zinc-500">
-              No accounts yet.
-            </p>
-          )}
-          {!isLoading && !error && accounts.length > 0 && filtered.length === 0 && (
-            <p className="py-10 text-center text-sm text-zinc-500">
-              No accounts match your search.
-            </p>
-          )}
-          {!isLoading && !error && filtered.length > 0 && (
-            <div className="flex w-full flex-col gap-4">
-              {filtered.map((account) => {
-                const TypeIcon =
-                  account.account_type === "organization" ? Building2 : User;
-                return (
-                  <Link
-                    key={account.id}
-                    href={`/accounts/${account.id}`}
-                    className={cn(
-                      "grid w-full grid-cols-1 gap-4 rounded-full border border-transparent bg-transparent p-4 shadow-none",
-                      "sm:grid-cols-4 sm:items-center sm:gap-x-6 sm:gap-y-0 lg:gap-x-10",
-                      "transition-all duration-300 ease-in-out",
-                      "hover:border-neutral-200 hover:bg-gray-50/80",
-                    )}
-                  >
-                    <div className="flex items-center gap-3 min-w-0 sm:col-span-2">
-                      <div className="relative flex h-10 w-10 shrink-0 overflow-hidden rounded-full bg-zinc-100">
-                        {account.icon_url ? (
-                          // eslint-disable-next-line @next/next/no-img-element
-                          <img
-                            src={account.icon_url}
-                            alt=""
-                            className="h-10 w-10 object-cover"
-                          />
-                        ) : (
-                          <span className="flex h-full w-full items-center justify-center text-zinc-400">
-                            <TypeIcon className="h-4 w-4" />
-                          </span>
-                        )}
-                      </div>
-                      <div className="min-w-0">
-                        <p className="truncate text-sm font-medium text-zinc-900">
-                          {account.name}
-                        </p>
-                        <p className="truncate text-xs font-light text-zinc-400">
-                          {account.slug ?? account.account_type}
-                        </p>
-                      </div>
-                    </div>
-                    <div className="text-sm font-light text-zinc-500 capitalize">
-                      {account.account_type}
-                    </div>
-                    <div className="flex items-center gap-4 text-sm font-light text-zinc-500">
-                      <span>
-                        {account.member_count}{" "}
-                        {account.member_count === 1 ? "member" : "members"}
-                      </span>
-                      <span>
-                        {account.app_count}{" "}
-                        {account.app_count === 1 ? "app" : "apps"}
-                      </span>
-                    </div>
-                  </Link>
-                );
-              })}
-            </div>
-          )}
-        </section>
-      </div>
-    </>
+                  <div className="mt-5 flex items-center gap-4 border-t border-neutral-100 pt-4 text-xs font-light text-neutral-500">
+                    <span className="inline-flex items-center gap-1.5">
+                      <Users className="h-3.5 w-3.5" />
+                      {account.member_count}{" "}
+                      {account.member_count === 1 ? "member" : "members"}
+                    </span>
+                    <span className="inline-flex items-center gap-1.5">
+                      <LayoutGrid className="h-3.5 w-3.5" />
+                      {account.app_count}{" "}
+                      {account.app_count === 1 ? "app" : "apps"}
+                    </span>
+                  </div>
+                </Link>
+              </motion.div>
+            );
+          })}
+        </div>
+      )}
+    </div>
   );
 }
