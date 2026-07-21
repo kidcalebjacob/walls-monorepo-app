@@ -4,8 +4,10 @@ import {
   useAuth,
   getSupabaseClient,
   logoutToPortal,
+  resolveAppHref,
   readActiveAccountIdFromDocumentCookie,
   writeActiveAccountIdToDocumentCookie,
+  type UserProfileApp,
 } from "@walls/auth";
 import { Button } from "./button";
 import {
@@ -51,6 +53,26 @@ const AVATAR_REQUEST_PX = AVATAR_SIZE_PX * 2;
 
 const DEFAULT_SETTINGS_PATH =
   process.env.NEXT_PUBLIC_SETTINGS_URL?.replace(/\/$/, "") || "/settings";
+
+const ADMIN_APP_SLUG = process.env.NEXT_PUBLIC_ADMIN_APP_SLUG ?? "admin";
+const ADMIN_CONSOLE_PATH = resolveAppHref({
+  slug: ADMIN_APP_SLUG,
+  subdomain: ADMIN_APP_SLUG,
+  platformBase: "",
+});
+
+function isAdminProfileApp(app: UserProfileApp): boolean {
+  if (app.slug === ADMIN_APP_SLUG) return true;
+  if (app.path?.startsWith(ADMIN_CONSOLE_PATH)) return true;
+  const name = app.name?.toLowerCase();
+  return name === "admin" || name === "admin console";
+}
+
+function partitionProfileApps(apps: UserProfileApp[]) {
+  const adminApp = apps.find(isAdminProfileApp) ?? null;
+  const regularApps = apps.filter((app) => !isAdminProfileApp(app));
+  return { adminApp, regularApps };
+}
 
 type ProfileAccount = {
   id: string;
@@ -490,20 +512,24 @@ export default function UserProfileButton({
   const longPressTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const apps = profile?.userApps ?? [];
+  const { adminApp, regularApps } = partitionProfileApps(apps);
+  // Only show when the active account has an Admin app grant.
+  const showAdminConsole = adminApp != null;
+  const adminConsolePath = adminApp?.path ?? ADMIN_CONSOLE_PATH;
   const avatarUrl = profile?.avatarUrl ?? null;
   const initials = profile?.initials;
   const showProfileLoading = profileLoading && !profile;
 
   useEffect(() => {
-    if (apps.length === 0) return;
-    apps.forEach((app) => {
+    if (regularApps.length === 0) return;
+    regularApps.forEach((app) => {
       const link = document.createElement("link");
       link.rel = "preload";
       link.as = "image";
       link.href = app.icon;
       document.head.appendChild(link);
     });
-  }, [apps]);
+  }, [regularApps]);
 
   useEffect(() => {
     if (!avatarUrl) return;
@@ -638,10 +664,10 @@ export default function UserProfileButton({
   }, []);
 
   const saveAppOrder = useCallback(async () => {
-    if (!user?.id || apps.length === 0) return;
+    if (!user?.id || regularApps.length === 0) return;
     const supabase = getSupabaseClient();
     await Promise.all(
-      apps.map((app, i) =>
+      regularApps.map((app, i) =>
         supabase
           .from("user_app_access")
           .update({ order_index: i })
@@ -652,7 +678,7 @@ export default function UserProfileButton({
     setReorderMode(false);
     setDragIndex(null);
     setDragOverIndex(null);
-  }, [user?.id, apps]);
+  }, [user?.id, regularApps]);
 
   const handleDragStart = (index: number) => {
     setDragIndex(index);
@@ -667,12 +693,12 @@ export default function UserProfileButton({
   };
   const handleDrop = (e: React.DragEvent, dropIndex: number) => {
     e.preventDefault();
-    if (dragIndex === null || dragIndex === dropIndex || apps.length === 0)
+    if (dragIndex === null || dragIndex === dropIndex || regularApps.length === 0)
       return;
-    const next = [...apps];
-    const [removed] = next.splice(dragIndex, 1);
-    next.splice(dropIndex, 0, removed);
-    updateProfileApps(next);
+    const nextRegular = [...regularApps];
+    const [removed] = nextRegular.splice(dragIndex, 1);
+    nextRegular.splice(dropIndex, 0, removed);
+    updateProfileApps(nextRegular);
     setDragIndex(null);
     setDragOverIndex(null);
   };
@@ -686,7 +712,10 @@ export default function UserProfileButton({
 
   const allMenuItems: MenuItem[] = [
     { name: "Dashboard", path: dashboardPath },
-    ...apps,
+    ...regularApps,
+    ...(showAdminConsole
+      ? [{ name: "Admin console", path: adminConsolePath }]
+      : []),
     { name: "Logout", path: "logout", isLogout: true },
   ];
 
@@ -825,9 +854,24 @@ export default function UserProfileButton({
                     )}
                   </div>
                   <div className="min-w-0 flex-1">
-                    <p className="truncate text-sm font-semibold">
-                      {profile?.userFullName || "Your account"}
-                    </p>
+                    <div className="flex items-center gap-2">
+                      <p className="min-w-0 flex-1 truncate text-sm font-semibold">
+                        {profile?.userFullName || "Your account"}
+                      </p>
+                      {showAdminConsole ? (
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            navigateToPath(adminConsolePath, router);
+                          }}
+                          className="shrink-0 rounded-md px-2 py-0.5 text-xs font-medium text-white/70 transition-colors hover:bg-white/10 hover:text-white"
+                        >
+                          Admin console
+                        </button>
+                      ) : null}
+                    </div>
                     {user.email ? (
                       <p className="truncate text-xs text-white/60">
                         {user.email}
@@ -867,11 +911,11 @@ export default function UserProfileButton({
                 <div
                   className={cn(
                     "grid grid-cols-3 gap-1.5",
-                    apps.length > 6 &&
+                    regularApps.length > 6 &&
                       "max-h-[min(300px,calc(100vh-360px))] overflow-y-auto pr-0.5",
                   )}
                   style={
-                    apps.length > 6
+                    regularApps.length > 6
                       ? ({
                           scrollbarWidth: "thin",
                           scrollbarColor: "#d4d4d8 transparent",
@@ -879,7 +923,7 @@ export default function UserProfileButton({
                       : undefined
                   }
                 >
-                  {apps.map((app, index) => (
+                  {regularApps.map((app, index) => (
                     <div
                       key={app.app_id}
                       draggable={reorderMode}

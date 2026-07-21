@@ -1,10 +1,11 @@
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 
 import { createClient } from "@walls/supabase/server";
 import {
   AdminAccountDetail,
   type AccountDetail,
 } from "@/components/admin/adminAccounts/admin-view-account";
+import { getAdminDataScope } from "@/lib/admin-scope";
 
 export default async function AdminAccountDetailPage({
   params,
@@ -12,6 +13,16 @@ export default async function AdminAccountDetailPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
+  const scope = await getAdminDataScope();
+
+  if (!scope) {
+    notFound();
+  }
+
+  if (scope.accountId !== id) {
+    redirect(`/accounts/${scope.accountId}`);
+  }
+
   const supabase = await createClient();
 
   const { data: accountRow, error } = await supabase

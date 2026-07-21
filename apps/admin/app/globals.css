@@ -44,7 +44,7 @@
   html[data-app="admin"],
   html[data-app="admin"] body {
     min-height: 100%;
-    background-color: #f9fafb;
+    background-color: var(--kenoo-white);
     color: #0a0a0a;
   }
 
@@ -124,5 +124,13 @@
 
   .scrollbar-hide::-webkit-scrollbar {
     display: none;
+  }
+
+  .admin-shell {
+    background-color: #f4f4f5;
+    background-image:
+      radial-gradient(circle at 1px 1px, rgb(0 0 0 / 0.04) 1px, transparent 0),
+      linear-gradient(180deg, rgb(252 252 252) 0%, rgb(244 244 245) 100%);
+    background-size: 24px 24px, 100% 100%;
   }
 }

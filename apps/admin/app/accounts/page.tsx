@@ -1,5 +1,12 @@
-import { AdminAccounts } from "@/components/admin/adminAccounts/admin-accounts";
+import { redirect } from "next/navigation";
 
-export default function AdminAccountsPage() {
-  return <AdminAccounts />;
+import { getAdminDataScope } from "@/lib/admin-scope";
+
+export default async function AdminAccountsPage() {
+  const scope = await getAdminDataScope();
+  if (scope) {
+    redirect(`/accounts/${scope.accountId}`);
+  }
+
+  redirect("/");
 }

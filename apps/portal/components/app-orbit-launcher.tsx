@@ -237,6 +237,15 @@ function AppSlider({ apps }: { apps: PortalLauncherApp[] }) {
   );
 }
 
+const ADMIN_APP_SLUG = process.env.NEXT_PUBLIC_ADMIN_APP_SLUG || "admin";
+
+function partitionLauncherApps(apps: PortalLauncherApp[]) {
+  const adminApp =
+    apps.find((app) => app.slug === ADMIN_APP_SLUG) ?? null;
+  const regularApps = apps.filter((app) => app.slug !== ADMIN_APP_SLUG);
+  return { adminApp, regularApps };
+}
+
 export function AppOrbitLauncher({
   firstName,
   avatarUrl,
@@ -260,6 +269,7 @@ export function AppOrbitLauncher({
   const greetingReady =
     !isLoadingUserData && Boolean(firstName) && phase === "greeting";
   const showLauncher = !redirectMode && phase === "launcher" && !appsLoading;
+  const { adminApp, regularApps } = partitionLauncherApps(apps);
 
   return (
     <div className="relative mx-auto flex w-full max-w-4xl flex-col items-center px-2 py-4 sm:px-4">
@@ -341,12 +351,20 @@ export function AppOrbitLauncher({
                   />
                 </div>
               ) : null}
+              {adminApp ? (
+                <a
+                  href={adminApp.href}
+                  className="mt-0.5 text-[12px] font-medium tracking-[-0.01em] text-kenoo-muted transition-colors hover:text-kenoo-ink"
+                >
+                  Admin console
+                </a>
+              ) : null}
             </div>
 
-            {apps.length === 0 ? (
+            {regularApps.length === 0 ? (
               <p className="text-sm text-kenoo-muted">No apps assigned yet</p>
             ) : (
-              <AppSlider apps={apps} />
+              <AppSlider apps={regularApps} />
             )}
           </motion.div>
         )}

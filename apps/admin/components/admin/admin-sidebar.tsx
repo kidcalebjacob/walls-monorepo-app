@@ -1,202 +1,151 @@
-'use client';
+"use client";
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { cn } from "@/lib/utils";
+import { cn } from "@walls/utils";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { motion, AnimatePresence } from "framer-motion";
 import {
-  Lock,
   ChevronLeft,
-  UserCircle,
-  Users,
+  LayoutDashboard,
   LayoutGrid,
-  ListTodo,
-  Building2,
+  Lock,
+  Settings,
 } from "lucide-react";
+import { useActiveAccount } from "@/components/active-account-context";
 import { useAdminSidebar } from "./AdminSidebarContext";
 
-const menuItems = [
-  { name: "Users", href: "/users", Icon: UserCircle },
-  { name: "Accounts", href: "/accounts", Icon: Building2 },
-  { name: "Apps", href: "/apps", Icon: LayoutGrid },
-  { name: "Jobs", href: "/jobs", Icon: ListTodo },
-  { name: "Teams", href: "/teams", Icon: Users },
-];
-
-export function AdminSidebar() {
+export function AdminSidebar({
+  headerVisible = true,
+}: {
+  headerVisible?: boolean;
+}) {
   const pathname = usePathname();
-  const { isCollapsed, setIsCollapsed, isHoverExpanded, setIsHoverExpanded } = useAdminSidebar();
+  const { activeAccount, activeAccountId } = useActiveAccount();
+  const { isCollapsed, setIsCollapsed, isHoverExpanded, setIsHoverExpanded } =
+    useAdminSidebar();
   const isExpanded = !isCollapsed || isHoverExpanded;
 
+  const settingsLabel =
+    activeAccount?.accountType === "organization"
+      ? "Organization"
+      : "Account";
+
+  const menuItems = [
+    { name: "Overview", href: "/", Icon: LayoutDashboard, exact: true },
+    { name: settingsLabel, href: "/organizations", Icon: Settings },
+    ...(activeAccountId
+      ? [
+          {
+            name: "App access",
+            href: `/accounts/${activeAccountId}`,
+            Icon: LayoutGrid,
+            exact: false,
+          },
+        ]
+      : []),
+  ];
+
   return (
-    <div
+    <aside
       className={cn(
-        "fixed top-0 left-0 h-screen z-50",
-        "transition-all duration-500 ease-in-out",
-        "bg-gray-50",
-        "hidden md:block",
-        isExpanded ? "w-40" : "w-16"
+        "fixed left-0 z-40 hidden border-r border-neutral-200/80 bg-white/80 backdrop-blur-xl md:block",
+        "transition-all duration-300 ease-out",
+        headerVisible ? "top-16 h-[calc(100vh-4rem)]" : "top-0 h-screen",
+        isExpanded ? "w-52" : "w-[4.5rem]",
       )}
       onMouseEnter={() => setIsHoverExpanded(true)}
       onMouseLeave={() => setIsHoverExpanded(false)}
     >
-      <div className="flex h-full flex-col relative">
-        <ScrollArea className="flex-1">
-          <div className="space-y-1 p-2 pt-48">
-            {/* Collapse Button */}
-            <Button
-              variant="ghost"
-              size="icon"
-              className={cn(
-                "w-full justify-start text-slate-600 transition-all duration-500 ease-in-out",
-                "relative group hover:bg-transparent",
-                !isExpanded ? "px-2" : ""
-              )}
-              onClick={() => setIsCollapsed(!isCollapsed)}
-            >
-              <div className={cn(
-                "flex items-center relative z-10",
-                !isExpanded ? "justify-center" : ""
-              )}>
-                <div className="relative group">
-                  <div className="
-                    relative z-10 p-3
-                    rounded-full
-                    border border-transparent
-                    transition-all duration-300 ease-in-out
-                    group-hover:bg-gray-50 group-hover:border-neutral-200
-                    group-hover:scale-95
-                    group-hover:shadow-[inset_0_4px_8px_rgba(0,0,0,0.15)]
-                  ">
-                    <div className="h-[18px] w-[18px] relative flex items-center justify-center">
-                      <AnimatePresence mode="wait" initial={false}>
-                        {!isCollapsed ? (
-                          <motion.div
-                            key="lock"
-                            initial={{ opacity: 0, scale: 0.5 }}
-                            animate={{ opacity: 1, scale: 1 }}
-                            exit={{ opacity: 0, scale: 0.5 }}
-                            transition={{ duration: 0.2, ease: "easeInOut" }}
-                            className="absolute inset-0 flex items-center justify-center"
-                          >
-                            <Lock className="h-[18px] w-[18px] stroke-[1.5] text-slate-600" />
-                          </motion.div>
-                        ) : (
-                          <motion.div
-                            key="chevron"
-                            initial={{ opacity: 0, scale: 0.5 }}
-                            animate={{
-                              opacity: 1,
-                              scale: 1,
-                              rotate: isExpanded ? 0 : 180,
-                            }}
-                            exit={{ opacity: 0, scale: 0.5 }}
-                            transition={{
-                              opacity: { duration: 0.2, ease: "easeInOut" },
-                              scale: { duration: 0.2, ease: "easeInOut" },
-                              rotate: { duration: 0.5, ease: "easeInOut" },
-                            }}
-                            className="absolute inset-0 flex items-center justify-center"
-                          >
-                            <ChevronLeft className="h-[18px] w-[18px] stroke-[1.5] text-slate-600" />
-                          </motion.div>
-                        )}
-                      </AnimatePresence>
-                    </div>
-                  </div>
-                </div>
-                <motion.div
-                  className="overflow-hidden flex items-center"
-                  initial={false}
-                  animate={{
-                    width: isExpanded ? 80 : 0,
-                    opacity: isExpanded ? 1 : 0,
-                    marginLeft: isExpanded ? 12 : 0,
-                  }}
-                  transition={{ duration: 0.5, ease: "easeInOut" }}
-                >
-                  <motion.div
-                    className="overflow-hidden"
-                    initial={false}
-                    animate={{
-                      opacity: !isCollapsed ? 1 : 0,
-                      x: !isCollapsed ? 0 : -8,
-                    }}
-                    transition={{ duration: 0.5, ease: "easeInOut" }}
-                  >
-                    <span className="font-light whitespace-nowrap">
-                      Locked
-                    </span>
-                  </motion.div>
-                </motion.div>
-              </div>
-            </Button>
+      <div className="flex h-full flex-col">
+        <div
+          className={cn(
+            "flex items-center border-b border-neutral-100 px-3 py-4",
+            isExpanded ? "justify-between" : "justify-center",
+          )}
+        >
+          {isExpanded && (
+            <div className="min-w-0 px-1">
+              <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-neutral-400">
+                Kenoo
+              </p>
+              <p className="truncate text-sm font-bold text-neutral-900">
+                Admin
+              </p>
+            </div>
+          )}
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-8 w-8 shrink-0 rounded-lg text-neutral-500 hover:bg-neutral-100 hover:text-neutral-800"
+            onClick={() => setIsCollapsed(!isCollapsed)}
+            aria-label={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
+          >
+            {isCollapsed ? (
+              <ChevronLeft className="h-4 w-4 rotate-180" />
+            ) : (
+              <Lock className="h-3.5 w-3.5" />
+            )}
+          </Button>
+        </div>
 
-            {/* Navigation Items */}
-            {menuItems.map(({ name, href, Icon }) => {
-              const isActive =
-                pathname === href || pathname.startsWith(`${href}/`);
+        <ScrollArea className="flex-1">
+          <nav className="space-y-1 p-2 pt-3">
+            {isExpanded && (
+              <p className="px-3 pb-2 text-[10px] font-semibold uppercase tracking-[0.18em] text-neutral-400">
+                {activeAccount?.name ?? "Workspace"}
+              </p>
+            )}
+            {menuItems.map(({ name, href, Icon, exact }) => {
+              const isActive = exact
+                ? pathname === href
+                : pathname === href || pathname.startsWith(`${href}/`);
 
               return (
                 <Button
                   key={name}
                   variant="ghost"
                   className={cn(
-                    "w-full justify-start text-slate-600 transition-all duration-500 ease-in-out",
-                    "relative group hover:bg-transparent",
-                    !isExpanded ? "px-2" : "",
-                    isActive ? "text-black" : ""
+                    "h-10 w-full justify-start gap-0 rounded-xl px-2 font-normal transition-colors",
+                    isActive
+                      ? "bg-kenoo-blue/8 text-kenoo-blue hover:bg-kenoo-blue/10 hover:text-kenoo-blue"
+                      : "text-neutral-600 hover:bg-neutral-100 hover:text-neutral-900",
+                    !isExpanded && "justify-center px-0",
                   )}
                   asChild
                 >
-                  <Link href={href}>
-                    <div className={cn(
-                      "flex items-center relative z-10",
-                      !isExpanded ? "justify-center" : ""
-                    )}>
-                      <div className="relative group">
-                        <div className={cn(
-                          "relative z-10 p-3 rounded-full border border-transparent transition-all duration-300 ease-in-out",
-                          "group-hover:bg-gray-50 group-hover:border-neutral-200",
-                          "group-hover:scale-95",
-                          isActive
-                            ? [
-                                "shadow-[0_0_0_1px_rgba(110,173,192,0.4),0_0_12px_rgba(110,173,192,0.4)]",
-                                "group-hover:shadow-[inset_0_4px_8px_rgba(0,0,0,0.15),0_0_0_1px_rgba(110,173,192,0.4),0_0_12px_rgba(110,173,192,0.4)]",
-                              ]
-                            : "group-hover:shadow-[inset_0_4px_8px_rgba(0,0,0,0.15)]"
-                        )}>
-                          <Icon className={cn(
-                            "h-[18px] w-[18px] stroke-[1.5]",
-                            "text-neutral-500"
-                          )} />
-                        </div>
-                      </div>
-                      <motion.div
-                        className="overflow-hidden flex items-center"
-                        initial={false}
-                        animate={{
-                          width: isExpanded ? 80 : 0,
-                          opacity: isExpanded ? 1 : 0,
-                          marginLeft: isExpanded ? 12 : 0,
-                        }}
-                        transition={{ duration: 0.5, ease: "easeInOut" }}
-                      >
-                        <span className="font-light whitespace-nowrap">
-                          {name}
-                        </span>
-                      </motion.div>
-                    </div>
+                  <Link href={href} title={!isExpanded ? name : undefined}>
+                    <span
+                      className={cn(
+                        "flex h-8 w-8 shrink-0 items-center justify-center rounded-lg",
+                        isActive ? "bg-kenoo-blue/12" : "bg-transparent",
+                      )}
+                    >
+                      <Icon className="h-[18px] w-[18px] stroke-[1.75]" />
+                    </span>
+                    {isExpanded && (
+                      <span className="ml-2 truncate text-sm">{name}</span>
+                    )}
                   </Link>
                 </Button>
               );
             })}
-
-          </div>
+          </nav>
         </ScrollArea>
+
+        {isExpanded && (
+          <div className="border-t border-neutral-100 p-3">
+            <div className="rounded-xl bg-neutral-50 px-3 py-2.5">
+              <p className="text-[10px] font-semibold uppercase tracking-wider text-neutral-400">
+                Scoped view
+              </p>
+              <p className="mt-1 text-xs font-light leading-relaxed text-neutral-500">
+                All pages reflect the account selected in the header.
+              </p>
+            </div>
+          </div>
+        )}
       </div>
-    </div>
+    </aside>
   );
 }

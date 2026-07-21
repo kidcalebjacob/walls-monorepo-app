@@ -5,7 +5,7 @@ import * as SelectPrimitive from "@radix-ui/react-select";
 import { Check, ChevronDown } from "lucide-react";
 
 import { cn } from "@/lib/utils";
-import { FIELD_CLASS } from "@/components/admin/adminTeams/create-member/sections/field-styles";
+import { FIELD_CLASS } from "@/components/ui/field-styles";
 
 type Item = { value: string; label: string };
 

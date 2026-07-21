@@ -5,6 +5,8 @@ import {
   writeActiveAccountIdToDocumentCookie,
 } from "@walls/auth";
 
+const ADMIN_APP_SLUG = process.env.NEXT_PUBLIC_ADMIN_APP_SLUG || "admin";
+
 export type PortalLauncherApp = {
   app_id: string;
   name: string;
@@ -44,7 +46,8 @@ function pushApp(
   }
 
   const slug = String(a.slug);
-  const name = String(a.name);
+  const name =
+    slug === ADMIN_APP_SLUG ? "Admin console" : String(a.name);
   const urlRedirect =
     "url_redirect" in a && a.url_redirect != null
       ? String(a.url_redirect)

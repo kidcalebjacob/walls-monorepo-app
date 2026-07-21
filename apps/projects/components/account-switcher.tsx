@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { Building2, Check, ChevronDown, Plus, User } from "lucide-react";
+import { Building2, Check, ChevronDown, User } from "lucide-react";
 
 import { useAuth } from "@walls/auth";
 import { cn } from "@walls/utils";
@@ -9,7 +9,6 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -18,9 +17,6 @@ import {
   useActiveAccount,
   type ProjectsAccount,
 } from "./active-account-context";
-
-const SETTINGS_URL =
-  process.env.NEXT_PUBLIC_SETTINGS_URL?.replace(/\/$/, "") ?? "";
 
 /** Matches the loaded switcher layout so the header does not jump. */
 function AccountSwitcherSkeleton() {
@@ -191,23 +187,6 @@ export function AccountSwitcher() {
             );
           })}
         </div>
-
-        {SETTINGS_URL ? (
-          <>
-            <DropdownMenuSeparator className="my-2 bg-neutral-100" />
-            <DropdownMenuItem asChild className="rounded-xl p-0 focus:bg-transparent">
-              <a
-                href={`${SETTINGS_URL}/organization`}
-                className="flex cursor-pointer items-center gap-3 rounded-xl px-2.5 py-2.5 text-sm text-foreground hover:bg-kenoo-white"
-              >
-                <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-kenoo-white text-neutral-500">
-                  <Plus className="h-5 w-5" />
-                </span>
-                <span className="font-medium">Manage accounts</span>
-              </a>
-            </DropdownMenuItem>
-          </>
-        ) : null}
       </DropdownMenuContent>
     </DropdownMenu>
   );

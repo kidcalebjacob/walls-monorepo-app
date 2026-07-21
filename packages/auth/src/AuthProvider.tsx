@@ -33,6 +33,13 @@ function readCachedProfile(userId: string): UserProfile | null {
   return null;
 }
 
+function normalizeCachedProfile(profile: UserProfile): UserProfile {
+  return {
+    ...profile,
+    isAdmin: profile.isAdmin ?? profile.userType === "Admin",
+  };
+}
+
 function writeCachedProfile(userId: string, profile: UserProfile) {
   try {
     localStorage.setItem(getProfileStorageKey(userId), JSON.stringify(profile));
@@ -183,6 +190,8 @@ async function fetchUserProfile(
     userType = "Agent";
   }
 
+  const isAdmin = supabaseUserData?.is_admin === true;
+
   const pushApp = (
     appList: UserProfileApp[],
     seen: Set<string>,
@@ -202,7 +211,10 @@ async function fetchUserProfile(
       a.name != null
     ) {
       const slug = String(a.slug);
-      const name = String(a.name);
+      const name =
+        slug === (process.env.NEXT_PUBLIC_ADMIN_APP_SLUG || "admin")
+          ? "Admin console"
+          : String(a.name);
       const urlRedirect =
         "url_redirect" in a && a.url_redirect != null
           ? String(a.url_redirect)
@@ -224,6 +236,7 @@ async function fetchUserProfile(
       seen.add(appId);
       appList.push({
         app_id: appId,
+        slug,
         name,
         icon: iconUrl,
         path,
@@ -254,6 +267,7 @@ async function fetchUserProfile(
     userFullName,
     initials,
     userType,
+    isAdmin,
     userApps: appList,
   };
 }
@@ -274,7 +288,7 @@ export const AuthProvider: React.FunctionComponent<AuthProviderProps> = ({
     async (userId: string, userEmail: string | undefined) => {
       const cached = readCachedProfile(userId);
       if (cached) {
-        setProfile(cached);
+        setProfile(normalizeCachedProfile(cached));
         setProfileLoading(false);
       }
       try {

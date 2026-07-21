@@ -2,6 +2,10 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 
 import { createWallsMetadata } from "@walls/config/metadata";
+import { AppHeaderVisibilityProvider } from "@walls/ui/private-app-chrome";
+import { AccountSwitcher } from "@/components/account-switcher";
+import { AppSidebarLayout } from "@/components/app-sidebar-layout";
+import { AppTopChrome } from "@/components/app-top-chrome";
 import { AdminLayoutClient } from "@/components/admin/admin-layout-client";
 import { Providers } from "@/components/providers";
 
@@ -22,7 +26,7 @@ export const metadata: Metadata = createWallsMetadata({
     default: "Admin",
     template: "%s | WALLS Admin",
   },
-  description: "WALLS agency administration — users, apps, jobs, and teams.",
+  description: "Organization administration — accounts, members, and settings.",
 });
 
 export default function RootLayout({
@@ -34,12 +38,22 @@ export default function RootLayout({
     <html
       lang="en"
       data-app="admin"
-      className={`${geistSans.variable} ${geistMono.variable} min-h-full bg-gray-50 antialiased`}
+      className={`${geistSans.variable} ${geistMono.variable} h-full overflow-hidden bg-kenoo-white antialiased`}
     >
-      <body className="min-h-screen bg-gray-50 text-foreground">
-        <Providers>
-          <AdminLayoutClient>{children}</AdminLayoutClient>
-        </Providers>
+      <body className="h-screen overflow-hidden bg-kenoo-white text-foreground">
+        <div className="h-full overscroll-none overflow-hidden">
+          <Providers>
+            <AppHeaderVisibilityProvider autoHideOnScroll>
+              <AppTopChrome
+                dashboardPath="/"
+                leftContent={<AccountSwitcher />}
+              />
+              <AdminLayoutClient>
+                <AppSidebarLayout>{children}</AppSidebarLayout>
+              </AdminLayoutClient>
+            </AppHeaderVisibilityProvider>
+          </Providers>
+        </div>
       </body>
     </html>
   );
