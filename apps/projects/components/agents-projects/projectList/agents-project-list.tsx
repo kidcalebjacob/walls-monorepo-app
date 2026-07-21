@@ -762,7 +762,7 @@ function AgentsProjectsListContent({
     <>
       <div className="flex h-full overflow-hidden">
         <div className="flex-1 w-full flex flex-col min-h-0">
-          <div className="flex flex-1 flex-col min-h-0 overflow-hidden pl-8 pr-4 md:pr-6">
+          <div className="app-sidebar-pad flex flex-1 flex-col min-h-0 overflow-hidden pr-4 md:pr-6">
             <div className="relative z-50 flex-shrink-0">
               <ProjectsHeader
                 onNewProject={() => {

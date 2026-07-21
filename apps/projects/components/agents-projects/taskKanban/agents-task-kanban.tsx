@@ -1207,7 +1207,7 @@ function AgentsProjectsKanbanContent({
       <div className="flex h-full overflow-hidden">
         <div className="flex-1 w-full flex flex-col min-h-0">
           {/* Toolbar: search, actions, My Tasks / All Projects */}
-          <div className="relative z-30 flex-shrink-0 pl-8 pr-4 pt-4 pb-4">
+          <div className="relative z-30 flex-shrink-0 app-sidebar-pad pr-4 pt-4 pb-4">
             <div className="flex items-center gap-3 flex-wrap">
               <div className="relative flex-1 max-w-sm min-w-[12rem]">
                 <Search className="absolute left-0 top-1/2 -translate-y-1/2 h-4 w-4 text-neutral-400" />
@@ -1270,8 +1270,8 @@ function AgentsProjectsKanbanContent({
 
           {/* Kanban board — scrollable container only; page does not scroll */}
           {loading ? (
-            <div className="flex-1 min-h-0 pl-8 pr-4 overflow-x-auto overflow-y-hidden flex flex-col">
-              <div className="flex flex-1 min-h-0 gap-6 pb-0 min-w-max">
+            <div className="flex-1 min-h-0 pr-4 overflow-x-auto overflow-y-hidden flex flex-col">
+              <div className="app-sidebar-pad flex flex-1 min-h-0 gap-6 pb-0 min-w-max">
                 {KANBAN_COLUMNS.map((col) => (
                   <div
                     key={col}
@@ -1281,7 +1281,7 @@ function AgentsProjectsKanbanContent({
               </div>
             </div>
           ) : (
-            <div className="flex-1 min-h-0 pl-8 pr-4 overflow-x-auto overflow-y-hidden overscroll-contain flex flex-col">
+            <div className="flex-1 min-h-0 pr-4 overflow-x-auto overflow-y-hidden overscroll-contain flex flex-col">
               <DndContext
                 sensors={sensors}
                 collisionDetection={closestCenter}
@@ -1289,7 +1289,7 @@ function AgentsProjectsKanbanContent({
                 onDragOver={handleDragOver}
                 onDragEnd={handleDragEnd}
               >
-                <div className="flex flex-1 min-h-0 gap-6 pb-0 min-w-max">
+                <div className="app-sidebar-pad flex flex-1 min-h-0 gap-6 pb-0 min-w-max">
                   {KANBAN_COLUMNS.map((col) => (
                     <KanbanColumn
                       key={col}

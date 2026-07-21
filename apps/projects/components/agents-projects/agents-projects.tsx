@@ -717,7 +717,7 @@ function AgentsProjectsContent({ analyticsData: _analyticsData }: AgentsProjects
         <div className="flex min-h-0 w-full flex-1 flex-col">
           <div className="flex min-h-0 flex-1 flex-col overflow-hidden bg-kenoo-white">
             {/* Padding lives on the scroller so card shadows aren't clipped at the sidebar edge */}
-            <div className="min-h-0 flex-1 overflow-y-auto overscroll-none px-8 pb-10 pt-4 md:pr-6">
+            <div className="app-sidebar-pad min-h-0 flex-1 overflow-y-auto overscroll-none pb-10 pt-4 pr-8 md:pr-6">
               {showLoading ? (
                 <DashboardSkeleton />
               ) : total === 0 ? (

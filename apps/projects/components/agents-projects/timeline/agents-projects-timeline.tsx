@@ -998,7 +998,7 @@ function AgentsProjectsTimelineContent({
         <div className="flex-1 w-full flex flex-col min-h-0">
           {/* Fixed header - no page scroll */}
           <div className="flex-none">
-            <div className="pb-0 pl-8 pr-4 md:pr-6">
+            <div className="app-sidebar-pad pb-0 pr-4 md:pr-6">
               <ProjectsHeader
                 projects={projects}
                 projectFilter={projectFilter}
@@ -1011,7 +1011,7 @@ function AgentsProjectsTimelineContent({
             {/* Toolbar — view toggle in a fixed left cluster; grouping collapses beside it */}
             <div
               className={cn(
-                "mb-5 flex items-center gap-2.5 px-8",
+                "app-sidebar-pad mb-5 flex items-center gap-2.5 pr-8",
                 TIMELINE_TOOLBAR_ROW_H
               )}
             >
@@ -1173,7 +1173,7 @@ function AgentsProjectsTimelineContent({
           <div className="flex-1 min-h-0 overflow-hidden">
             {/* ── GANTT VIEW ── */}
             {viewMode === "gantt" && (
-              <div className="h-full px-8 flex flex-col">
+              <div className="app-sidebar-pad h-full flex flex-col pr-8">
                 {loading ? (
                   <div className="space-y-2">
                     {Array.from({ length: 8 }).map((_, i) => (
@@ -1250,7 +1250,7 @@ function AgentsProjectsTimelineContent({
 
             {/* ── LIST VIEW ── */}
             {viewMode === "list" && (
-              <div className="h-full px-8 pb-6 overflow-y-auto overscroll-none">
+              <div className="app-sidebar-pad h-full overflow-y-auto overscroll-none pb-6 pr-8">
                 {loading ? (
                   <div className="space-y-2">
                     {Array.from({ length: 8 }).map((_, i) => (
