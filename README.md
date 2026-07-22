@@ -321,12 +321,12 @@ Confirm names anytime with:
 vercel project ls --scope walls-entertainment
 ```
 
-**2. Deploy one project** — replace `PROJECT_NAME` with a name from the table (e.g. `kenoo-calendar`):
+**2. Deploy one project** — replace `PROJECT_NAME` with a name from the table (e.g. `kenoo`):
 
 ```bash
 TEAM_ID="team_6bdoPMv1Fh7Y4U8IdhbSEuS2"
 TOKEN="$(jq -r '.token' "$HOME/Library/Application Support/com.vercel.cli/auth.json")"
-PROJECT_NAME="kenoo-calendar"   # ← change this
+PROJECT_NAME="kenoo"   # ← change this
 REF="main"                      # production branch
 
 curl -sS -X POST "https://api.vercel.com/v13/deployments?teamId=${TEAM_ID}&forceNew=1" \
