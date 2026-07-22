@@ -17,6 +17,9 @@ export type SafeAccountConnection = {
 export const META_PROVIDER = "meta";
 export const META_SERVICE = "meta_ads";
 
+export const GOOGLE_PROVIDER = "google";
+export const GOOGLE_ADS_SERVICE = "google_ads";
+
 /** Meta Marketing API uses long-lived tokens — no OAuth refresh token. */
 export const META_EMPTY_REFRESH_TOKEN = "";
 
@@ -30,5 +33,20 @@ export type MetaConnectionRecord = {
   token_payload: {
     account_name?: string | null;
     account_status?: number | null;
+  } | null;
+};
+
+export type GoogleAdsConnectionRecord = {
+  id: string;
+  account_id: string;
+  /** Google Ads customer id (digits only). */
+  provider_account_id: string | null;
+  access_token: string;
+  refresh_token: string;
+  token_expiry: string | null;
+  token_payload: {
+    account_name?: string | null;
+    manager?: boolean | null;
+    currency_code?: string | null;
   } | null;
 };
