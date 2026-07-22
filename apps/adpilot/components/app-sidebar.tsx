@@ -9,6 +9,7 @@ import {
   Lock,
   Settings,
   Target,
+  Users,
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -18,6 +19,7 @@ import { useAppSidebar } from "./app-sidebar-context";
 const navItems = [
   { href: "/", label: "Dashboard", icon: LayoutDashboard },
   { href: "/campaigns", label: "Campaigns", icon: Target },
+  { href: "/audiences", label: "Audiences", icon: Users },
   { href: "/settings", label: "Settings", icon: Settings },
 ] as const;
 

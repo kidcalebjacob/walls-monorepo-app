@@ -4,11 +4,20 @@ import { type AdDataScope, adScopeFields } from "@/lib/ad-scope";
 import { META_PROVIDER } from "@/lib/connections";
 import {
   fetchMetaDeliveryEstimate,
+  fetchMetaFrequencyBreakdowns,
   fetchMetaGraphCollection,
+  fetchMetaHourlyInsights,
+  fetchMetaInsightBreakdowns,
   fetchMetaInsights,
   fetchMetaLifetimeTotals,
+  frequencyRangeDaysFromDates,
   getMetaDateRange,
+  parseMetaHourOfDay,
+  type FrequencyRangeDays,
+  type MetaAdSetTargeting,
   type MetaDeliveryEstimate,
+  type MetaInsightBreakdownType,
+  type MetaInsightLevel,
   type MetaInsightRow,
 } from "@/lib/meta-graph";
 
@@ -18,6 +27,8 @@ import {
   persistAdCreative,
   type MetaAdCreative,
 } from "@/lib/meta-creatives";
+
+import { syncMetaAudiences } from "@/lib/meta-audiences";
 
 import { listMetaConnectionsWithTokens } from "./connections-server";
 import type { MetaConnectionRecord } from "@/lib/connections";
@@ -32,7 +43,33 @@ const PURCHASE_ACTION_PRIORITY = [
 
 const WEBSITE_PURCHASE_ACTION = "offsite_conversion.fb_pixel_purchase" as const;
 
+const ADD_TO_CART_ACTION_PRIORITY = [
+  "omni_add_to_cart",
+  "add_to_cart",
+  "offsite_conversion.fb_pixel_add_to_cart",
+] as const;
+
 type EntityType = "account" | "campaign" | "ad_group" | "ad";
+
+type BudgetOptimization = "cbo" | "abo";
+
+const BREAKDOWN_SYNC_LEVELS: MetaInsightLevel[] = ["account", "campaign", "adset"];
+/** Device/placement — multi-level, runs after core metrics. */
+const DEVICE_PLACEMENT_BREAKDOWN_TYPES: MetaInsightBreakdownType[] = [
+  "device_platform",
+  "placement_device",
+];
+/**
+ * Dashboard audience table only needs account-level demos. Sync these early
+ * (before rate-limit-heavy delivery estimates / multi-level placement pulls).
+ */
+const DEMOGRAPHIC_BREAKDOWN_TYPES: MetaInsightBreakdownType[] = [
+  "age",
+  "gender",
+  "age_gender",
+  "country",
+];
+const FREQUENCY_SYNC_LEVELS = ["account", "campaign", "adset"] as const;
 
 /** Meta's learning phase is reported on the ad set. Higher rank = "more in learning". */
 type MetaLearningStageInfo = {
@@ -163,6 +200,7 @@ function parseInsightMetrics(row: MetaInsightRow) {
   );
   const conversions = parseFirstActionValue(row.actions, PURCHASE_ACTION_PRIORITY);
   const websitePurchases = parseFirstActionValue(row.actions, [WEBSITE_PURCHASE_ACTION]);
+  const addToCart = parseFirstActionValue(row.actions, ADD_TO_CART_ACTION_PRIORITY);
   const spend = spendMicros / 1_000_000;
   const roasFromApi = parsePurchaseRoas(row);
   const roas =
@@ -181,11 +219,27 @@ function parseInsightMetrics(row: MetaInsightRow) {
     conversions,
     conversion_value_micros: Math.round(conversionValueMicros),
     website_purchases: websitePurchases,
+    add_to_cart: addToCart,
     ctr: row.ctr ? parseFloat(row.ctr) : null,
     cpc_micros: row.cpc ? dollarsToMicros(row.cpc) : null,
     cpm_micros: row.cpm ? dollarsToMicros(row.cpm) : null,
     roas,
   };
+}
+
+function normalizeBreakdownDim(value: string | undefined): string {
+  return (value ?? "").trim().toLowerCase();
+}
+
+/** Campaign has its own budget → CBO; otherwise ad sets own budget → ABO. */
+function resolveBudgetOptimization(
+  dailyBudgetMicros: number | null,
+  lifetimeBudgetMicros: number | null,
+): BudgetOptimization {
+  const hasCampaignBudget =
+    (dailyBudgetMicros != null && dailyBudgetMicros > 0) ||
+    (lifetimeBudgetMicros != null && lifetimeBudgetMicros > 0);
+  return hasCampaignBudget ? "cbo" : "abo";
 }
 
 async function upsertSyncState(
@@ -227,6 +281,7 @@ async function upsertEntity(input: {
   objective?: string | null;
   dailyBudgetMicros?: number | null;
   lifetimeBudgetMicros?: number | null;
+  budgetOptimization?: BudgetOptimization | null;
   learning?: LearningFields;
   rawPayload: Record<string, unknown>;
 }): Promise<string> {
@@ -247,6 +302,7 @@ async function upsertEntity(input: {
     objective: input.objective ?? null,
     daily_budget_micros: input.dailyBudgetMicros ?? null,
     lifetime_budget_micros: input.lifetimeBudgetMicros ?? null,
+    budget_optimization: input.budgetOptimization ?? null,
     learning_status: learning.learningStatus,
     learning_conversions: learning.learningConversions,
     learning_last_sig_edit_at: learning.learningLastSigEditAt,
@@ -390,6 +446,7 @@ async function upsertDailyMetrics(input: {
     conversions: input.metrics.conversions,
     conversion_value_micros: input.metrics.conversion_value_micros,
     website_purchases: input.metrics.website_purchases,
+    add_to_cart: input.metrics.add_to_cart,
     ctr: input.metrics.ctr,
     cpc_micros: input.metrics.cpc_micros,
     cpm_micros: input.metrics.cpm_micros,
@@ -402,6 +459,164 @@ async function upsertDailyMetrics(input: {
     .upsert(row, { onConflict: "entity_id,metric_date" });
 
   if (error) throw error;
+}
+
+async function upsertDailyBreakdownMetrics(input: {
+  scope: AdDataScope;
+  connectionId: string;
+  entityId: string;
+  metricDate: string;
+  breakdownType: MetaInsightBreakdownType;
+  publisherPlatform: string;
+  platformPosition: string;
+  devicePlatform: string;
+  impressionDevice: string;
+  age: string;
+  gender: string;
+  country: string;
+  metrics: ReturnType<typeof parseInsightMetrics>;
+}) {
+  const admin = createAdminClient();
+  const now = new Date().toISOString();
+
+  const row = {
+    ...adScopeFields(input.scope),
+    account_connection_id: input.connectionId,
+    entity_id: input.entityId,
+    metric_date: input.metricDate,
+    breakdown_type: input.breakdownType,
+    publisher_platform: input.publisherPlatform,
+    platform_position: input.platformPosition,
+    device_platform: input.devicePlatform,
+    impression_device: input.impressionDevice,
+    age: input.age,
+    gender: input.gender,
+    country: input.country,
+    impressions: input.metrics.impressions,
+    clicks: input.metrics.clicks,
+    spend_micros: input.metrics.spend_micros,
+    reach: input.metrics.reach,
+    frequency: input.metrics.frequency,
+    conversions: input.metrics.conversions,
+    conversion_value_micros: input.metrics.conversion_value_micros,
+    website_purchases: input.metrics.website_purchases,
+    add_to_cart: input.metrics.add_to_cart,
+    ctr: input.metrics.ctr,
+    cpc_micros: input.metrics.cpc_micros,
+    cpm_micros: input.metrics.cpm_micros,
+    roas: input.metrics.roas,
+    updated_at: now,
+  };
+
+  const { error } = await admin.from("ad_metrics_daily_breakdowns").upsert(row, {
+    onConflict:
+      "entity_id,metric_date,breakdown_type,publisher_platform,platform_position,device_platform,impression_device,age,gender,country",
+  });
+
+  if (error) throw error;
+}
+
+async function replaceFrequencyBreakdowns(input: {
+  scope: AdDataScope;
+  connectionId: string;
+  rows: Array<{
+    entityId: string;
+    rangeDays: FrequencyRangeDays;
+    frequencyValue: string;
+    reach: number;
+  }>;
+}) {
+  const admin = createAdminClient();
+  const now = new Date().toISOString();
+
+  // Empty can mean Meta returned nothing (opt-in / throttle) — keep prior snapshots.
+  if (input.rows.length === 0) return;
+
+  // Full replace per connection so buckets that disappear (no reach) don't linger.
+  const { error: deleteError } = await admin
+    .from("ad_metrics_frequency_breakdowns")
+    .delete()
+    .eq("account_connection_id", input.connectionId);
+
+  if (deleteError) throw deleteError;
+
+  const payload = input.rows.map((row) => ({
+    ...adScopeFields(input.scope),
+    account_connection_id: input.connectionId,
+    entity_id: row.entityId,
+    range_days: row.rangeDays,
+    frequency_value: row.frequencyValue,
+    reach: row.reach,
+    updated_at: now,
+  }));
+
+  const { error } = await admin
+    .from("ad_metrics_frequency_breakdowns")
+    .upsert(payload, { onConflict: "entity_id,range_days,frequency_value" });
+
+  if (error) throw error;
+}
+
+async function upsertHourlyMetrics(input: {
+  scope: AdDataScope;
+  connectionId: string;
+  entityId: string;
+  metricDate: string;
+  hourOfDay: number;
+  metrics: ReturnType<typeof parseInsightMetrics>;
+}) {
+  const admin = createAdminClient();
+  const now = new Date().toISOString();
+
+  const row = {
+    ...adScopeFields(input.scope),
+    account_connection_id: input.connectionId,
+    entity_id: input.entityId,
+    metric_date: input.metricDate,
+    hour_of_day: input.hourOfDay,
+    impressions: input.metrics.impressions,
+    clicks: input.metrics.clicks,
+    spend_micros: input.metrics.spend_micros,
+    conversions: input.metrics.conversions,
+    conversion_value_micros: input.metrics.conversion_value_micros,
+    website_purchases: input.metrics.website_purchases,
+    ctr: input.metrics.ctr,
+    cpc_micros: input.metrics.cpc_micros,
+    cpm_micros: input.metrics.cpm_micros,
+    roas: input.metrics.roas,
+    updated_at: now,
+  };
+
+  const { error } = await admin.from("ad_metrics_hourly").upsert(row, {
+    onConflict: "entity_id,metric_date,hour_of_day",
+  });
+
+  if (error) throw error;
+}
+
+async function refreshDaysHoursRollups(scope: AdDataScope, connectionId: string) {
+  const admin = createAdminClient();
+  const { error } = await admin.rpc("refresh_ad_metrics_days_hours_rollups", {
+    p_account_id: scope.accountId,
+    p_account_connection_id: connectionId,
+  });
+  if (error) throw error;
+}
+
+function resolveInsightEntityId(
+  row: MetaInsightRow,
+  level: MetaInsightLevel,
+  entityIds: Map<string, string>,
+  accountEntityId: string,
+): string | undefined {
+  if (level === "account") return accountEntityId;
+  if (level === "campaign") {
+    return row.campaign_id ? entityIds.get(row.campaign_id) : undefined;
+  }
+  if (level === "adset") {
+    return row.adset_id ? entityIds.get(row.adset_id) : undefined;
+  }
+  return row.ad_id ? entityIds.get(row.ad_id) : undefined;
 }
 
 function normalizeStatus(status: string | undefined): string | null {
@@ -455,6 +670,85 @@ export async function syncMetaConnection(
     });
     entityIds.set(accountId, accountEntityId);
 
+    const { since, until } = getMetaDateRange(30);
+
+    // Dashboard-critical account metrics first — so rate limits later on
+    // ad sets / delivery estimates don't leave the UI empty.
+    const accountInsights = await fetchMetaInsights(
+      accountId,
+      accessToken,
+      "account",
+      since,
+      until,
+    );
+
+    for (const row of accountInsights) {
+      if (!row.date_start) continue;
+      await upsertDailyMetrics({
+        scope,
+        connectionId: connection.id,
+        entityId: accountEntityId,
+        metricDate: row.date_start,
+        metrics: parseInsightMetrics(row),
+      });
+    }
+
+    const syncBreakdowns = async (
+      level: MetaInsightLevel,
+      breakdownType: MetaInsightBreakdownType,
+    ) => {
+      try {
+        const rows = await fetchMetaInsightBreakdowns(
+          accountId,
+          accessToken,
+          level,
+          breakdownType,
+          since,
+          until,
+        );
+        let upserted = 0;
+        for (const row of rows) {
+          if (!row.date_start) continue;
+          const entityId = resolveInsightEntityId(
+            row,
+            level,
+            entityIds,
+            accountEntityId,
+          );
+          if (!entityId) continue;
+
+          await upsertDailyBreakdownMetrics({
+            scope,
+            connectionId: connection.id,
+            entityId,
+            metricDate: row.date_start,
+            breakdownType,
+            publisherPlatform: normalizeBreakdownDim(row.publisher_platform),
+            platformPosition: normalizeBreakdownDim(row.platform_position),
+            devicePlatform: normalizeBreakdownDim(row.device_platform),
+            impressionDevice: normalizeBreakdownDim(row.impression_device),
+            age: normalizeBreakdownDim(row.age),
+            gender: normalizeBreakdownDim(row.gender),
+            country: normalizeBreakdownDim(row.country),
+            metrics: parseInsightMetrics(row),
+          });
+          upserted += 1;
+        }
+        console.info(
+          `[adpilot] Meta breakdowns ${level}/${breakdownType}: ${rows.length} rows, ${upserted} upserted`,
+        );
+      } catch (breakdownError) {
+        console.error(
+          `Failed to sync Meta insight breakdowns (${level}/${breakdownType}):`,
+          breakdownError,
+        );
+      }
+    };
+
+    for (const breakdownType of DEMOGRAPHIC_BREAKDOWN_TYPES) {
+      await syncBreakdowns("account", breakdownType);
+    }
+
     const campaigns = await fetchMetaGraphCollection<{
       id: string;
       name?: string;
@@ -470,6 +764,8 @@ export async function syncMetaConnection(
     });
 
     for (const campaign of campaigns) {
+      const dailyBudgetMicros = centsToMicros(campaign.daily_budget);
+      const lifetimeBudgetMicros = centsToMicros(campaign.lifetime_budget);
       const campaignEntityId = await upsertEntity({
         scope,
         connectionId: connection.id,
@@ -479,8 +775,12 @@ export async function syncMetaConnection(
         name: campaign.name ?? null,
         status: normalizeStatus(campaign.status),
         objective: campaign.objective ?? null,
-        dailyBudgetMicros: centsToMicros(campaign.daily_budget),
-        lifetimeBudgetMicros: centsToMicros(campaign.lifetime_budget),
+        dailyBudgetMicros,
+        lifetimeBudgetMicros,
+        budgetOptimization: resolveBudgetOptimization(
+          dailyBudgetMicros,
+          lifetimeBudgetMicros,
+        ),
         rawPayload: campaign,
       });
       entityIds.set(campaign.id, campaignEntityId);
@@ -496,12 +796,18 @@ export async function syncMetaConnection(
       start_time?: string;
       end_time?: string;
       learning_stage_info?: MetaLearningStageInfo;
+      targeting?: MetaAdSetTargeting;
     }>(`${accountId}/adsets`, accessToken, {
       fields:
-        "id,name,status,campaign_id,daily_budget,lifetime_budget,start_time,end_time,learning_stage_info",
+        "id,name,status,campaign_id,daily_budget,lifetime_budget,start_time,end_time,learning_stage_info,targeting",
     });
 
     const campaignLearning = new Map<string, LearningFields>();
+    const adSetAudienceSyncInput: Array<{
+      id: string;
+      entityId: string;
+      targeting?: MetaAdSetTargeting | null;
+    }> = [];
 
     for (const adSet of adSets) {
       const parentId = adSet.campaign_id
@@ -524,6 +830,11 @@ export async function syncMetaConnection(
         rawPayload: adSet,
       });
       entityIds.set(adSet.id, adSetEntityId);
+      adSetAudienceSyncInput.push({
+        id: adSet.id,
+        entityId: adSetEntityId,
+        targeting: adSet.targeting ?? null,
+      });
 
       if (adSet.campaign_id && learning.learningStatus) {
         campaignLearning.set(
@@ -531,6 +842,22 @@ export async function syncMetaConnection(
           mergeCampaignLearning(campaignLearning.get(adSet.campaign_id), learning),
         );
       }
+    }
+
+    // Custom/lookalike catalog + targeting segment usages. Non-fatal.
+    try {
+      const audienceSync = await syncMetaAudiences({
+        scope,
+        connectionId: connection.id,
+        accountId,
+        accessToken,
+        adSets: adSetAudienceSyncInput,
+      });
+      console.info(
+        `[adpilot] Meta audiences synced for ${accountId}: ${audienceSync.audiences} audiences, ${audienceSync.usages} usages`,
+      );
+    } catch (audienceError) {
+      console.error(`Failed to sync Meta audiences for ${accountId}:`, audienceError);
     }
 
     for (const [campaignId, learning] of campaignLearning) {
@@ -626,27 +953,7 @@ export async function syncMetaConnection(
       }
     }
 
-    const { since, until } = getMetaDateRange(30);
-
-    const accountInsights = await fetchMetaInsights(
-      accountId,
-      accessToken,
-      "account",
-      since,
-      until,
-    );
-
-    for (const row of accountInsights) {
-      if (!row.date_start) continue;
-      await upsertDailyMetrics({
-        scope,
-        connectionId: connection.id,
-        entityId: accountEntityId,
-        metricDate: row.date_start,
-        metrics: parseInsightMetrics(row),
-      });
-    }
-
+    // Account daily metrics already synced at the start of this run.
     const campaignInsights = await fetchMetaInsights(
       accountId,
       accessToken,
@@ -711,6 +1018,103 @@ export async function syncMetaConnection(
         metricDate: row.date_start,
         metrics: parseInsightMetrics(row),
       });
+    }
+
+    // Account-level hourly insights for Days & Hours heatmaps. Non-fatal.
+    try {
+      const hourlyRows = await fetchMetaHourlyInsights(
+        accountId,
+        accessToken,
+        "account",
+        since,
+        until,
+      );
+      for (const row of hourlyRows) {
+        if (!row.date_start) continue;
+        const hourOfDay = parseMetaHourOfDay(
+          row.hourly_stats_aggregated_by_advertiser_time_zone,
+        );
+        if (hourOfDay === null) continue;
+
+        await upsertHourlyMetrics({
+          scope,
+          connectionId: connection.id,
+          entityId: accountEntityId,
+          metricDate: row.date_start,
+          hourOfDay,
+          metrics: parseInsightMetrics(row),
+        });
+      }
+
+      await refreshDaysHoursRollups(scope, connection.id);
+    } catch (hourlyError) {
+      console.error("Failed to sync Meta hourly insights:", hourlyError);
+    }
+
+    // Device + placement breakdowns (Auction Insights–style). Demographics
+    // already synced at account level above. Non-fatal.
+    for (const level of BREAKDOWN_SYNC_LEVELS) {
+      for (const breakdownType of DEVICE_PLACEMENT_BREAKDOWN_TYPES) {
+        await syncBreakdowns(level, breakdownType);
+      }
+    }
+
+    // Frequency distribution (Ads Manager Frequency Breakdown). Period snapshots
+    // for 1/7/14/30d — unique reach is not additive across days. Non-fatal.
+    try {
+      const frequencyRows: Array<{
+        entityId: string;
+        rangeDays: FrequencyRangeDays;
+        frequencyValue: string;
+        reach: number;
+      }> = [];
+
+      for (const level of FREQUENCY_SYNC_LEVELS) {
+        const rows = await fetchMetaFrequencyBreakdowns(
+          accountId,
+          accessToken,
+          level,
+        );
+        for (const row of rows) {
+          const frequencyValue = (row.frequency_value ?? "").trim();
+          if (!frequencyValue) continue;
+
+          const rangeDays = frequencyRangeDaysFromDates(
+            row.date_start,
+            row.date_stop,
+          );
+          if (!rangeDays) continue;
+
+          const entityId = resolveInsightEntityId(
+            row,
+            level,
+            entityIds,
+            accountEntityId,
+          );
+          if (!entityId) continue;
+
+          const reach = row.reach ? parseInt(row.reach, 10) : 0;
+          if (!Number.isFinite(reach) || reach < 0) continue;
+
+          frequencyRows.push({
+            entityId,
+            rangeDays,
+            frequencyValue,
+            reach,
+          });
+        }
+      }
+
+      await replaceFrequencyBreakdowns({
+        scope,
+        connectionId: connection.id,
+        rows: frequencyRows,
+      });
+    } catch (frequencyError) {
+      console.error(
+        "Failed to sync Meta frequency_value breakdowns:",
+        frequencyError,
+      );
     }
 
     // Lifetime unique reach + total spend for saturation / potential-spend bars.

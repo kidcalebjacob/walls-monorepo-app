@@ -10,6 +10,7 @@ import {
   Loader2,
   MousePointerClick,
   Plus,
+  RefreshCw,
   ShoppingBag,
   TrendingUp,
 } from "lucide-react";
@@ -23,6 +24,9 @@ import { ZERO_DASHBOARD_STATS } from "@/lib/dashboard-defaults";
 import type { TimeRangeValue } from "@/lib/time-range";
 
 import { HeroStat, MetricBarItem, SectionLabel } from "./dashboard-metrics";
+import { AudienceBreakdownsTable } from "./audience-breakdowns-table";
+import { DaysHoursHeatmap } from "./days-hours-heatmap";
+import { FrequencyBreakdownTable } from "./frequency-breakdown-table";
 import { SpendTrendChart } from "./spend-trend-chart";
 import { TopPerformingAds } from "./top-performing-ads";
 
@@ -64,6 +68,8 @@ export function DashboardPage() {
   const [analytics, setAnalytics] = React.useState<DashboardAnalytics | null>(null);
   const [loading, setLoading] = React.useState(true);
   const [timeRange, setTimeRange] = React.useState<TimeRangeValue>("30d");
+  const [manualSyncing, setManualSyncing] = React.useState(false);
+  const [syncError, setSyncError] = React.useState<string | null>(null);
   const autoSyncStarted = React.useRef(false);
 
   const loadDashboard = React.useCallback(async () => {
@@ -95,15 +101,17 @@ export function DashboardPage() {
     })();
   }, [loadDashboard]);
 
+  const isSyncing = manualSyncing || (analytics?.syncing ?? false);
+
   React.useEffect(() => {
-    if (!analytics?.syncing) return;
+    if (!isSyncing) return;
 
     const interval = window.setInterval(() => {
       void loadDashboard();
     }, 5000);
 
     return () => window.clearInterval(interval);
-  }, [analytics?.syncing, loadDashboard]);
+  }, [isSyncing, loadDashboard]);
 
   const metaConnections = connections.filter(
     (c) => c.provider === META_PROVIDER && c.service === META_SERVICE,
@@ -118,7 +126,26 @@ export function DashboardPage() {
     void fetch("/api/sync/meta", { method: "POST" }).then(() => loadDashboard());
   }, [loading, hasLiveConnections, analytics, loadDashboard]);
 
-  const isSyncing = analytics?.syncing ?? false;
+  const handleSyncMeta = React.useCallback(async () => {
+    if (manualSyncing) return;
+    setSyncError(null);
+    setManualSyncing(true);
+    try {
+      const response = await fetch("/api/sync/meta", { method: "POST" });
+      const payload = (await response.json().catch(() => null)) as {
+        error?: string;
+      } | null;
+      if (!response.ok) {
+        setSyncError(payload?.error ?? "Meta sync failed");
+      }
+      await loadDashboard();
+    } catch {
+      setSyncError("Meta sync failed");
+    } finally {
+      setManualSyncing(false);
+    }
+  }, [manualSyncing, loadDashboard]);
+
   const stats = analytics?.stats ?? [...ZERO_DASHBOARD_STATS];
   const spendByDay = analytics?.spendByDay ?? [];
   const periodLabel = analytics?.periodLabel ?? "Last 30 days";
@@ -224,6 +251,47 @@ export function DashboardPage() {
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.24 }}
+        >
+          <DaysHoursHeatmap
+            data={analytics?.daysHours ?? { hasData: false, cells: [] }}
+          />
+        </motion.div>
+
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.25 }}
+        >
+          <AudienceBreakdownsTable
+            data={
+              analytics?.audienceBreakdowns ?? {
+                hasData: false,
+                byType: { age: [], gender: [], age_gender: [], country: [] },
+              }
+            }
+          />
+        </motion.div>
+
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.255 }}
+        >
+          <FrequencyBreakdownTable
+            data={
+              analytics?.frequencyBreakdowns ?? {
+                hasData: false,
+                totalReach: 0,
+                buckets: [],
+              }
+            }
+          />
+        </motion.div>
+
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.26 }}
         >
           <TopPerformingAds
@@ -272,17 +340,37 @@ export function DashboardPage() {
                     </span>
                   </div>
                 ))}
-                <Button
-                  asChild
-                  variant="ghost"
-                  size="sm"
-                  className="mt-1 h-8 rounded-full px-0 font-light text-neutral-500 hover:bg-transparent hover:text-neutral-800"
-                >
-                  <Link href="/settings">
-                    <Plus className="mr-1 h-3.5 w-3.5" />
-                    Manage connections
-                  </Link>
-                </Button>
+                <div className="flex flex-wrap items-center gap-3 pt-1">
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    disabled={isSyncing}
+                    onClick={() => void handleSyncMeta()}
+                    className="h-8 rounded-full px-0 font-light text-neutral-500 hover:bg-transparent hover:text-neutral-800 disabled:opacity-60"
+                  >
+                    {isSyncing ? (
+                      <Loader2 className="mr-1 h-3.5 w-3.5 animate-spin" />
+                    ) : (
+                      <RefreshCw className="mr-1 h-3.5 w-3.5" />
+                    )}
+                    {isSyncing ? "Syncing Meta…" : "Sync Meta"}
+                  </Button>
+                  <Button
+                    asChild
+                    variant="ghost"
+                    size="sm"
+                    className="h-8 rounded-full px-0 font-light text-neutral-500 hover:bg-transparent hover:text-neutral-800"
+                  >
+                    <Link href="/settings">
+                      <Plus className="mr-1 h-3.5 w-3.5" />
+                      Manage connections
+                    </Link>
+                  </Button>
+                </div>
+                {syncError ? (
+                  <p className="text-xs font-light text-rose-600">{syncError}</p>
+                ) : null}
             </div>
           </motion.div>
 

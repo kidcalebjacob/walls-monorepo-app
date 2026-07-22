@@ -3,6 +3,18 @@ import { createClient } from "@walls/supabase/server";
 import { type AdDataScope, withAdScope } from "@/lib/ad-scope";
 import { META_PROVIDER } from "@/lib/connections";
 import {
+  getDaysHoursAnalytics,
+} from "@/lib/days-hours-analytics";
+import type { DaysHoursAnalytics } from "@/lib/days-hours";
+import {
+  getAudienceBreakdownsAnalytics,
+} from "@/lib/audience-breakdowns-analytics";
+import type { AudienceBreakdownsAnalytics } from "@/lib/audience-breakdowns";
+import {
+  getFrequencyBreakdownsAnalytics,
+} from "@/lib/frequency-breakdowns-analytics";
+import type { FrequencyBreakdownsAnalytics } from "@/lib/frequency-breakdowns";
+import {
   formatChange,
   formatCompactNumber,
   formatCurrencyFromMicros,
@@ -98,6 +110,9 @@ export type DashboardAnalytics = {
   spendByDay: DashboardSpendDay[];
   accounts: DashboardAccountRow[];
   topPerformingAds: DashboardTopAdsByObjective;
+  daysHours: DaysHoursAnalytics;
+  audienceBreakdowns: AudienceBreakdownsAnalytics;
+  frequencyBreakdowns: FrequencyBreakdownsAnalytics;
 };
 
 type MetricRow = {
@@ -579,22 +594,37 @@ export async function getDashboardAnalytics(
       spendByDay: [],
       accounts: [],
       topPerformingAds: EMPTY_TOP_PERFORMING_ADS,
+      daysHours: { hasData: false, cells: [] },
+      audienceBreakdowns: {
+        hasData: false,
+        byType: { age: [], gender: [], age_gender: [], country: [] },
+      },
+      frequencyBreakdowns: { hasData: false, totalReach: 0, buckets: [] },
     };
   }
 
   const entityIds = entities.map((entity) => entity.id);
 
-  const [{ data: metrics }, topPerformingAds] = await Promise.all([
-    supabase
-      .from("ad_metrics_daily")
-      .select(
-        "entity_id, metric_date, impressions, clicks, spend_micros, conversion_value_micros, website_purchases, ctr, roas",
-      )
-      .in("entity_id", entityIds)
-      .gte("metric_date", previousStartIso)
-      .order("metric_date", { ascending: true }),
-    buildTopPerformingAds(supabase, scope, currentStartIso),
-  ]);
+  const [
+    { data: metrics },
+    topPerformingAds,
+    daysHours,
+    audienceBreakdowns,
+    frequencyBreakdowns,
+  ] = await Promise.all([
+      supabase
+        .from("ad_metrics_daily")
+        .select(
+          "entity_id, metric_date, impressions, clicks, spend_micros, conversion_value_micros, website_purchases, ctr, roas",
+        )
+        .in("entity_id", entityIds)
+        .gte("metric_date", previousStartIso)
+        .order("metric_date", { ascending: true }),
+      buildTopPerformingAds(supabase, scope, currentStartIso),
+      getDaysHoursAnalytics(scope, { rangeDays }),
+      getAudienceBreakdownsAnalytics(scope, { rangeDays }),
+      getFrequencyBreakdownsAnalytics(scope, { rangeDays }),
+    ]);
 
   const metricRows = (metrics ?? []) as Array<MetricRow & { entity_id: string }>;
   const currentMetrics = metricRows.filter(
@@ -695,5 +725,8 @@ export async function getDashboardAnalytics(
     spendByDay: buildSpendByDay(currentMetrics, rangeDays),
     accounts,
     topPerformingAds,
+    daysHours,
+    audienceBreakdowns,
+    frequencyBreakdowns,
   };
 }

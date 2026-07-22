@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { useSearchParams } from "next/navigation";
-import { AlertCircle, CheckCircle2, Unplug } from "lucide-react";
+import { AlertCircle, CheckCircle2, Loader2, RefreshCw, Unplug } from "lucide-react";
 
 import { Button } from "@walls/ui/button";
 import { cn } from "@walls/utils";
@@ -16,7 +16,11 @@ import {
 } from "@/lib/connections";
 
 import { AdSpendControls } from "./ad-spend-controls";
-import { dangerButtonClass, primaryButtonClass } from "@/components/ui/button-styles";
+import {
+  dangerButtonClass,
+  primaryButtonClass,
+  secondaryButtonClass,
+} from "@/components/ui/button-styles";
 import { GoogleAdsIcon } from "./google-ads-icon";
 import { MetaIcon } from "./meta-icon";
 import { SectionLabel } from "./section-label";
@@ -46,6 +50,9 @@ export function SettingsPage() {
   const [disconnectingProvider, setDisconnectingProvider] = React.useState<
     string | null
   >(null);
+  const [syncingMeta, setSyncingMeta] = React.useState(false);
+  const [syncError, setSyncError] = React.useState<string | null>(null);
+  const [syncSuccess, setSyncSuccess] = React.useState(false);
 
   const connected = searchParams.get("connected");
   const error = searchParams.get("error");
@@ -86,6 +93,29 @@ export function SettingsPage() {
       await loadConnections();
     } finally {
       setDisconnectingProvider(null);
+    }
+  };
+
+  const handleSyncMeta = async () => {
+    if (syncingMeta) return;
+    setSyncError(null);
+    setSyncSuccess(false);
+    setSyncingMeta(true);
+    try {
+      const response = await fetch("/api/sync/meta", { method: "POST" });
+      const payload = (await response.json().catch(() => null)) as {
+        error?: string;
+      } | null;
+      if (!response.ok) {
+        setSyncError(payload?.error ?? "Meta sync failed");
+        return;
+      }
+      setSyncSuccess(true);
+      await loadConnections();
+    } catch {
+      setSyncError("Meta sync failed");
+    } finally {
+      setSyncingMeta(false);
     }
   };
 
@@ -154,16 +184,37 @@ export function SettingsPage() {
                   </div>
                   <div className="mt-5 flex flex-wrap gap-3">
                     <Button
+                      type="button"
+                      className={secondaryButtonClass}
+                      onClick={() => void handleSyncMeta()}
+                      disabled={syncingMeta}
+                    >
+                      {syncingMeta ? (
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      ) : (
+                        <RefreshCw className="mr-2 h-4 w-4" />
+                      )}
+                      {syncingMeta ? "Syncing…" : "Sync metrics"}
+                    </Button>
+                    <Button
                       className={dangerButtonClass}
                       onClick={() =>
                         void handleDisconnect(META_PROVIDER, META_SERVICE)
                       }
-                      disabled={disconnectingProvider === META_PROVIDER}
+                      disabled={disconnectingProvider === META_PROVIDER || syncingMeta}
                     >
                       <Unplug className="mr-2 h-4 w-4" />
                       Disconnect
                     </Button>
                   </div>
+                  {syncError ? (
+                    <p className="mt-3 text-sm font-light text-rose-600">{syncError}</p>
+                  ) : null}
+                  {syncSuccess ? (
+                    <p className="mt-3 text-sm font-light text-emerald-700">
+                      Meta metrics synced successfully.
+                    </p>
+                  ) : null}
                 </div>
               ) : (
                 <div className="rounded-3xl border border-dashed border-neutral-300 bg-kenoo-white p-6">
