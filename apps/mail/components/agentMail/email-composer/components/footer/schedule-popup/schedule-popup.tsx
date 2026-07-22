@@ -303,7 +303,7 @@ export function ScheduleDialog({
                 <MiniCalendar
                   mode="single"
                   selected={selectedDate}
-                  onSelect={setSelectedDate}
+                  onSelect={(day) => { if (day) setSelectedDate(day); }}
                   disabled={(date) => {
                     const today = new Date();
                     today.setHours(0, 0, 0, 0);

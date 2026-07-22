@@ -12,7 +12,7 @@ import { Link2 } from "lucide-react";
 import { EditorRef } from '../editor';
 
 interface HyperlinkToolProps {
-  editorRef: React.RefObject<EditorRef>;
+  editorRef: React.RefObject<EditorRef | null>;
 }
 
 export function HyperlinkTool({ editorRef }: HyperlinkToolProps) {

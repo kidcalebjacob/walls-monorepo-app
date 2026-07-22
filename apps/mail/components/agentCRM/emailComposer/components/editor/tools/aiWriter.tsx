@@ -64,7 +64,7 @@ const EMAIL_GEN_AI_MODELS = [
 interface AIWriterToolProps {
   onChange: (content: string) => void;
   onSubjectChange: (subject: string) => void;
-  editorRef: React.RefObject<EditorRef>;
+  editorRef: React.RefObject<EditorRef | null>;
   recipientEmails: string[];
   selectedCreators: SelectedCreatorSummary[];
   onGeneratingChange?: (generating: boolean) => void;

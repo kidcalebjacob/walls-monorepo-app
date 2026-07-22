@@ -15,7 +15,7 @@ import {
 } from "@/components/ui/tooltip";
 
 interface EditorToolbarProps {
-  editorRef: React.RefObject<EditorRef>;
+  editorRef: React.RefObject<EditorRef | null>;
   onChange: (content: string) => void;
   onAttachmentsChange: (files: File[]) => void;
   recipientEmails: string[];

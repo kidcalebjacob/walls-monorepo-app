@@ -10,7 +10,7 @@ import { useState } from "react";
 import { getSupabaseClient } from "@/app/auth/supabaseClient";
 
 interface SignatureToolProps {
-  editorRef: React.RefObject<EditorRef>;
+  editorRef: React.RefObject<EditorRef | null>;
 }
 
 // Helper function to escape HTML special characters

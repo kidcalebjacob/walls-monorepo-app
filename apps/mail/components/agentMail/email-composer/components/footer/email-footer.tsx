@@ -16,7 +16,7 @@ interface EmailFooterProps {
   onSend: () => Promise<void>;
   sending: boolean;
   disabled: boolean;
-  editorRef: React.RefObject<EditorRef>;
+  editorRef: React.RefObject<EditorRef | null>;
   onChange: (content: string) => void;
   onAttachmentsChange: (files: File[]) => void;
   onPitchChange?: (creators: SelectedCreatorSummary[]) => void;

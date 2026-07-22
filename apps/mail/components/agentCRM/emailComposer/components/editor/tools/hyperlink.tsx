@@ -14,7 +14,7 @@ import { cn } from '@/lib/utils';
 import { EditorRef } from '../editor';
 
 interface HyperlinkToolProps {
-  editorRef: React.RefObject<EditorRef>;
+  editorRef: React.RefObject<EditorRef | null>;
 }
 
 function useEditorFromComposerRef(editorRef: React.RefObject<EditorRef | null>) {
