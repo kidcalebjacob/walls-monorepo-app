@@ -39,9 +39,7 @@ import {
 import { motion, AnimatePresence } from "framer-motion";
 import { Portal } from "@radix-ui/react-portal";
 
-/** Shown under the profile photo on hover (before sliding the photo layer) */
-const PROFILE_FALLBACK_ICON_URL =
-  "https://assets.wallsentertainment.com/logo-variations/black-logo.png";
+import profileButtonIcon from "../assets/logos/user-profile-button.png";
 
 /** Notification bell hover — inset shadow + scale, no border ring */
 const NOTIFICATION_BELL_HOVER =
@@ -427,7 +425,7 @@ function ProfileAvatarCircle({
         )}
         <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
           <Image
-            src={PROFILE_FALLBACK_ICON_URL}
+            src={profileButtonIcon}
             alt=""
             width={48}
             height={48}
@@ -473,7 +471,9 @@ function ProfileAvatarCircle({
             animate={{ y: avatarHover ? "-112%" : 0 }}
             transition={slideTransition}
           >
-            <span className="text-lg text-foreground">{initials}</span>
+            <span className="font-initials text-xl font-medium leading-none tracking-wide text-neutral-500">
+              {initials}
+            </span>
           </motion.div>
         )}
       </div>
@@ -874,7 +874,7 @@ export default function UserProfileButton({
                         className="h-full w-full object-cover"
                       />
                     ) : (
-                      <span className="flex h-full w-full items-center justify-center text-base font-semibold text-white">
+                      <span className="font-initials flex h-full w-full items-center justify-center text-lg font-medium leading-none tracking-wide text-white">
                         {initials}
                       </span>
                     )}

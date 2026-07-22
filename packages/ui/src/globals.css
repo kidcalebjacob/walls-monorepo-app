@@ -1,5 +1,6 @@
 /* Shared WALLS monorepo base styles — import after `tailwindcss` in each app. */
 
+@import url("https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500;1,600&display=swap");
 @import "./kenoo-theme.css";
 
 @layer base {

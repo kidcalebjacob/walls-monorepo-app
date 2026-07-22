@@ -12,6 +12,7 @@
     "@supabase/ssr": "^0.6.1",
     "@walls/auth": "workspace:*",
     "@walls/config": "workspace:*",
+    "@walls/storage": "workspace:*",
     "@walls/supabase": "workspace:*",
     "@walls/ui": "workspace:*",
     "@walls/utils": "workspace:*",

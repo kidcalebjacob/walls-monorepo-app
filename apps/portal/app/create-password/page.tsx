@@ -136,10 +136,10 @@ export default function CreatePasswordPage() {
         return;
       }
 
-      setSuccess("Password created. Redirecting to your apps...");
+      setSuccess("Password created. Next, add a profile picture...");
 
       setTimeout(() => {
-        router.push("/login");
+        router.push("/setup-profile");
       }, 1500);
     } catch (err) {
       setError(

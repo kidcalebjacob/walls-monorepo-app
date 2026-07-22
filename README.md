@@ -85,6 +85,22 @@ pnpm dev
 
 Dev servers use **webpack** (`next dev --webpack`) instead of Turbopack. Turbopack can hang on first compile in this monorepo (stuck on `Compiling /login ...`); webpack is stable for local development. Production `next build` is unaffected.
 
+### Kill background local apps
+
+If old `pnpm dev` processes are still holding ports (or you closed the terminal but apps kept running), free ports **3000–3030** on macOS:
+
+```bash
+for port in {3000..3030}; do
+  lsof -ti tcp:$port | xargs kill -9 2>/dev/null
+done
+```
+
+That force-kills whatever is listening on each port in the range. Empty ports are skipped. To see what’s still bound first:
+
+```bash
+lsof -i tcp:3000-3030
+```
+
 ### 4. Wallie Mobile (iOS / Android)
 
 Wallie Mobile is an **Expo dev client** app. JavaScript changes hot-reload over Metro; **native changes require a rebuild** (app icon, new native modules like `expo-blur`, permissions, etc.).

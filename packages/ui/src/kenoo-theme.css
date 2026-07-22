@@ -89,5 +89,8 @@
   --color-muted: var(--muted);
   --color-ring-offset-background: var(--ring-offset-background);
 
+  /* Soft, classy serif for avatar initials (not a script/cursive) */
+  --font-initials: "Cormorant Garamond", ui-serif, Georgia, "Times New Roman", serif;
+
   --ease-kenoo-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
 }

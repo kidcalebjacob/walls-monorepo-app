@@ -2,7 +2,12 @@ import { NextResponse, type NextRequest } from "next/server";
 
 import { refreshMiddlewareSession } from "@walls/auth/middleware";
 
-const PUBLIC_PATHS = ["/login", "/reset-password", "/create-password"];
+const PUBLIC_PATHS = [
+  "/login",
+  "/reset-password",
+  "/create-password",
+  "/setup-profile",
+];
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
