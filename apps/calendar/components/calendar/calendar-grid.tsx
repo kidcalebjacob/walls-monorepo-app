@@ -224,6 +224,169 @@ function formatCompactEventTime(dateTime: DateTime): string {
   return dateTime.toFormat('h a').replace(' ', '');
 }
 
+const EVENT_TOOLTIP_EDGE_PAD = 140;
+
+function TimedEventBlock({
+  event,
+  left,
+  top,
+  width,
+  height,
+  durationMinutes,
+  startTime,
+  endTime,
+  onClick,
+}: {
+  event: Event;
+  left: string;
+  top: number;
+  width: string;
+  height: number;
+  durationMinutes: number;
+  startTime: DateTime;
+  endTime: DateTime;
+  onClick: () => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const [coords, setCoords] = useState<{
+    top: number;
+    left: number;
+    placeBelow: boolean;
+  } | null>(null);
+  const anchorRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!open) return;
+
+    const updateCoords = () => {
+      const el = anchorRef.current;
+      if (!el) return;
+      const rect = el.getBoundingClientRect();
+      // Flip below when near the top of the viewport so the portal tooltip
+      // isn't clipped by the calendar header / all-day section.
+      const placeBelow = rect.top < EVENT_TOOLTIP_EDGE_PAD;
+      setCoords({
+        top: placeBelow ? rect.bottom + 6 : rect.top - 6,
+        left: rect.left + rect.width / 2,
+        placeBelow,
+      });
+    };
+
+    updateCoords();
+    window.addEventListener('scroll', updateCoords, true);
+    window.addEventListener('resize', updateCoords);
+    return () => {
+      window.removeEventListener('scroll', updateCoords, true);
+      window.removeEventListener('resize', updateCoords);
+    };
+  }, [open]);
+
+  const isShortEvent = durationMinutes < 45;
+  const theme = getTimedEventTheme(event);
+  const isCompleted = isCalendarTaskCompleted(event);
+  const isMeeting = event.type === 'regular-event';
+  const isGoogleMeet = isMeeting && isGoogleMeetLink(event.meetingLink);
+  const showTime = !isMeeting && durationMinutes >= 25 && height >= 36;
+  const { maxLines: maxTitleLines } = getEventTitleLineBudget(
+    height,
+    isShortEvent,
+    showTime
+  );
+  const displayLabel = getCalendarEventDisplayLabel(
+    event,
+    formatCompactEventTime(startTime)
+  );
+
+  return (
+    <div
+      ref={anchorRef}
+      className={cn(
+        'absolute cursor-pointer group hover:z-20',
+        theme.container,
+        isCompleted && 'opacity-60'
+      )}
+      style={{
+        left,
+        top: `${top}px`,
+        width,
+        height: `${height}px`,
+      }}
+      onClick={onClick}
+      onMouseEnter={() => setOpen(true)}
+      onMouseLeave={() => setOpen(false)}
+    >
+      <div className="relative h-full flex min-w-0 overflow-hidden">
+        <span
+          className={cn(
+            'w-[3px] shrink-0 self-stretch',
+            isCompleted
+              ? getCompletedTaskAccentClass()
+              : !event.projectColor && theme.accentColor
+          )}
+          style={isCompleted ? undefined : getEventAccentStyle(event)}
+        />
+        <div
+          className={cn(
+            'min-w-0 flex-1 flex flex-col overflow-hidden',
+            isShortEvent ? 'justify-center px-2 py-0.5' : 'px-2.5 py-1.5'
+          )}
+        >
+          <div className="min-w-0 overflow-hidden">
+            {isGoogleMeet && (
+              <Image
+                src={GOOGLE_MEET_ICON_URL}
+                alt="Google Meet"
+                width={14}
+                height={14}
+                className="float-left mr-1.5 shrink-0"
+              />
+            )}
+            <span
+              className={cn(
+                'block leading-snug text-xs',
+                getEventTitleTextClass(maxTitleLines),
+                isCompleted ? getCompletedTaskTitleClass() : theme.title
+              )}
+            >
+              {displayLabel}
+            </span>
+          </div>
+          {showTime && (
+            <span className={cn('text-xs mt-0.5', theme.time)}>
+              {formatEventTime(startTime)}
+            </span>
+          )}
+        </div>
+      </div>
+
+      {typeof document !== 'undefined' &&
+        createPortal(
+          open && coords ? (
+            <div
+              className="pointer-events-none fixed z-[9999] max-w-[220px] whitespace-nowrap rounded-xl bg-gray-900/95 p-2.5 text-white shadow-xl backdrop-blur-sm"
+              style={{
+                top: coords.top,
+                left: coords.left,
+                transform: coords.placeBelow
+                  ? 'translate(-50%, 0)'
+                  : 'translate(-50%, -100%)',
+              }}
+            >
+              <div className="mb-1 text-sm font-normal">{event.title}</div>
+              <div className="text-xs font-normal text-white/80">
+                {formatEventTime(startTime)} – {formatEventTime(endTime)}
+              </div>
+              {event.location && (
+                <div className="mt-1 text-[11px] text-white/70">{event.location}</div>
+              )}
+            </div>
+          ) : null,
+          document.body
+        )}
+    </div>
+  );
+}
+
 // Helper function to round minutes to nearest interval
 function roundToNearestInterval(minutes: number, interval: number): number {
   return Math.round(minutes / interval) * interval;
@@ -968,110 +1131,19 @@ export function CalendarGrid({ selectedDate, onDateSelect, allEvents, onTaskDrop
                 const top = topMinutes * pixelsPerMinute;
                 const height = durationMinutes * pixelsPerMinute;
 
-                const isShortEvent = durationMinutes < 45;
-                const isNearTop = top < 100;
-                const tooltipPosition = isNearTop ? {
-                  top: '100%',
-                  marginTop: '5px'
-                } : {
-                  bottom: '100%',
-                  marginBottom: '5px'
-                };
-
-                const theme = getTimedEventTheme(event);
-                const isCompleted = isCalendarTaskCompleted(event);
-                const isMeeting = event.type === 'regular-event';
-                const isGoogleMeet = isMeeting && isGoogleMeetLink(event.meetingLink);
-                const showTime = !isMeeting && durationMinutes >= 25 && height >= 36;
-                const { maxLines: maxTitleLines } = getEventTitleLineBudget(
-                  height,
-                  isShortEvent,
-                  showTime
-                );
-                const displayLabel = getCalendarEventDisplayLabel(
-                  event,
-                  formatCompactEventTime(startTime)
-                );
-
                 return (
-                  <div
+                  <TimedEventBlock
                     key={event.id}
-                    className={cn(
-                      'absolute cursor-pointer group hover:z-20',
-                      theme.container,
-                      isCompleted && 'opacity-60'
-                    )}
-                    style={{
-                      left,
-                      top: `${top}px`,
-                      width,
-                      height: `${height}px`,
-                    }}
+                    event={event}
+                    left={left}
+                    top={top}
+                    width={width}
+                    height={height}
+                    durationMinutes={durationMinutes}
+                    startTime={startTime}
+                    endTime={endTime}
                     onClick={() => handleEventClick(event)}
-                  >
-                    <div className="relative h-full flex min-w-0 overflow-hidden">
-                      <span
-                        className={cn(
-                          'w-[3px] shrink-0 self-stretch',
-                          isCompleted
-                            ? getCompletedTaskAccentClass()
-                            : !event.projectColor && theme.accentColor
-                        )}
-                        style={
-                          isCompleted ? undefined : getEventAccentStyle(event)
-                        }
-                      />
-                      <div
-                        className={cn(
-                          'min-w-0 flex-1 flex flex-col overflow-hidden',
-                          isShortEvent ? 'justify-center px-2 py-0.5' : 'px-2.5 py-1.5'
-                        )}
-                      >
-                        <div className="min-w-0 overflow-hidden">
-                          {isGoogleMeet && (
-                            <Image
-                              src={GOOGLE_MEET_ICON_URL}
-                              alt="Google Meet"
-                              width={14}
-                              height={14}
-                              className="float-left mr-1.5 shrink-0"
-                            />
-                          )}
-                          <span
-                            className={cn(
-                              'block leading-snug text-xs',
-                              getEventTitleTextClass(maxTitleLines),
-                              isCompleted ? getCompletedTaskTitleClass() : theme.title
-                            )}
-                          >
-                            {displayLabel}
-                          </span>
-                        </div>
-                        {showTime && (
-                          <span className={cn('text-xs mt-0.5', theme.time)}>
-                            {formatEventTime(startTime)}
-                          </span>
-                        )}
-                      </div>
-                    </div>
-                    <div
-                      className="absolute opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-30 bg-gray-900/95 text-white p-2.5 rounded-xl shadow-xl whitespace-nowrap pointer-events-none backdrop-blur-sm"
-                      style={{
-                        left: '50%',
-                        transform: 'translateX(-50%)',
-                        maxWidth: '220px',
-                        ...tooltipPosition,
-                      }}
-                    >
-                      <div className="font-normal text-sm mb-1">{event.title}</div>
-                      <div className="text-xs font-normal text-white/80">
-                        {formatEventTime(startTime)} – {formatEventTime(endTime)}
-                      </div>
-                      {event.location && (
-                        <div className="text-[11px] text-white/70 mt-1">{event.location}</div>
-                      )}
-                    </div>
-                  </div>
+                  />
                 );
               })}
             </div>

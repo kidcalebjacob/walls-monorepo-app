@@ -1,0 +1,240 @@
+@import "tailwindcss";
+@import "@walls/ui/kenoo-theme.css";
+
+@source "../../../packages/ui/src";
+@source "../components";
+
+:root {
+  --background: var(--kenoo-white);
+  --foreground: #111111;
+  --kenoo-canvas: var(--kenoo-white);
+  --kenoo-surface: #ffffff;
+  --kenoo-ink: #111111;
+  --kenoo-muted: #6b6b6b;
+  --kenoo-accent: #0b6eff;
+  --kenoo-accent-hover: #0958d4;
+  --kenoo-border: #e8e8e8;
+  --kenoo-subtle: #efefef;
+  --card: var(--kenoo-white);
+  --muted: #efefef;
+  --muted-foreground: #6b6b6b;
+  --accent: #efefef;
+  --accent-foreground: #111111;
+  --border: #e8e8e8;
+  --input: #e8e8e8;
+  --ring: #0b6eff;
+  --ring-offset-background: var(--kenoo-white);
+  --popover: var(--kenoo-white);
+  --popover-foreground: #111111;
+}
+
+@theme inline {
+  --color-background: var(--kenoo-white);
+  --color-foreground: #111111;
+  --color-card: var(--kenoo-white);
+  --color-muted: #efefef;
+  --color-muted-foreground: #6b6b6b;
+  --color-accent: #efefef;
+  --color-accent-foreground: #111111;
+  --color-border: #e8e8e8;
+  --color-input: #e8e8e8;
+  --color-ring: #0b6eff;
+  --color-ring-offset-background: var(--kenoo-white);
+  --color-popover: var(--kenoo-white);
+  --color-popover-foreground: #111111;
+  --color-kenoo-blue: var(--kenoo-blue);
+  --color-kenoo-yellow: var(--kenoo-yellow);
+  --color-kenoo-canvas: var(--kenoo-canvas);
+  --color-kenoo-surface: var(--kenoo-surface);
+  --color-kenoo-ink: var(--kenoo-ink);
+  --color-kenoo-muted: var(--kenoo-muted);
+  --color-kenoo-accent: var(--kenoo-accent);
+  --color-kenoo-accent-hover: var(--kenoo-accent-hover);
+  --color-kenoo-border: var(--kenoo-border);
+  --color-kenoo-subtle: var(--kenoo-subtle);
+  --font-sans: var(--font-geist-sans);
+  --font-display: var(--font-instrument-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+@layer base {
+  html[data-app="mail"],
+  html[data-app="mail"] body {
+    height: 100%;
+    overflow: hidden;
+    background-color: var(--kenoo-white);
+    color: #111111;
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    font-family: var(--font-sans), Arial, Helvetica, sans-serif;
+  }
+
+  button:not(:disabled),
+  [role="button"]:not([aria-disabled="true"]),
+  a[href],
+  label[for],
+  select:not(:disabled),
+  summary,
+  input[type="button"]:not(:disabled),
+  input[type="submit"]:not(:disabled),
+  input[type="reset"]:not(:disabled),
+  input[type="checkbox"]:not(:disabled),
+  input[type="radio"]:not(:disabled),
+  [role="link"],
+  [role="menuitem"]:not([data-disabled]),
+  [data-slot="trigger"] {
+    cursor: pointer;
+  }
+
+  button:disabled,
+  [aria-disabled="true"],
+  input:disabled,
+  select:disabled,
+  textarea:disabled {
+    cursor: not-allowed;
+  }
+
+  input:focus,
+  input:focus-visible,
+  textarea:focus,
+  textarea:focus-visible,
+  select:focus,
+  select:focus-visible,
+  [role="combobox"]:focus,
+  [role="combobox"]:focus-visible {
+    outline: none;
+    box-shadow: none;
+  }
+
+  input,
+  textarea,
+  select,
+  [role="combobox"] {
+    box-shadow: none;
+  }
+}
+
+@layer utilities {
+  .font-display {
+    font-family: var(--font-display), var(--font-sans), sans-serif;
+  }
+
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* Shared frosted glass for sidebar, top bar, and calendar panel */
+  .kenoo-glass-chrome {
+    background: linear-gradient(
+      165deg,
+      rgba(255, 255, 255, 0.55) 0%,
+      rgba(255, 255, 255, 0.28) 48%,
+      rgba(245, 250, 255, 0.22) 100%
+    );
+    backdrop-filter: blur(28px) saturate(1.45);
+    -webkit-backdrop-filter: blur(28px) saturate(1.45);
+    border-color: rgba(255, 255, 255, 0.55);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.75),
+      inset 0 -1px 0 rgba(255, 255, 255, 0.12),
+      0 10px 32px rgba(70, 90, 120, 0.12);
+  }
+
+  /* Denser frosted glass for the main calendar surface */
+  .kenoo-glass-chrome-dense {
+    background: linear-gradient(
+      165deg,
+      rgba(255, 255, 255, 0.82) 0%,
+      rgba(255, 255, 255, 0.68) 48%,
+      rgba(248, 251, 255, 0.62) 100%
+    );
+    backdrop-filter: blur(28px) saturate(1.35);
+    -webkit-backdrop-filter: blur(28px) saturate(1.35);
+    border-color: rgba(255, 255, 255, 0.65);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.85),
+      inset 0 -1px 0 rgba(255, 255, 255, 0.14),
+      0 10px 32px rgba(70, 90, 120, 0.12);
+  }
+}
+
+/* Chrome glow — matches public-site Get started CTA */
+@property --kenoo-chrome-reveal {
+  syntax: "<angle>";
+  inherits: false;
+  initial-value: 0deg;
+}
+
+@keyframes kenoo-chrome-orbit {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes kenoo-chrome-flow-in {
+  0% {
+    opacity: 0;
+    --kenoo-chrome-reveal: 0deg;
+    filter: brightness(2.4) saturate(1.5);
+  }
+  28% {
+    opacity: 1;
+    filter: brightness(1.7) saturate(1.3);
+  }
+  100% {
+    opacity: 1;
+    --kenoo-chrome-reveal: 360deg;
+    filter: brightness(1) saturate(1);
+  }
+}
+
+.kenoo-chrome-orbit {
+  will-change: transform, filter, opacity;
+  background: conic-gradient(
+    from 0deg,
+    #ffffff 0deg,
+    #c5e7ff 40deg,
+    #e8e8ec 80deg,
+    #ffffff 120deg,
+    #ffd2e8 160deg,
+    #bdbdc6 200deg,
+    #ffffff 240deg,
+    #d2ffe9 280deg,
+    #d6e8ff 320deg,
+    #ffffff 360deg
+  );
+  -webkit-mask-image: conic-gradient(
+    from -90deg,
+    #000 0deg,
+    #000 var(--kenoo-chrome-reveal),
+    transparent var(--kenoo-chrome-reveal)
+  );
+  mask-image: conic-gradient(
+    from -90deg,
+    #000 0deg,
+    #000 var(--kenoo-chrome-reveal),
+    transparent var(--kenoo-chrome-reveal)
+  );
+  animation:
+    kenoo-chrome-flow-in 1.2s cubic-bezier(0.16, 1, 0.3, 1) forwards,
+    kenoo-chrome-orbit 7s linear 1.05s infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .kenoo-chrome-orbit {
+    --kenoo-chrome-reveal: 360deg;
+    animation: none;
+    opacity: 1;
+    filter: none;
+  }
+}

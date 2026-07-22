@@ -17,6 +17,7 @@ const LOCAL_DEV_PORTS: Record<string, number> = {
   console: 3011,
   crm: 3009,
   ledger: 3010,
+  mail: 3012,
 };
 
 const KNOWN_PORTAL_ORIGINS = [
@@ -70,6 +71,7 @@ export function originForAppSlug(slug: string): string | null {
     console: process.env.NEXT_PUBLIC_CONSOLE_URL,
     crm: process.env.NEXT_PUBLIC_CRM_URL,
     ledger: process.env.NEXT_PUBLIC_LEDGER_URL,
+    mail: process.env.NEXT_PUBLIC_MAIL_URL,
   };
 
   const fromEnv = envOrigin(map[slug]);
