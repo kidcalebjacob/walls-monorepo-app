@@ -45,10 +45,10 @@ export function createSettingsStyles(colors: AppColors, isDark: boolean) {
     topBarTitle: {
       flex: 1,
       textAlign: "center",
-      fontSize: 17,
+      fontSize: 22,
       fontWeight: "600",
       color: colors.text,
-      letterSpacing: -0.2,
+      letterSpacing: -0.3,
     },
     glassButton: {
       width: GLASS_BUTTON_SIZE,
@@ -66,7 +66,7 @@ export function createSettingsStyles(colors: AppColors, isDark: boolean) {
       gap: spacing.lg,
     },
     optionList: {
-      paddingTop: spacing.xs,
+      paddingTop: spacing.lg,
     },
     optionRow: {
       minHeight: 52,
@@ -182,14 +182,6 @@ export function createSettingsStyles(colors: AppColors, isDark: boolean) {
     },
     divider: {
       height: StyleSheet.hairlineWidth,
-    },
-    healthHint: {
-      fontSize: 13,
-      lineHeight: 18,
-      color: colors.textMuted,
-      paddingHorizontal: spacing.md,
-      paddingBottom: spacing.md,
-      paddingTop: 2,
     },
     healthError: {
       fontSize: 12,

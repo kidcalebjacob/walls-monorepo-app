@@ -1,6 +1,6 @@
 import { useMemo } from "react";
-import { ScrollView, Text, View } from "react-native";
-import { Redirect, useRouter } from "expo-router";
+import { ScrollView, View } from "react-native";
+import { Redirect } from "expo-router";
 
 import {
   SettingsRadioOption,
@@ -19,7 +19,6 @@ const THEME_OPTIONS: { value: ThemePreference; label: string }[] = [
 ];
 
 export default function ThemeSettingsScreen() {
-  const router = useRouter();
   const { user, loading } = useAuth();
   const { colors, isDark, themePreference, setThemePreference } = useTheme();
   const styles = useMemo(
@@ -44,17 +43,12 @@ export default function ThemeSettingsScreen() {
       styles={styles}
       title="Theme"
       showBack
-      onConfirm={() => router.back()}
     >
       <ScrollView
         contentContainerStyle={styles.content}
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
       >
-        <Text style={styles.screenHint}>
-          Choose how Wallie looks on this device.
-        </Text>
-
         <View style={styles.optionList}>
           {THEME_OPTIONS.map((option) => (
             <SettingsRadioOption

@@ -46,20 +46,6 @@ function themeLabel(preference: ThemePreference): string {
   }
 }
 
-function formatSyncedAt(iso: string | null): string | null {
-  if (!iso) return null;
-  try {
-    return new Date(iso).toLocaleString(undefined, {
-      month: "short",
-      day: "numeric",
-      hour: "numeric",
-      minute: "2-digit",
-    });
-  } catch {
-    return null;
-  }
-}
-
 export default function SettingsScreen() {
   const router = useRouter();
   const { user, loading, signOut } = useAuth();
@@ -73,7 +59,6 @@ export default function SettingsScreen() {
     enabled,
     status,
     lastError,
-    lastSyncedAt,
   } = useAppleHealth();
 
   const [displayName, setDisplayName] = useState<string | null>(null);
@@ -142,7 +127,6 @@ export default function SettingsScreen() {
     ]);
   };
 
-  const syncedLabel = formatSyncedAt(lastSyncedAt);
   const healthValue =
     Platform.OS !== "ios"
       ? "iPhone only"
@@ -196,18 +180,13 @@ export default function SettingsScreen() {
         </SettingsGroup>
 
         <SettingsGroup
-          title="Health"
+          title="Connections"
           colors={colors}
           styles={styles}
           footer={
-            <>
-              {enabled && syncedLabel ? (
-                <Text style={styles.healthHint}>Last update {syncedLabel}</Text>
-              ) : null}
-              {lastError ? (
-                <Text style={styles.healthError}>{lastError}</Text>
-              ) : null}
-            </>
+            lastError ? (
+              <Text style={styles.healthError}>{lastError}</Text>
+            ) : null
           }
         >
           <SettingsRow
