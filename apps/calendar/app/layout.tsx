@@ -42,12 +42,12 @@ export default function RootLayout({
       data-app="calendar"
       className={`${geistSans.variable} ${geistMono.variable} ${instrumentSans.variable} h-full overflow-hidden bg-background antialiased`}
     >
-      <body className="h-screen overflow-hidden bg-kenoo-canvas text-kenoo-ink">
+      <body className="h-screen overflow-hidden bg-kenoo-white text-kenoo-ink">
         <div className="h-full overflow-hidden overscroll-none">
           <Providers>
             <main
               data-app-scroll-container
-              className="kenoo-calendar-atmosphere h-full min-h-0 overflow-y-auto overscroll-none"
+              className="h-full min-h-0 overflow-y-auto overscroll-none bg-kenoo-white"
             >
               {children}
             </main>

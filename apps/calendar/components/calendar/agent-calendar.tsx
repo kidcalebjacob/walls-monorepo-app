@@ -683,7 +683,7 @@ function AgentCalendarContent({ calendarData }: AgentCalendarProps) {
   };
 
   return (
-    <div className="kenoo-calendar-atmosphere flex h-full min-h-0 items-stretch gap-3 overflow-hidden overscroll-none p-4">
+    <div className="flex h-full min-h-0 items-stretch gap-3 overflow-hidden overscroll-none bg-kenoo-white p-4">
       <CalendarDaySidebar
         selectedDate={selectedDate}
         onDateSelect={setSelectedDate}
