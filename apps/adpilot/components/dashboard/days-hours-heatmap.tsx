@@ -35,6 +35,8 @@ const HEAT_STOPS = [
   { t: 1, color: [220, 38, 38] }, // vivid red
 ] as const;
 
+type HeatStop = (typeof HEAT_STOPS)[number];
+
 type DaysHoursHeatmapProps = {
   data: DaysHoursAnalytics;
   className?: string;
@@ -195,8 +197,8 @@ function lerp(a: number, b: number, t: number) {
 function heatBackground(intensity: number): string {
   if (intensity <= 0) return "rgb(245 245 245)";
 
-  let lower = HEAT_STOPS[0];
-  let upper = HEAT_STOPS[HEAT_STOPS.length - 1];
+  let lower: HeatStop = HEAT_STOPS[0];
+  let upper: HeatStop = HEAT_STOPS[HEAT_STOPS.length - 1];
   for (let i = 0; i < HEAT_STOPS.length - 1; i += 1) {
     if (intensity >= HEAT_STOPS[i].t && intensity <= HEAT_STOPS[i + 1].t) {
       lower = HEAT_STOPS[i];
