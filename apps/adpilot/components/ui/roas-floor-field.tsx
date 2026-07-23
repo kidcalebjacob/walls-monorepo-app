@@ -122,7 +122,7 @@ export function RoasFloorField({
           </p>
           <p className="mt-0.5 text-xs font-light text-neutral-500">
             {mode === "margin"
-              ? "Set contribution margin — we derive the minimum ROAS to break even before ad spend."
+              ? "Set contribution margin - we derive the minimum ROAS to break even before ad spend."
               : "Minimum return before scaling continues."}
           </p>
         </div>

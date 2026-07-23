@@ -12,7 +12,7 @@ import {
 } from "@/lib/frequency-breakdowns";
 
 import { AnimatedMetricValue } from "@/components/dashboard/animated-metric-value";
-import { SectionLabel } from "./dashboard-metrics";
+import { SectionLabel, panelGlassClass } from "./dashboard-metrics";
 
 type FrequencyBreakdownTableProps = {
   data: FrequencyBreakdownsAnalytics;
@@ -27,25 +27,26 @@ export function FrequencyBreakdownTable({
     <div className={cn("space-y-4", className)}>
       <div>
         <SectionLabel>Frequency breakdown</SectionLabel>
-        <p className="mt-1 text-xs font-light text-neutral-500">
-          Number of times people have seen your ads — reach and share of total
-          reach by bucket.
-        </p>
       </div>
 
       {!data.hasData || data.buckets.length === 0 ? (
-        <p className="rounded-lg border border-neutral-200/80 bg-neutral-50/60 px-4 py-10 text-center text-sm font-light text-neutral-400">
+        <p
+          className={cn(
+            "rounded-xl px-4 py-10 text-center text-sm font-light text-neutral-400",
+            panelGlassClass,
+          )}
+        >
           No frequency distribution yet. Sync Meta to pull Ads Manager–style
           frequency buckets for the selected range.
         </p>
       ) : (
-        <div className="overflow-x-auto rounded-lg border border-neutral-200/80">
+        <div className={cn("overflow-x-auto rounded-xl", panelGlassClass)}>
           <table className="w-full min-w-[36rem] border-collapse">
             <thead>
-              <tr className="border-b border-neutral-200 bg-neutral-50/80">
+              <tr className="border-b border-neutral-200/70 bg-white/40">
                 <th
                   scope="col"
-                  className="sticky left-0 z-10 bg-neutral-50/95 px-4 py-2.5 text-left text-[11px] font-medium uppercase tracking-wider text-neutral-500 backdrop-blur-sm"
+                  className="sticky left-0 z-10 bg-white/85 px-4 py-2.5 text-left text-[11px] font-medium uppercase tracking-wider text-neutral-500 backdrop-blur-sm"
                 >
                   Number of times people have seen your ads
                 </th>
@@ -55,7 +56,7 @@ export function FrequencyBreakdownTable({
                     scope="col"
                     className="px-3 py-2.5 text-center text-[11px] font-medium tracking-wide text-neutral-600"
                   >
-                    <span className="inline-flex whitespace-nowrap rounded-full bg-neutral-100 px-2.5 py-1 text-[11px] font-medium text-neutral-700">
+                    <span className="inline-flex whitespace-nowrap rounded-full bg-neutral-100/80 px-2.5 py-1 text-[11px] font-medium text-neutral-700">
                       {bucket.label}
                     </span>
                   </th>
@@ -66,11 +67,11 @@ export function FrequencyBreakdownTable({
               <motion.tr
                 initial={{ opacity: 0, y: 4 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="border-b border-neutral-100"
+                className="border-b border-neutral-100/80"
               >
                 <th
                   scope="row"
-                  className="sticky left-0 z-10 bg-kenoo-white px-4 py-3 text-left text-sm font-medium text-neutral-900"
+                  className="sticky left-0 z-10 bg-white/85 px-4 py-3 text-left text-sm font-medium text-neutral-900 backdrop-blur-sm"
                 >
                   Reach
                 </th>
@@ -92,7 +93,7 @@ export function FrequencyBreakdownTable({
               >
                 <th
                   scope="row"
-                  className="sticky left-0 z-10 bg-kenoo-white px-4 py-3 text-left text-sm font-medium text-neutral-900"
+                  className="sticky left-0 z-10 bg-white/85 px-4 py-3 text-left text-sm font-medium text-neutral-900 backdrop-blur-sm"
                 >
                   % of Total Reach
                 </th>

@@ -38,7 +38,7 @@ function AppSidebarContent({ children, className }: AppSidebarLayoutProps) {
   );
 }
 
-/** Mirrors walls-app `CRMSidebarWrapper` — fixed rail + margin-offset main column. */
+/** Mirrors walls-app `CRMSidebarWrapper` - fixed rail + margin-offset main column. */
 export function AppSidebarLayout({ children, className }: AppSidebarLayoutProps) {
   return <AppSidebarContent className={className}>{children}</AppSidebarContent>;
 }

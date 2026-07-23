@@ -8,7 +8,7 @@ import { buildMetaAuthorizeUrl } from "@/lib/meta-oauth";
 
 export const META_OAUTH_STATE_COOKIE = "meta_oauth_state";
 
-/** Starts Meta OAuth — used by `/api/oauth/meta` and `/api/oauth/meta/login`. */
+/** Starts Meta OAuth - used by `/api/oauth/meta` and `/api/oauth/meta/login`. */
 export async function startMetaOAuthLogin(): Promise<NextResponse> {
   const userId = await getCurrentUserId();
   if (!userId) {

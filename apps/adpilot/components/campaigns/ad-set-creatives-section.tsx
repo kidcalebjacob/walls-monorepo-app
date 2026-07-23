@@ -111,7 +111,7 @@ function creativeSubtitle(
   const statusLabel = formatAdStatus(status);
 
   if (copy && statusLabel) return `${statusLabel} · ${copy}`;
-  return copy ?? statusLabel ?? "—";
+  return copy ?? statusLabel ?? "-";
 }
 
 export function AdSetCreativesSection({

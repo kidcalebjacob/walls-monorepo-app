@@ -42,7 +42,7 @@ function AccountSwitcherSkeleton() {
 }
 
 /**
- * Header account switcher — store-style picker for the active WALLS account.
+ * Header account switcher - store-style picker for the active WALLS account.
  * Selection is persisted via `/api/accounts` cookie, then the route tree refreshes.
  */
 export function AccountSwitcher() {
@@ -266,7 +266,7 @@ function AccountAvatar({
   const boxClass =
     size === "md" ? "h-10 w-10 rounded-lg" : "h-8 w-8 rounded-md";
 
-  // Personal accounts don't get organization icon uploads — fall back to the
+  // Personal accounts don't get organization icon uploads - fall back to the
   // signed-in user's avatar so the header shows their photo instead of initials.
   const imageUrl =
     account.iconUrl ??

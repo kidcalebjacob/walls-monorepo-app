@@ -33,7 +33,7 @@ import { syncMetaAudiences } from "@/lib/meta-audiences";
 import { listMetaConnectionsWithTokens } from "./connections-server";
 import type { MetaConnectionRecord } from "@/lib/connections";
 
-/** Meta returns overlapping purchase types — pick one, never sum them. */
+/** Meta returns overlapping purchase types - pick one, never sum them. */
 const PURCHASE_ACTION_PRIORITY = [
   "omni_purchase",
   "purchase",
@@ -54,7 +54,7 @@ type EntityType = "account" | "campaign" | "ad_group" | "ad";
 type BudgetOptimization = "cbo" | "abo";
 
 const BREAKDOWN_SYNC_LEVELS: MetaInsightLevel[] = ["account", "campaign", "adset"];
-/** Device/placement — multi-level, runs after core metrics. */
+/** Device/placement - multi-level, runs after core metrics. */
 const DEVICE_PLACEMENT_BREAKDOWN_TYPES: MetaInsightBreakdownType[] = [
   "device_platform",
   "placement_device",
@@ -529,7 +529,7 @@ async function replaceFrequencyBreakdowns(input: {
   const admin = createAdminClient();
   const now = new Date().toISOString();
 
-  // Empty can mean Meta returned nothing (opt-in / throttle) — keep prior snapshots.
+  // Empty can mean Meta returned nothing (opt-in / throttle) - keep prior snapshots.
   if (input.rows.length === 0) return;
 
   // Full replace per connection so buckets that disappear (no reach) don't linger.
@@ -672,7 +672,7 @@ export async function syncMetaConnection(
 
     const { since, until } = getMetaDateRange(30);
 
-    // Dashboard-critical account metrics first — so rate limits later on
+    // Dashboard-critical account metrics first - so rate limits later on
     // ad sets / delivery estimates don't leave the UI empty.
     const accountInsights = await fetchMetaInsights(
       accountId,
@@ -868,7 +868,7 @@ export async function syncMetaConnection(
     }
 
     // Estimated audience size lives on ad-set targeting (Ads Manager demographics band).
-    // Campaigns don't have their own targeting — only ad sets do. Ads inherit from parent.
+    // Campaigns don't have their own targeting - only ad sets do. Ads inherit from parent.
     const adSetAudienceEstimates = new Map<string, AudienceEstimateFields>();
 
     for (const adSet of adSets) {
@@ -1060,7 +1060,7 @@ export async function syncMetaConnection(
     }
 
     // Frequency distribution (Ads Manager Frequency Breakdown). Period snapshots
-    // for 1/7/14/30d — unique reach is not additive across days. Non-fatal.
+    // for 1/7/14/30d - unique reach is not additive across days. Non-fatal.
     try {
       const frequencyRows: Array<{
         entityId: string;

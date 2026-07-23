@@ -21,12 +21,12 @@ import {
 } from "@/lib/days-hours";
 
 import { SegmentToggle } from "@/components/ui/segment-toggle";
-import { SectionLabel } from "./dashboard-metrics";
+import { SectionLabel, panelGlassClass } from "./dashboard-metrics";
 
 const HOURS = Array.from({ length: 24 }, (_, hour) => hour);
 const HOUR_TICK_SET = new Set([0, 6, 12, 18]);
 
-/** Heat scale — peaks in hot red, not black. */
+/** Heat scale - peaks in hot red, not black. */
 const HEAT_STOPS = [
   { t: 0, color: [253, 244, 236] }, // near-white peach
   { t: 0.28, color: [255, 196, 140] }, // soft amber
@@ -319,20 +319,14 @@ export function DaysHoursHeatmap({ data, className }: DaysHoursHeatmapProps) {
     () => findPeakCell(rows, metric),
     [rows, metric],
   );
-
   const metricLabel =
-    DAYS_HOURS_METRIC_OPTIONS.find((option) => option.value === metric)?.label ??
-    metric.toUpperCase();
+    DAYS_HOURS_METRIC_OPTIONS.find((option) => option.value === metric)
+      ?.label ?? metric;
 
   return (
-    <div className={cn("space-y-5", className)}>
+    <div className={cn("space-y-4", className)}>
       <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-        <div>
-          <SectionLabel>Days & Hours</SectionLabel>
-          <p className="-mt-2 text-sm font-light text-neutral-500">
-            When {metricLabel} tends to peak across the week
-          </p>
-        </div>
+        <SectionLabel>Days & Hours</SectionLabel>
         <SegmentToggle
           aria-label="Days and hours metric"
           value={metric}
@@ -345,18 +339,28 @@ export function DaysHoursHeatmap({ data, className }: DaysHoursHeatmapProps) {
       </div>
 
       {!data.hasData ? (
-        <p className="text-sm font-light text-neutral-400">
+        <p
+          className={cn(
+            "rounded-[28px] px-4 py-10 text-center text-sm font-light text-neutral-400",
+            panelGlassClass,
+          )}
+        >
           Hourly performance will appear here after the next Meta sync.
         </p>
       ) : (
-        <>
-          <div className="flex flex-col gap-4 border-y border-neutral-200/70 py-4 sm:flex-row sm:items-center sm:justify-between sm:gap-8">
+        <div
+          className={cn(
+            "overflow-hidden rounded-[28px] px-4 py-5 md:px-6 md:py-6",
+            panelGlassClass,
+          )}
+        >
+          <div className="mb-5 flex flex-col gap-4 border-b border-neutral-200/70 pb-4 sm:flex-row sm:items-center sm:justify-between sm:gap-8">
             <InsightPill
               label="Strongest day"
               value={
                 bestDay
                   ? `${bestDay.label} · ${formatDaysHoursMetricValue(bestDay.value, metric)}`
-                  : "—"
+                  : "-"
               }
             />
             <div className="hidden h-8 w-px bg-neutral-200/80 sm:block" />
@@ -365,7 +369,7 @@ export function DaysHoursHeatmap({ data, className }: DaysHoursHeatmapProps) {
               value={
                 bestHour
                   ? `${bestHour.label} · ${formatDaysHoursMetricValue(bestHour.value, metric)}`
-                  : "—"
+                  : "-"
               }
             />
             <div className="ml-auto hidden items-center gap-2 lg:flex">
@@ -511,7 +515,7 @@ export function DaysHoursHeatmap({ data, className }: DaysHoursHeatmapProps) {
               </div>
             </motion.div>
           </div>
-        </>
+        </div>
       )}
     </div>
   );

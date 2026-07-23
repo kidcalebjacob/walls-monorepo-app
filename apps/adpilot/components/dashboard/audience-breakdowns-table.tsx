@@ -32,7 +32,7 @@ import {
 
 import { AnimatedMetricValue } from "@/components/dashboard/animated-metric-value";
 import { SegmentToggle } from "@/components/ui/segment-toggle";
-import { SectionLabel } from "./dashboard-metrics";
+import { SectionLabel, panelGlassClass } from "./dashboard-metrics";
 
 const PAGE_SIZE = 10;
 
@@ -197,10 +197,6 @@ export function AudienceBreakdownsTable({
       <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <SectionLabel>Audience breakdowns</SectionLabel>
-          <p className="mt-1 text-xs font-light text-neutral-500">
-            Who converts best by age, gender, and country. Click a column to
-            sort.
-          </p>
         </div>
         <SegmentToggle
           aria-label="Audience breakdown dimension"
@@ -211,17 +207,24 @@ export function AudienceBreakdownsTable({
       </div>
 
       {!data.hasData || rows.length === 0 ? (
-        <p className="rounded-lg border border-neutral-200/80 bg-neutral-50/60 px-4 py-10 text-center text-sm font-light text-neutral-400">
+        <p
+          className={cn(
+            "rounded-xl px-4 py-10 text-center text-sm font-light text-neutral-400",
+            panelGlassClass,
+          )}
+        >
           No demographic data yet. If you just synced and Meta hit a rate
           limit, wait a few minutes and sync again — age, gender, and country
           now pull first.
         </p>
       ) : (
         <>
-          <div className="overflow-x-auto rounded-lg border border-neutral-200/80">
+          <div
+            className={cn("overflow-x-auto rounded-xl", panelGlassClass)}
+          >
             <table className="w-full min-w-[44rem] border-collapse">
               <thead>
-                <tr className="border-b border-neutral-200 bg-neutral-50/80">
+                <tr className="border-b border-neutral-200/70 bg-white/40">
                   {COLUMNS.map((column) => {
                     const active = sortColumn === column.id;
                     const SortIcon = !active
@@ -278,7 +281,7 @@ export function AudienceBreakdownsTable({
                     initial={{ opacity: 0, y: 4 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: index * 0.02 }}
-                    className="border-b border-neutral-100 last:border-b-0"
+                    className="border-b border-neutral-100/80 last:border-b-0"
                   >
                     <td className="px-4 py-2.5 text-sm font-medium text-neutral-900">
                       <SegmentCell row={row} />

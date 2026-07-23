@@ -25,7 +25,7 @@ export const metadata: Metadata = createWallsMetadata({
     default: "AdPilot",
     template: "%s | AdPilot",
   },
-  description: "WALLS AdPilot — campaign management and ad operations.",
+  description: "WALLS AdPilot - campaign management and ad operations.",
 });
 
 export default function RootLayout({

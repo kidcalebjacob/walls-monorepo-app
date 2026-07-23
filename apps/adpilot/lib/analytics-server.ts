@@ -717,7 +717,7 @@ export async function getDashboardAnalytics(
         value:
           currentTotals.conversion_value_micros > 0
             ? formatCurrencyFromMicros(currentTotals.conversion_value_micros)
-            : "—",
+            : "-",
         change: purchaseValueChange.label,
         positive: purchaseValueChange.positive,
       },

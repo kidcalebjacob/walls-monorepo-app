@@ -85,6 +85,6 @@ export function formatAudienceTypeLabel(type: AdAudienceType): string {
 }
 
 export function formatAudienceOriginLabel(originType: string | null | undefined): string {
-  if (!originType) return "—";
+  if (!originType) return "-";
   return AUDIENCE_ORIGIN_LABELS[originType] ?? originType.replaceAll("_", " ");
 }

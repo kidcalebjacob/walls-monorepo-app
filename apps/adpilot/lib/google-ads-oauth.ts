@@ -1,4 +1,4 @@
-/** Google Ads API REST version — bump when Google deprecates the prior version. */
+/** Google Ads API REST version - bump when Google deprecates the prior version. */
 export const GOOGLE_ADS_API_VERSION = "v24";
 
 export const GOOGLE_ADS_SCOPES = [

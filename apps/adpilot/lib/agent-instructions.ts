@@ -4,10 +4,10 @@
  * can be imported from Client Components. All database access lives in
  * `lib/agent-instructions-server.ts`.
  *
- * `active`    — currently in effect (within window + manually enabled).
- * `scheduled` — enabled but its start time is in the future.
- * `expired`   — its end time has passed.
- * `disabled`  — manually switched off, regardless of window.
+ * `active`    - currently in effect (within window + manually enabled).
+ * `scheduled` - enabled but its start time is in the future.
+ * `expired`   - its end time has passed.
+ * `disabled`  - manually switched off, regardless of window.
  */
 export type AgentInstructionStatus =
   | "active"

@@ -3,7 +3,6 @@
 import * as React from "react";
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { ChevronDown } from "lucide-react";
 
 import { cn } from "@walls/utils";
 
@@ -20,18 +19,13 @@ import {
 } from "@/lib/format-analytics";
 import type { AdCreativePreview } from "@/lib/meta-creatives";
 import type { DashboardObjectiveBucket } from "@/lib/meta-objectives";
-import {
-  TIME_RANGE_OPTIONS,
-  timeRangeLabel,
-  type TimeRangeValue,
-} from "@/lib/time-range";
 
 import { AdCreativeLightbox } from "@/components/campaigns/ad-creative-lightbox";
 import { AdThumbnail } from "@/components/campaigns/entity-detail-shared";
 import { SegmentToggle } from "@/components/ui/segment-toggle";
 
 import { AnimatedMetricValue } from "./animated-metric-value";
-import { SectionLabel } from "./dashboard-metrics";
+import { SectionLabel, panelGlassClass } from "./dashboard-metrics";
 
 function adDetailHref(ad: DashboardTopPerformingAd): string | null {
   if (!ad.campaignId || !ad.adSetId) return null;
@@ -150,7 +144,7 @@ function AdPerformanceRow({
           <p className="truncate text-sm font-medium text-neutral-800">{ad.name}</p>
         )}
         <p className="mt-0.5 truncate text-[11px] font-light text-neutral-400">
-          {[ad.campaignName, ad.adSetName].filter(Boolean).join(" · ") || "—"}
+          {[ad.campaignName, ad.adSetName].filter(Boolean).join(" · ") || "-"}
         </p>
       </div>
 
@@ -183,105 +177,11 @@ function AdPerformanceRow({
   );
 }
 
-type AdHighlightsTimeRangePickerProps = {
-  value: TimeRangeValue;
-  onChange: (value: TimeRangeValue) => void;
-};
-
-function AdHighlightsTimeRangePicker({
-  value,
-  onChange,
-}: AdHighlightsTimeRangePickerProps) {
-  const [open, setOpen] = React.useState(false);
-  const containerRef = React.useRef<HTMLDivElement>(null);
-
-  React.useEffect(() => {
-    if (!open) return;
-
-    const handlePointerDown = (event: MouseEvent) => {
-      if (
-        containerRef.current &&
-        !containerRef.current.contains(event.target as Node)
-      ) {
-        setOpen(false);
-      }
-    };
-
-    document.addEventListener("mousedown", handlePointerDown);
-    return () => document.removeEventListener("mousedown", handlePointerDown);
-  }, [open]);
-
-  return (
-    <div className="relative inline-flex" ref={containerRef}>
-      <button
-        type="button"
-        onClick={() => setOpen((current) => !current)}
-        className={cn(
-          "inline-flex items-center gap-1 rounded-none border-0 bg-transparent p-0 text-xs font-medium uppercase tracking-widest text-neutral-500 shadow-none transition-colors hover:text-neutral-800",
-          "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-neutral-400 focus-visible:ring-offset-2",
-        )}
-        aria-expanded={open}
-        aria-haspopup="listbox"
-      >
-        <span>{timeRangeLabel(value)}</span>
-        <ChevronDown
-          className={cn(
-            "h-3.5 w-3.5 text-neutral-400 transition-transform duration-200",
-            open && "rotate-180",
-          )}
-          strokeWidth={1.8}
-        />
-      </button>
-
-      {open ? (
-        <div
-          className="absolute top-full left-0 z-50 mt-1.5 min-w-[180px] overflow-hidden rounded-xl border border-neutral-200 bg-white py-1 shadow-lg"
-          role="listbox"
-        >
-          {TIME_RANGE_OPTIONS.map((option) => (
-            <button
-              key={option.value}
-              type="button"
-              role="option"
-              aria-selected={value === option.value}
-              onClick={() => {
-                onChange(option.value);
-                setOpen(false);
-              }}
-              className={cn(
-                "flex w-full items-center gap-2 px-3 py-2 text-left text-xs transition-colors",
-                value === option.value
-                  ? "bg-neutral-100 text-neutral-900"
-                  : "text-neutral-700 hover:bg-neutral-50",
-              )}
-            >
-              <span
-                className={cn(
-                  "h-2 w-2 flex-shrink-0 rounded-full",
-                  value === option.value ? "bg-[var(--kenoo-sky)]" : "bg-neutral-200",
-                )}
-                aria-hidden
-              />
-              <span>{option.label}</span>
-            </button>
-          ))}
-        </div>
-      ) : null}
-    </div>
-  );
-}
-
 type TopPerformingAdsProps = {
-  timeRange: TimeRangeValue;
-  onTimeRangeChange: (value: TimeRangeValue) => void;
   topPerformingAds: DashboardTopAdsByObjective;
 };
 
-export function TopPerformingAds({
-  timeRange,
-  onTimeRangeChange,
-  topPerformingAds,
-}: TopPerformingAdsProps) {
+export function TopPerformingAds({ topPerformingAds }: TopPerformingAdsProps) {
   const [selectedObjective, setSelectedObjective] =
     React.useState<DashboardObjectiveBucket | null>(null);
   const [creativePreview, setCreativePreview] = React.useState<{
@@ -318,15 +218,14 @@ export function TopPerformingAds({
 
   if (availableObjectives.length === 0) {
     return (
-      <div>
-        <div className="mb-4 flex flex-wrap items-center gap-x-2 gap-y-1">
-          <SectionLabel>Ad highlights —</SectionLabel>
-          <AdHighlightsTimeRangePicker
-            value={timeRange}
-            onChange={onTimeRangeChange}
-          />
-        </div>
-        <p className="text-sm font-light text-neutral-400">
+      <div className="space-y-4">
+        <SectionLabel>Ad highlights</SectionLabel>
+        <p
+          className={cn(
+            "rounded-[28px] px-4 py-10 text-center text-sm font-light text-neutral-400",
+            panelGlassClass,
+          )}
+        >
           Ad highlights will appear here once ad-level performance syncs from Meta.
         </p>
       </div>
@@ -334,17 +233,9 @@ export function TopPerformingAds({
   }
 
   return (
-    <div>
-      <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-        <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
-          <p className="text-xs font-medium uppercase tracking-widest text-neutral-500">
-            Ad highlights —
-          </p>
-          <AdHighlightsTimeRangePicker
-            value={timeRange}
-            onChange={onTimeRangeChange}
-          />
-        </div>
+    <div className="space-y-4">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+        <SectionLabel>Ad highlights</SectionLabel>
         <SegmentToggle
           aria-label="Campaign objective"
           value={activeObjective ?? availableObjectives[0].value}
@@ -356,41 +247,48 @@ export function TopPerformingAds({
         />
       </div>
 
-      <div className="divide-y divide-neutral-100">
-        {activeAds.map((ad, index) => (
-          <AdPerformanceRow
-            key={ad.id}
-            ad={ad}
-            index={index}
-            objective={activeObjective ?? availableObjectives[0].value}
-            onPreviewCreative={setCreativePreview}
-          />
-        ))}
+      <div
+        className={cn(
+          "overflow-hidden rounded-[28px] px-4 md:px-5",
+          panelGlassClass,
+        )}
+      >
+        <div className="divide-y divide-neutral-200/70">
+          {activeAds.map((ad, index) => (
+            <AdPerformanceRow
+              key={ad.id}
+              ad={ad}
+              index={index}
+              objective={activeObjective ?? availableObjectives[0].value}
+              onPreviewCreative={setCreativePreview}
+            />
+          ))}
+        </div>
+
+        {bottomAds.length > 0 ? (
+          <>
+            <div className="relative my-1">
+              <div className="border-t border-dashed border-rose-400/80" />
+              <p className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 bg-white/90 px-3 text-[10px] font-medium uppercase tracking-wider text-rose-500 backdrop-blur-sm">
+                Bottom performers
+              </p>
+            </div>
+
+            <div className="divide-y divide-neutral-200/70">
+              {bottomAds.map((ad, index) => (
+                <AdPerformanceRow
+                  key={ad.id}
+                  ad={ad}
+                  index={index}
+                  objective={activeObjective ?? availableObjectives[0].value}
+                  rankTone="bottom"
+                  onPreviewCreative={setCreativePreview}
+                />
+              ))}
+            </div>
+          </>
+        ) : null}
       </div>
-
-      {bottomAds.length > 0 ? (
-        <>
-          <div className="relative my-5">
-            <div className="border-t border-dashed border-rose-400" />
-            <p className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 bg-kenoo-white px-3 text-[10px] font-medium uppercase tracking-wider text-rose-500">
-              Bottom performers
-            </p>
-          </div>
-
-          <div className="divide-y divide-neutral-100">
-            {bottomAds.map((ad, index) => (
-              <AdPerformanceRow
-                key={ad.id}
-                ad={ad}
-                index={index}
-                objective={activeObjective ?? availableObjectives[0].value}
-                rankTone="bottom"
-                onPreviewCreative={setCreativePreview}
-              />
-            ))}
-          </div>
-        </>
-      ) : null}
 
       <AdCreativeLightbox
         open={creativePreview != null}

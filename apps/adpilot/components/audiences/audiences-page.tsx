@@ -110,7 +110,7 @@ function PlatformCell({ provider }: { provider: string }) {
 
   return (
     <span className="text-xs font-light capitalize text-neutral-500">
-      {provider || "—"}
+      {provider || "-"}
     </span>
   );
 }
@@ -122,7 +122,7 @@ function formatAudienceSize(lower: number | null, upper: number | null): string 
   if (lower != null && Number.isFinite(lower) && lower > 0) {
     return formatCompactNumber(lower);
   }
-  return "—";
+  return "-";
 }
 
 function ResizableHeader({
@@ -623,7 +623,7 @@ export function AudiencesPage() {
                         <span className="text-sm font-light text-neutral-800">
                           {row.costPerAddToCartMicros != null
                             ? formatCurrencyFromMicros(row.costPerAddToCartMicros)
-                            : "—"}
+                            : "-"}
                         </span>
                       </td>
                       <td className="overflow-hidden py-3 pr-4 align-middle tabular-nums">
@@ -646,7 +646,7 @@ export function AudiencesPage() {
                       </td>
                       <td className="overflow-hidden py-3 pr-4 align-middle tabular-nums">
                         <span className="text-sm font-light text-neutral-600">
-                          {row.adSetCount > 0 ? row.adSetCount : "—"}
+                          {row.adSetCount > 0 ? row.adSetCount : "-"}
                         </span>
                       </td>
                     </motion.tr>

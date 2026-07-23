@@ -14,7 +14,7 @@ export const FAUX_ANALYTICS = {
   ],
   accounts: [
     {
-      name: "WALLS — Brand",
+      name: "WALLS - Brand",
       platform: "Meta",
       spend: "$18,420",
       impressions: "842K",
@@ -30,7 +30,7 @@ export const FAUX_ANALYTICS = {
       status: "Active",
     },
     {
-      name: "Retargeting — Warm",
+      name: "Retargeting - Warm",
       platform: "Meta",
       spend: "$8,790",
       impressions: "468K",

@@ -484,7 +484,7 @@ export function buildAdCreativePreview(
 
   for (const asset of childAssets) {
     if (asset.asset_type === "video") {
-      // Keep it a video item even when the raw MP4 source is restricted — the
+      // Keep it a video item even when the raw MP4 source is restricted - the
       // lightbox falls back to Meta's ad preview player using the poster.
       media.push({
         id: asset.id,

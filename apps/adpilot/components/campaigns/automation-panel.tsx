@@ -146,11 +146,11 @@ function AdjustmentsList({ rows }: { rows: BudgetAdjustmentRow[] }) {
             <p className="font-medium text-neutral-800">
               {row.previousDailyBudgetMicros != null
                 ? formatCurrencyFromMicros(row.previousDailyBudgetMicros)
-                : "—"}{" "}
+                : "-"}{" "}
               →{" "}
               {row.newDailyBudgetMicros != null
                 ? formatCurrencyFromMicros(row.newDailyBudgetMicros)
-                : "—"}
+                : "-"}
             </p>
             <p className="mt-0.5 text-xs font-light leading-relaxed text-neutral-500">
               {row.decisionReason ?? "Budget adjustment"}
@@ -372,7 +372,7 @@ export function EntityAutomationSection({
                 <Link href="/settings" className="text-[var(--kenoo-sky)] hover:underline">
                   Create one in Settings
                 </Link>{" "}
-                — or tune the defaults below for this {entityLabel}.
+                - or tune the defaults below for this {entityLabel}.
               </p>
             ) : (
               <DropdownMenu open={presetMenuOpen} onOpenChange={setPresetMenuOpen}>

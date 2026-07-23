@@ -1,5 +1,5 @@
 @import "tailwindcss";
-/* Brand utilities only — do not import globals.css (marketing yellow canvas). */
+/* Brand utilities only - do not import globals.css (marketing yellow canvas). */
 @import "@walls/ui/kenoo-theme.css";
 
 @source "../../../packages/ui/src";

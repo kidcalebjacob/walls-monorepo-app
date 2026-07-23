@@ -19,18 +19,18 @@ export function formatPercent(value: number): string {
 }
 
 export function formatRoas(value: number | null): string {
-  if (value === null || !Number.isFinite(value)) return "—";
+  if (value === null || !Number.isFinite(value)) return "-";
   return `${value.toFixed(2)}x`;
 }
 
 /** Average times each person saw the ads, e.g. 2.34x. */
 export function formatFrequency(value: number | null): string {
-  if (value === null || !Number.isFinite(value) || value <= 0) return "—";
+  if (value === null || !Number.isFinite(value) || value <= 0) return "-";
   return `${value.toFixed(2)}x`;
 }
 
 export function formatResultCount(value: number): string {
-  if (!Number.isFinite(value) || value <= 0) return "—";
+  if (!Number.isFinite(value) || value <= 0) return "-";
   if (Number.isInteger(value)) return String(value);
   return value.toFixed(2);
 }
@@ -40,7 +40,7 @@ export function formatChange(
   previous: number,
 ): { label: string; positive: boolean } {
   if (previous <= 0) {
-    return { label: "—", positive: true };
+    return { label: "-", positive: true };
   }
   const pct = ((current - previous) / previous) * 100;
   const positive = pct >= 0;

@@ -23,7 +23,7 @@ import {
   toggleCardInactiveClass,
 } from "@/components/ui/button-styles";
 
-import { HeroStat } from "@/components/dashboard/dashboard-metrics";
+import { HeroStat, HeroStatsBar } from "@/components/dashboard/dashboard-metrics";
 import type {
   EntityDetailMetrics,
   EntityDetailResult,
@@ -38,7 +38,7 @@ import {
 
 /**
  * Settings-page aesthetic: transparent, free-flowing sections with a bold
- * title and a thin rule — no filled gray card containers.
+ * title and a thin rule - no filled gray card containers.
  */
 export function DetailSection({
   title,
@@ -206,7 +206,7 @@ export function detailSelectableClass(isSelected: boolean, extra?: string) {
 }
 
 export function formatStatus(status: string | null) {
-  if (!status) return "—";
+  if (!status) return "-";
   return status
     .split("_")
     .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
@@ -248,7 +248,7 @@ export function EntityMetricsGrid({
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-row flex-wrap items-stretch justify-center gap-6 pb-2 pt-2 md:gap-8">
+      <HeroStatsBar>
         {items.map((metric, index) => (
           <HeroStat
             key={metric.label}
@@ -256,10 +256,9 @@ export function EntityMetricsGrid({
             value={metric.value}
             icon={ENTITY_METRIC_ICONS[index] ?? CircleDollarSign}
             accentColor={ENTITY_METRIC_ACCENTS[index] ?? ENTITY_METRIC_ACCENTS[0]}
-            delay={index * 0.06}
           />
         ))}
-      </div>
+      </HeroStatsBar>
       <ReachSaturationBar saturation={reachSaturation ?? null} />
     </div>
   );
@@ -285,7 +284,7 @@ function formatSaturationPercent(pct: number): string {
 
 /**
  * Extrapolate remaining spend to fill the estimated audience at the current
- * spend-per-reach rate. Rough guide only — Meta won't deliver linearly.
+ * spend-per-reach rate. Rough guide only - Meta won't deliver linearly.
  */
 function estimateRemainingSpendMicros(
   spendMicros: number,
@@ -298,7 +297,7 @@ function estimateRemainingSpendMicros(
   return Math.max(0, Math.round(projectedTotal - spendMicros));
 }
 
-/** Rough audience-saturation guideposts — hover markers on the reach bar. */
+/** Rough audience-saturation guideposts - hover markers on the reach bar. */
 const SATURATION_GUIDES = [
   {
     pct: 5,
@@ -365,7 +364,7 @@ function ReachSaturationBar({
   const isFilled = remainingSpendMicros === 0;
   const remainingValue =
     remainingSpendMicros == null
-      ? "—"
+      ? "-"
       : isFilled
         ? "$0"
         : formatCurrencyFromMicros(remainingSpendMicros);
@@ -390,7 +389,7 @@ function ReachSaturationBar({
       <div className="flex items-center gap-4 sm:gap-5">
         <div className="w-16 shrink-0 sm:w-20">
           <p className="text-2xl font-black tabular-nums tracking-tight text-neutral-800 sm:text-3xl">
-            {pct != null ? formatSaturationPercent(pct) : "—"}
+            {pct != null ? formatSaturationPercent(pct) : "-"}
           </p>
           <p className="mt-0.5 text-[10px] font-normal uppercase tracking-[0.14em] text-neutral-400">
             Saturated
@@ -595,7 +594,7 @@ export function AdPilotEnableToggle({
           automation: EntityDetailResult["automation"];
         };
         // First-time enable returns full profile-backed state. Subsequent toggles
-        // use a settings-free fast path — keep the settings we already have.
+        // use a settings-free fast path - keep the settings we already have.
         onAutomationUpdated(
           !previous.profileId && payload.automation.profileId
             ? payload.automation
@@ -675,7 +674,7 @@ export function AdPilotEnableToggle({
 
 /**
  * Meta delivery learning-phase badge. Only rendered while an entity is still
- * learning (LEARNING or LEARNING_LIMITED) — a stabilized (SUCCESS) entity shows
+ * learning (LEARNING or LEARNING_LIMITED) - a stabilized (SUCCESS) entity shows
  * nothing. Accepts the raw `learning_status` value from `ad_entities`.
  */
 export function LearningBadge({
@@ -699,7 +698,7 @@ export function LearningBadge({
         ? {
             label: "Learning limited",
             title:
-              "Learning limited — not enough optimization events to exit the learning phase",
+              "Learning limited - not enough optimization events to exit the learning phase",
             className:
               "border-[rgba(239,68,68,0.45)] bg-white/40 text-neutral-600 shadow-[0_0_0_1px_rgba(239,68,68,0.35),0_0_12px_rgba(239,68,68,0.3)]",
           }

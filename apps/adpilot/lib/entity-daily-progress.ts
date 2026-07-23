@@ -199,7 +199,7 @@ export function formatCpaFromMicros(
   spendMicros: number,
   purchases: number,
 ): string {
-  if (!Number.isFinite(purchases) || purchases <= 0) return "—";
+  if (!Number.isFinite(purchases) || purchases <= 0) return "-";
   return formatCurrencyFromMicros(Math.round(spendMicros / purchases));
 }
 

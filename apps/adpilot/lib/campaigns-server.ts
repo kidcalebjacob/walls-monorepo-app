@@ -242,7 +242,7 @@ function statusRank(status: string | null): number {
   return 4;
 }
 
-/** Composite score for ad sets / ads — favors spend with ROAS and conversion efficiency. */
+/** Composite score for ad sets / ads - favors spend with ROAS and conversion efficiency. */
 function performanceScore(row: EntityPerformanceRow): number {
   const spend = row.spendMicros / 1_000_000;
   const roas = row.roas ?? 0;
@@ -475,7 +475,7 @@ export async function listCampaignPerformance(input: {
       .in("id", parentIds);
 
     for (const parent of parents ?? []) {
-      parentNameById.set(parent.id as string, (parent.name as string) ?? "—");
+      parentNameById.set(parent.id as string, (parent.name as string) ?? "-");
       if (parent.entity_type === "ad_group" && parent.parent_id) {
         adGroupToCampaignId.set(parent.id as string, parent.parent_id as string);
       }

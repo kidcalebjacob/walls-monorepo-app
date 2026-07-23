@@ -149,7 +149,7 @@ function PlatformCell({ provider }: { provider: string }) {
 
   return (
     <span className="text-xs font-light capitalize text-neutral-500">
-      {provider || "—"}
+      {provider || "-"}
     </span>
   );
 }
@@ -228,7 +228,7 @@ function ResizableHeader({
 }
 
 function formatStatus(status: string | null) {
-  if (!status) return "—";
+  if (!status) return "-";
   return status
     .split("_")
     .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
@@ -846,10 +846,10 @@ export function CampaignsPage() {
                             href={parentHref}
                             className="transition-colors hover:text-[var(--kenoo-sky)]"
                           >
-                            {row.parentName ?? "—"}
+                            {row.parentName ?? "-"}
                           </Link>
                         ) : (
-                          (row.parentName ?? "—")
+                          (row.parentName ?? "-")
                         )}
                       </span>
                     </td>
@@ -872,7 +872,7 @@ export function CampaignsPage() {
                         value={
                           row.dailyBudgetMicros != null && row.dailyBudgetMicros > 0
                             ? formatCurrencyFromMicros(row.dailyBudgetMicros)
-                            : "—"
+                            : "-"
                         }
                       />
                     </td>
@@ -885,7 +885,7 @@ export function CampaignsPage() {
                       <AnimatedMetricValue
                         value={
                           row.websitePurchases === null
-                            ? "—"
+                            ? "-"
                             : formatResultCount(row.websitePurchases)
                         }
                       />
@@ -894,7 +894,7 @@ export function CampaignsPage() {
                       <AnimatedMetricValue
                         value={
                           row.websitePurchases === null
-                            ? "—"
+                            ? "-"
                             : formatCpaFromMicros(row.spendMicros, row.websitePurchases)
                         }
                       />
@@ -904,7 +904,7 @@ export function CampaignsPage() {
                         value={
                           row.conversionValueMicros > 0
                             ? formatCurrencyFromMicros(row.conversionValueMicros)
-                            : "—"
+                            : "-"
                         }
                       />
                     </td>

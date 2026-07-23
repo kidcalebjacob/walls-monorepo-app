@@ -55,7 +55,7 @@ export async function GET(request: NextRequest) {
     }
     if (!tokens.refresh_token) {
       throw new Error(
-        "Google token response missing refresh_token — revoke Kenoo access in Google Account and try again",
+        "Google token response missing refresh_token - revoke Kenoo access in Google Account and try again",
       );
     }
 

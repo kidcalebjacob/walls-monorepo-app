@@ -20,7 +20,7 @@ export const META_SERVICE = "meta_ads";
 export const GOOGLE_PROVIDER = "google";
 export const GOOGLE_ADS_SERVICE = "google_ads";
 
-/** Meta Marketing API uses long-lived tokens — no OAuth refresh token. */
+/** Meta Marketing API uses long-lived tokens - no OAuth refresh token. */
 export const META_EMPTY_REFRESH_TOKEN = "";
 
 export type MetaConnectionRecord = {

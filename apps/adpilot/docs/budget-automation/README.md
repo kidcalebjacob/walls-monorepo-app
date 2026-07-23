@@ -1,8 +1,8 @@
-# AdPilot — Budget Automation Algorithm
+# AdPilot - Budget Automation Algorithm
 
 > **Status: Scoping / Draft.** This document describes how the AdPilot budget
 > automation engine _will_ work. Rules marked **(TBD)** are still being figured
-> out. Nothing here is final — it is the shared source of truth while we design
+> out. Nothing here is final - it is the shared source of truth while we design
 > the worker that actually talks to the Meta Marketing API.
 
 ---
@@ -28,13 +28,13 @@ GPT agent can only act inside them.
 
 Every decision is bounded by settings that already exist in the app.
 
-### Workspace preset — `ad_automation_profiles`
+### Workspace preset - `ad_automation_profiles`
 
 Reusable templates an operator configures in **Settings**. Each profile has an
 `optimization_goal` (`roas` | `ctr` | `cpa` | `conversions`) and a `settings`
 JSON blob (`SpendAutomationSettings`).
 
-### Per-entity enrollment — `ad_entity_automation`
+### Per-entity enrollment - `ad_entity_automation`
 
 When AdPilot is enabled on a campaign or ad set, a row here stores:
 
@@ -45,11 +45,11 @@ When AdPilot is enabled on a campaign or ad set, a row here stores:
 | `settings_override` | Per-entity tweaks that beat the preset |
 | `cooldown_hours` | Min hours between budget changes (NULL → inherit preset) |
 | `min_daily_budget_micros` | Hard floor the worker may not go below |
-| `max_daily_budget_micros` | Hard ceiling (the "high-end stopper" — see §4) |
+| `max_daily_budget_micros` | Hard ceiling (the "high-end stopper" - see §4) |
 | `automation_status` | `inactive` / `active` / `paused` / `cooldown` / `learning` / `error` |
 | `last_adjusted_at` | Drives the cooldown check |
 
-### Agent instructions — `ad_agent_instructions`
+### Agent instructions - `ad_agent_instructions`
 
 Operator-authored natural-language guidance for the GPT agent. An entity can have
 **multiple** instructions, each with its own schedule window, so you can queue up
@@ -87,7 +87,7 @@ Resolved as **preset settings + entity overrides**:
 | `learningPhaseProtection` | Do not touch while Meta says "learning" |
 | `pauseOnFatigue` | Slow down when frequency rises / CTR falls |
 
-### Audit log — `ad_budget_adjustments`
+### Audit log - `ad_budget_adjustments`
 
 Every decision (including "no change" and "deactivated") should be written here
 with the previous/new budget, `change_pct`, `decision_reason`, and whether the
@@ -115,7 +115,7 @@ Details to lock down:
   `automation_status = 'paused'` (or a new `stopped`). We should **not** silently
   delete anything. **(TBD: pause vs. drop to `min_daily_budget`)**
 - **Learning phase exception:** while Meta reports the entity as learning
-  (and `learningPhaseProtection` is on), we do **not** deactivate — the ROAS is
+  (and `learningPhaseProtection` is on), we do **not** deactivate - the ROAS is
   not trustworthy yet.
 - **Measurement window:** "current ROAS" needs a defined window (today only? a
   rolling 3-day? see §6 on candles). **(TBD)**
@@ -126,13 +126,13 @@ Details to lock down:
 
 When an ad is winning, how high can spend go? Two modes:
 
-1. **Uncapped / infinite** — keep scaling as long as performance holds, only
+1. **Uncapped / infinite** - keep scaling as long as performance holds, only
    throttled by `maxDailyIncreasePct` per window.
-2. **Capped at max daily budget** — never exceed `max_daily_budget_micros` on the
+2. **Capped at max daily budget** - never exceed `max_daily_budget_micros` on the
    ad or campaign.
 
 The operator picks the mode per entity. Even in "infinite" mode, the
-per-window `maxDailyIncreasePct` and `scaleUpCapPct` still apply — infinite means
+per-window `maxDailyIncreasePct` and `scaleUpCapPct` still apply - infinite means
 "no absolute ceiling," not "unlimited jump in one day."
 
 **(TBD: is the default mode capped or infinite? Probably capped for safety.)**
@@ -176,7 +176,7 @@ proposed_increase_pct = f(aggressiveness) * maxDailyIncreasePct
 
 This is the open question: **how much do we drop, and when?**
 
-Working idea — size the cut to how hard performance fell, bounded by
+Working idea - size the cut to how hard performance fell, bounded by
 `maxDailyDecreasePct`:
 
 - Compare a performance signal (ROAS) today vs. its recent baseline.
@@ -198,7 +198,7 @@ proposed_cut_pct = min(maxDailyDecreasePct, drop_ratio * maxDailyDecreasePct * k
 
 ---
 
-## 6. "Candles" — trend over time
+## 6. "Candles" - trend over time
 
 Rather than reacting to a single day, evaluate a rolling series of daily buckets
 ("candles"), like price candles, to read the **trend**:

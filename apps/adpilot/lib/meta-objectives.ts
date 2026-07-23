@@ -199,7 +199,7 @@ const OBJECTIVE_LABELS: Record<string, string> = {
 export function formatObjectiveLabel(
   objective: string | null | undefined,
 ): string {
-  if (!objective?.trim()) return "—";
+  if (!objective?.trim()) return "-";
 
   const normalized = objective.trim().toUpperCase();
   const mapped = OBJECTIVE_LABELS[normalized];

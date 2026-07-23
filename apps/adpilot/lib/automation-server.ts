@@ -107,7 +107,7 @@ export async function ensureDefaultAutomationProfile(
     .insert({
       ...adScopeFields(scope),
       name: "Balanced ROAS",
-      description: "Default AdPilot preset — moderate ramp toward ROAS targets.",
+      description: "Default AdPilot preset - moderate ramp toward ROAS targets.",
       is_default: true,
       optimization_goal: "roas",
       settings: DEFAULT_SPEND_AUTOMATION_SETTINGS,
@@ -137,7 +137,7 @@ export async function listAutomationProfiles(
   return (data ?? []).map(mapProfile);
 }
 
-/** Settings workspace — guarantees at least one preset exists. */
+/** Settings workspace - guarantees at least one preset exists. */
 export async function listAutomationProfilesForSettings(
   scope: AdDataScope,
 ): Promise<AutomationProfile[]> {
@@ -328,7 +328,7 @@ export async function upsertEntityAutomation(input: {
   const supabase = await createClient();
   const now = new Date().toISOString();
 
-  // Enable/disable only: one UPDATE when a row already exists — no default-profile
+  // Enable/disable only: one UPDATE when a row already exists - no default-profile
   // ensure and no full re-read chain.
   if (isEnabledOnlyPatch(input.patch)) {
     const nextEnabled = Boolean(input.patch.enabled);
@@ -353,12 +353,12 @@ export async function upsertEntityAutomation(input: {
     if (updateError) throw updateError;
 
     if (updated) {
-      // Settings/profile unchanged — skip the profile round-trip. Toggle UI merges
+      // Settings/profile unchanged - skip the profile round-trip. Toggle UI merges
       // with prior effectiveSettings so callers don't see defaulted settings.
       return mapEntityAutomation(updated, null);
     }
 
-    // Never enrolled — turning off is a no-op.
+    // Never enrolled - turning off is a no-op.
     if (!nextEnabled) {
       return mapEntityAutomation(null, null);
     }

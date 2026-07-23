@@ -10,6 +10,8 @@ import {
   YAxis,
 } from "recharts";
 
+import { cn } from "@walls/utils";
+
 import type { DashboardSpendDay } from "@/lib/analytics-server";
 import {
   formatCpaFromMicros,
@@ -21,6 +23,8 @@ import {
   formatRoas,
 } from "@/lib/format-analytics";
 import { PREVIEW_SPEND_BY_DAY } from "@/lib/dashboard-defaults";
+
+import { panelGlassClass } from "./dashboard-metrics";
 
 type SpendTrendChartProps = {
   days: DashboardSpendDay[];
@@ -116,10 +120,15 @@ export function SpendTrendChart({ days }: SpendTrendChartProps) {
   const chartData = hasLiveData ? days : PREVIEW_SPEND_BY_DAY;
 
   return (
-    <div className="relative w-full">
+    <div
+      className={cn(
+        "relative w-full overflow-hidden rounded-[28px] px-4 py-5 md:px-6 md:py-6",
+        panelGlassClass,
+      )}
+    >
       {!hasLiveData ? (
-        <div className="pointer-events-none absolute right-0 top-0 z-10">
-          <span className="rounded-full border border-neutral-200/80 bg-kenoo-white/90 px-2.5 py-0.5 text-[10px] font-light uppercase tracking-wider text-neutral-500 shadow-sm">
+        <div className="pointer-events-none absolute right-4 top-4 z-10 md:right-6 md:top-5">
+          <span className="rounded-full border border-neutral-200/80 bg-white/90 px-2.5 py-0.5 text-[10px] font-light uppercase tracking-wider text-neutral-500 shadow-sm">
             Preview
           </span>
         </div>

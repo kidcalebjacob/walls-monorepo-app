@@ -754,7 +754,7 @@ export async function syncMetaAudiences(input: {
 
     for (const usage of usages) {
       let resolvedType = usage.audienceType;
-      // Lookalikes show up as custom_audiences[] in targeting — prefer catalog type.
+      // Lookalikes show up as custom_audiences[] in targeting - prefer catalog type.
       if (
         usage.audienceType === "custom" &&
         audienceIds.has(segmentKey("lookalike", usage.providerAudienceId))

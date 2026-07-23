@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import dynamic from "next/dynamic";
 import { motion } from "framer-motion";
 import {
   CircleDollarSign,
@@ -17,12 +18,29 @@ import { META_PROVIDER, META_SERVICE, type SafeAccountConnection } from "@/lib/c
 import { ZERO_DASHBOARD_STATS } from "@/lib/dashboard-defaults";
 import type { TimeRangeValue } from "@/lib/time-range";
 
-import { HeroStat, SectionLabel } from "./dashboard-metrics";
+import { HeroStat, HeroStatsBar, SectionLabel } from "./dashboard-metrics";
 import { AudienceBreakdownsTable } from "./audience-breakdowns-table";
+import { DashboardTimeRangePicker } from "./dashboard-time-range-picker";
 import { DaysHoursHeatmap } from "./days-hours-heatmap";
 import { FrequencyBreakdownTable } from "./frequency-breakdown-table";
 import { SpendTrendChart } from "./spend-trend-chart";
 import { TopPerformingAds } from "./top-performing-ads";
+
+const CountryPerformanceMap = dynamic(
+  () =>
+    import("./country-performance-map").then((mod) => ({
+      default: mod.CountryPerformanceMap,
+    })),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="space-y-4">
+        <SectionLabel>Country map</SectionLabel>
+        <div className="h-[380px] animate-pulse rounded-[28px] bg-neutral-100/80 md:h-[460px]" />
+      </div>
+    ),
+  },
+);
 
 const HERO_ACCENTS = [
   "var(--kenoo-sky)",
@@ -156,26 +174,36 @@ export function DashboardPage() {
   return (
     <div className="min-h-full bg-kenoo-white">
       <div className="space-y-16 px-6 pt-6 pb-12 md:px-10 md:pt-8 md:pb-10">
-        <div className="flex flex-row flex-wrap items-stretch justify-center gap-6 pb-2 pt-2 md:gap-8">
-          {stats.map((stat, index) => (
-            <HeroStat
-              key={stat.label}
-              label={stat.label}
-              value={stat.value}
-              icon={HERO_ICONS[index] ?? CircleDollarSign}
-              accentColor={HERO_ACCENTS[index] ?? HERO_ACCENTS[0]}
-              loading={loading}
-              delay={index * 0.06}
+        <div className="space-y-4">
+          <div className="flex justify-start">
+            <DashboardTimeRangePicker
+              value={timeRange}
+              onChange={setTimeRange}
             />
-          ))}
+          </div>
+          <HeroStatsBar>
+            {stats.map((stat, index) => (
+              <HeroStat
+                key={stat.label}
+                label={stat.label}
+                value={stat.value}
+                change={stat.change}
+                positive={stat.positive}
+                icon={HERO_ICONS[index] ?? CircleDollarSign}
+                accentColor={HERO_ACCENTS[index] ?? HERO_ACCENTS[0]}
+                loading={loading}
+              />
+            ))}
+          </HeroStatsBar>
         </div>
 
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.22 }}
+          className="space-y-4"
         >
-          <SectionLabel>Performance — {periodLabel}</SectionLabel>
+          <SectionLabel>Performance - {periodLabel}</SectionLabel>
           <SpendTrendChart days={spendByDay} />
         </motion.div>
 
@@ -184,8 +212,21 @@ export function DashboardPage() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.24 }}
         >
-          <DaysHoursHeatmap
-            data={analytics?.daysHours ?? { hasData: false, cells: [] }}
+          <TopPerformingAds topPerformingAds={topPerformingAds} />
+        </motion.div>
+
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.245 }}
+        >
+          <CountryPerformanceMap
+            data={
+              analytics?.audienceBreakdowns ?? {
+                hasData: false,
+                byType: { age: [], gender: [], age_gender: [], country: [] },
+              }
+            }
           />
         </motion.div>
 
@@ -209,14 +250,8 @@ export function DashboardPage() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.255 }}
         >
-          <FrequencyBreakdownTable
-            data={
-              analytics?.frequencyBreakdowns ?? {
-                hasData: false,
-                totalReach: 0,
-                buckets: [],
-              }
-            }
+          <DaysHoursHeatmap
+            data={analytics?.daysHours ?? { hasData: false, cells: [] }}
           />
         </motion.div>
 
@@ -225,10 +260,14 @@ export function DashboardPage() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.26 }}
         >
-          <TopPerformingAds
-            timeRange={timeRange}
-            onTimeRangeChange={setTimeRange}
-            topPerformingAds={topPerformingAds}
+          <FrequencyBreakdownTable
+            data={
+              analytics?.frequencyBreakdowns ?? {
+                hasData: false,
+                totalReach: 0,
+                buckets: [],
+              }
+            }
           />
         </motion.div>
       </div>

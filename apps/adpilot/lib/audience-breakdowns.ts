@@ -65,7 +65,7 @@ export function formatCountryLabel(country: string): string {
     const name = countryDisplayNames?.of(code);
     if (name && name !== code) return `${name} (${code})`;
   } catch {
-    // Invalid region code — fall through.
+    // Invalid region code - fall through.
   }
   return code;
 }

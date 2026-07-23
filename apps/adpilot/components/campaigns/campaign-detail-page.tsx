@@ -318,7 +318,7 @@ export function CampaignDetailPage() {
                           value={
                             adSet.dailyBudgetMicros != null && adSet.dailyBudgetMicros > 0
                               ? formatCurrencyFromMicros(adSet.dailyBudgetMicros)
-                              : "—"
+                              : "-"
                           }
                         />
                       </td>

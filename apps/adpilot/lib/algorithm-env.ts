@@ -5,7 +5,7 @@
  * value is stored as `TEST_RESPONSE_API_KEY`. It is sent as a bearer token when
  * AdPilot requests a test response from the algorithm.
  *
- * Server-only — never import this from client components.
+ * Server-only - never import this from client components.
  */
 export function getAdpilotApiKey(): string {
   const key = process.env.ADPILOT_API_KEY;

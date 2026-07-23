@@ -27,7 +27,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "entityId required" }, { status: 400 });
   }
 
-  // Ownership check — only preview entities that belong to the current user.
+  // Ownership check - only preview entities that belong to the current user.
   const supabase = await createClient();
   const { data: entity, error: entityError } = await withAdScope(
     supabase.from("ad_entities").select("id").eq("id", entityId),

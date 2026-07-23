@@ -94,7 +94,7 @@ export function formatDaysHoursMetricValue(
   value: number | null,
   metric: DaysHoursMetric,
 ): string {
-  if (value === null || !Number.isFinite(value)) return "—";
+  if (value === null || !Number.isFinite(value)) return "-";
   switch (metric) {
     case "roas":
       return formatRoas(value);
@@ -104,7 +104,7 @@ export function formatDaysHoursMetricValue(
     case "cpc":
       return formatCurrencyFromMicros(Math.round(value * 1_000_000));
     default:
-      return "—";
+      return "-";
   }
 }
 

@@ -38,7 +38,7 @@ function formatAudienceSize(lower: number | null, upper: number | null): string 
   }
   if (upper != null) return formatCompactNumber(upper);
   if (lower != null) return formatCompactNumber(lower);
-  return "—";
+  return "-";
 }
 
 function formatLookalikeRatio(
@@ -80,7 +80,7 @@ function summarizeTargeting(usage: AudienceUsageSummary): string {
   if (ctx.publisherPlatforms?.length) {
     parts.push(ctx.publisherPlatforms.join(", "));
   }
-  return parts.length > 0 ? parts.join(" · ") : "—";
+  return parts.length > 0 ? parts.join(" · ") : "-";
 }
 
 function OverviewItem({
@@ -238,7 +238,7 @@ export function AudienceDetailPage() {
             />
             <OverviewItem
               label="Subtype"
-              value={detail.subtype?.replaceAll("_", " ") || "—"}
+              value={detail.subtype?.replaceAll("_", " ") || "-"}
             />
             <OverviewItem
               label="Status"
@@ -250,7 +250,7 @@ export function AudienceDetailPage() {
                       aria-hidden
                     />
                   ) : null}
-                  {detail.status || "—"}
+                  {detail.status || "-"}
                 </span>
               }
             />
@@ -266,7 +266,7 @@ export function AudienceDetailPage() {
               value={
                 detail.retentionDays != null
                   ? `${detail.retentionDays} days`
-                  : "—"
+                  : "-"
               }
             />
             <OverviewItem
@@ -279,7 +279,7 @@ export function AudienceDetailPage() {
                     ]
                       .filter(Boolean)
                       .join(" · ")
-                  : "—"
+                  : "-"
               }
             />
             <OverviewItem
@@ -289,7 +289,7 @@ export function AudienceDetailPage() {
                   ? "Account catalog"
                   : detail.catalogSource === "targeting_segment"
                     ? "Ad set targeting"
-                    : "—"
+                    : "-"
               }
             />
             <OverviewItem
@@ -306,13 +306,13 @@ export function AudienceDetailPage() {
             defaultOpen
           >
             <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-              <OverviewItem label="Ratio" value={lookalikeRatio ?? "—"} />
+              <OverviewItem label="Ratio" value={lookalikeRatio ?? "-"} />
               <OverviewItem
                 label="Countries"
                 value={
                   detail.lookalikeCountryCodes.length > 0
                     ? detail.lookalikeCountryCodes.join(", ")
-                    : "—"
+                    : "-"
                 }
               />
               <OverviewItem
@@ -322,7 +322,7 @@ export function AudienceDetailPage() {
                     ? detail.lookalikeOriginNames.join(", ")
                     : detail.lookalikeOriginAudienceIds.length > 0
                       ? detail.lookalikeOriginAudienceIds.join(", ")
-                      : "—"
+                      : "-"
                 }
               />
             </div>
@@ -412,7 +412,7 @@ export function AudienceDetailPage() {
                               {usage.campaignName}
                             </Link>
                           ) : (
-                            (usage.campaignName ?? "—")
+                            (usage.campaignName ?? "-")
                           )}
                         </td>
                         <td className="py-4 pr-4 text-xs font-light capitalize text-neutral-500">

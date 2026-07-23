@@ -187,7 +187,7 @@ function applyErrorForStatus(status: number): string {
 function previewErrorForStatus(status: number): string {
   switch (status) {
     case 400:
-      return "Invalid request — missing entity.";
+      return "Invalid request - missing entity.";
     case 401:
       return "Preview service rejected the request (auth). Contact an admin.";
     case 404:

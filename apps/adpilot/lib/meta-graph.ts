@@ -148,7 +148,7 @@ export type FrequencyRangeDays = (typeof FREQUENCY_RANGE_DAYS)[number];
 /**
  * Ad preview formats to try, in order, spanning Facebook + Instagram feed,
  * stories and reels placements. Meta renders a playable iframe preview of the
- * actual ad — the reliable way to view video/carousel/dynamic creatives when
+ * actual ad - the reliable way to view video/carousel/dynamic creatives when
  * the raw MP4 `source` field is restricted for our token.
  */
 const AD_PREVIEW_FORMATS = [
@@ -186,7 +186,7 @@ function extractIframeSrc(body: string): string | null {
  */
 async function previewRendersContent(body: string): Promise<boolean> {
   const src = extractIframeSrc(body);
-  if (!src) return true; // Can't verify — assume it's fine.
+  if (!src) return true; // Can't verify - assume it's fine.
 
   try {
     const response = await fetch(src);
@@ -194,7 +194,7 @@ async function previewRendersContent(body: string): Promise<boolean> {
     const html = await response.text();
     return !PREVIEW_UNAVAILABLE_PATTERN.test(html);
   } catch {
-    // Network hiccup verifying — don't discard a possibly-good preview.
+    // Network hiccup verifying - don't discard a possibly-good preview.
     return true;
   }
 }
@@ -342,7 +342,7 @@ export async function fetchMetaInsights(
 
 /**
  * Daily insights with Meta breakdown dimensions (device, placement, demographics).
- * Only certain breakdown combinations are allowed by Meta — see META_BREAKDOWN_PARAMS.
+ * Only certain breakdown combinations are allowed by Meta - see META_BREAKDOWN_PARAMS.
  */
 export async function fetchMetaInsightBreakdowns(
   accountId: string,
@@ -377,7 +377,7 @@ const FREQUENCY_REACH_FIELDS_BY_LEVEL: Record<
 
 /**
  * Period-level frequency_value reach distribution (Ads Manager Frequency Breakdown).
- * Uses overlapping time_ranges for 1/7/14/30d presets — no daily time_increment,
+ * Uses overlapping time_ranges for 1/7/14/30d presets - no daily time_increment,
  * because unique reach is not additive across days. Reach-only fields per Meta docs.
  */
 export async function fetchMetaFrequencyBreakdowns(
