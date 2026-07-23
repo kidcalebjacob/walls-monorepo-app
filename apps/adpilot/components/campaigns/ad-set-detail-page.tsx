@@ -133,6 +133,11 @@ export function AdSetDetailPage() {
               onAutomationUpdated={(automation) =>
                 setDetail((prev) => (prev ? { ...prev, automation } : prev))
               }
+              onAgentInstructionsUpdated={(agentInstructions) =>
+                setDetail((prev) =>
+                  prev ? { ...prev, agentInstructions } : prev,
+                )
+              }
             />
           ) : null}
         </div>
@@ -178,6 +183,9 @@ export function AdSetDetailPage() {
           }
           onProfilesUpdated={(profiles) =>
             setDetail((prev) => (prev ? { ...prev, profiles } : prev))
+          }
+          onAgentInstructionsUpdated={(agentInstructions) =>
+            setDetail((prev) => (prev ? { ...prev, agentInstructions } : prev))
           }
         />
       ) : null}

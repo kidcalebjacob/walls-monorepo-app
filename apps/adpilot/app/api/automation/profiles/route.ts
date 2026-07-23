@@ -3,9 +3,9 @@ import { NextResponse } from "next/server";
 import {
   createAutomationProfile,
   listAutomationProfilesForSettings,
-  updateAutomationProfile,
 } from "@/lib/automation-server";
 import { getAdDataScope } from "@/lib/ad-scope";
+import type { ProfileAgentInstruction } from "@/lib/agent-instructions";
 import type {
   OptimizationGoal,
   SpendAutomationSettings,
@@ -31,6 +31,7 @@ type CreateProfileBody = {
   description?: string | null;
   optimizationGoal?: OptimizationGoal;
   settings?: SpendAutomationSettings;
+  agentInstructions?: ProfileAgentInstruction[];
   isDefault?: boolean;
 };
 
@@ -58,6 +59,7 @@ export async function POST(request: Request) {
       description: body.description,
       optimizationGoal: body.optimizationGoal,
       settings: body.settings,
+      agentInstructions: body.agentInstructions,
       isDefault: body.isDefault,
     });
 

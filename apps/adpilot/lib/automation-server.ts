@@ -6,6 +6,14 @@ import {
   withAdScope,
 } from "@/lib/ad-scope";
 import {
+  replaceEntityAgentInstructionsFromProfile,
+  type AgentInstruction,
+} from "@/lib/agent-instructions-server";
+import {
+  normalizeProfileAgentInstructions,
+  type ProfileAgentInstruction,
+} from "@/lib/agent-instructions";
+import {
   DEFAULT_SPEND_AUTOMATION_SETTINGS,
   normalizeCooldownHours,
   parseAutomationSettings,
@@ -21,6 +29,7 @@ export type AutomationProfile = {
   isDefault: boolean;
   optimizationGoal: OptimizationGoal;
   settings: SpendAutomationSettings;
+  agentInstructions: ProfileAgentInstruction[];
 };
 
 export type EntityAutomationState = {
@@ -52,7 +61,7 @@ const ENTITY_AUTOMATION_SELECT =
   "enabled, profile_id, settings_override, cooldown_hours, min_daily_budget_micros, max_daily_budget_micros, automation_status, last_reviewed_at, last_adjusted_at, last_error";
 
 const PROFILE_SELECT =
-  "id, name, description, is_default, optimization_goal, settings";
+  "id, name, description, is_default, optimization_goal, settings, agent_instructions";
 
 type EntityAutomationPatch = {
   enabled?: boolean;
@@ -62,6 +71,8 @@ type EntityAutomationPatch = {
   minDailyBudgetMicros?: number | null;
   maxDailyBudgetMicros?: number | null;
   automationStatus?: AutomationStatus;
+  /** When true, replace entity agent instructions with the selected preset's templates. */
+  syncAgentInstructions?: boolean;
 };
 
 function isEnabledOnlyPatch(patch: EntityAutomationPatch): boolean {
@@ -72,7 +83,8 @@ function isEnabledOnlyPatch(patch: EntityAutomationPatch): boolean {
     patch.cooldownHours === undefined &&
     patch.minDailyBudgetMicros === undefined &&
     patch.maxDailyBudgetMicros === undefined &&
-    patch.automationStatus === undefined
+    patch.automationStatus === undefined &&
+    patch.syncAgentInstructions !== true
   );
 }
 
@@ -84,6 +96,7 @@ function mapProfile(row: Record<string, unknown>): AutomationProfile {
     isDefault: Boolean(row.is_default),
     optimizationGoal: row.optimization_goal as OptimizationGoal,
     settings: parseAutomationSettings(row.settings),
+    agentInstructions: normalizeProfileAgentInstructions(row.agent_instructions),
   };
 }
 
@@ -151,6 +164,7 @@ export async function createAutomationProfile(input: {
   description?: string | null;
   optimizationGoal?: OptimizationGoal;
   settings?: SpendAutomationSettings;
+  agentInstructions?: ProfileAgentInstruction[];
   isDefault?: boolean;
 }): Promise<AutomationProfile> {
   const supabase = await createClient();
@@ -174,6 +188,9 @@ export async function createAutomationProfile(input: {
       is_default: input.isDefault ?? false,
       optimization_goal: input.optimizationGoal ?? "roas",
       settings: input.settings ?? DEFAULT_SPEND_AUTOMATION_SETTINGS,
+      agent_instructions: normalizeProfileAgentInstructions(
+        input.agentInstructions ?? [],
+      ),
     })
     .select(PROFILE_SELECT)
     .single();
@@ -191,6 +208,7 @@ export async function updateAutomationProfile(input: {
     isDefault: boolean;
     optimizationGoal: OptimizationGoal;
     settings: SpendAutomationSettings;
+    agentInstructions: ProfileAgentInstruction[];
   }>;
 }): Promise<AutomationProfile> {
   const supabase = await createClient();
@@ -214,6 +232,11 @@ export async function updateAutomationProfile(input: {
     row.optimization_goal = input.patch.optimizationGoal;
   }
   if (input.patch.settings !== undefined) row.settings = input.patch.settings;
+  if (input.patch.agentInstructions !== undefined) {
+    row.agent_instructions = normalizeProfileAgentInstructions(
+      input.patch.agentInstructions,
+    );
+  }
 
   const { data, error } = await withAdScope(
     supabase
@@ -232,8 +255,15 @@ export async function updateAutomationProfile(input: {
 function stripCooldownFromOverride(
   override: Partial<SpendAutomationSettings>,
 ): Partial<SpendAutomationSettings> {
-  const { cooldownHours: _ignored, ...rest } = override;
-  return rest;
+  const knownKeys = Object.keys(
+    DEFAULT_SPEND_AUTOMATION_SETTINGS,
+  ) as Array<keyof SpendAutomationSettings>;
+  const filtered = Object.fromEntries(
+    knownKeys
+      .filter((key) => key !== "cooldownHours" && key in override)
+      .map((key) => [key, override[key]]),
+  ) as Partial<SpendAutomationSettings>;
+  return filtered;
 }
 
 function mapEntityAutomation(
@@ -324,7 +354,10 @@ export async function upsertEntityAutomation(input: {
   scope: AdDataScope;
   entityId: string;
   patch: EntityAutomationPatch;
-}): Promise<EntityAutomationState> {
+}): Promise<{
+  automation: EntityAutomationState;
+  agentInstructions?: AgentInstruction[];
+}> {
   const supabase = await createClient();
   const now = new Date().toISOString();
 
@@ -355,12 +388,12 @@ export async function upsertEntityAutomation(input: {
     if (updated) {
       // Settings/profile unchanged - skip the profile round-trip. Toggle UI merges
       // with prior effectiveSettings so callers don't see defaulted settings.
-      return mapEntityAutomation(updated, null);
+      return { automation: mapEntityAutomation(updated, null) };
     }
 
     // Never enrolled - turning off is a no-op.
     if (!nextEnabled) {
-      return mapEntityAutomation(null, null);
+      return { automation: mapEntityAutomation(null, null) };
     }
     // First-time enable falls through to the full upsert path.
   }
@@ -469,7 +502,20 @@ export async function upsertEntityAutomation(input: {
 
   if (upsertResult.error) throw upsertResult.error;
 
-  return mapEntityAutomation(upsertResult.data, profile);
+  const automation = mapEntityAutomation(upsertResult.data, profile);
+
+  // Copy preset agentic instructions onto the entity only when explicitly
+  // requested (applying a preset from the Rules UI).
+  if (input.patch.syncAgentInstructions === true && profile) {
+    const agentInstructions = await replaceEntityAgentInstructionsFromProfile({
+      scope: input.scope,
+      entityId: input.entityId,
+      templates: profile.agentInstructions,
+    });
+    return { automation, agentInstructions };
+  }
+
+  return { automation };
 }
 
 export async function listBudgetAdjustments(input: {

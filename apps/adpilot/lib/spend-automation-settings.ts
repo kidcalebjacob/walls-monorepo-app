@@ -10,16 +10,19 @@ export type AutomationStatus =
 
 export type RoasFloorInputMode = "direct" | "margin";
 
+export type RoasFloorAction = "stop_campaign" | "email_alert";
+
 export type SpendAutomationSettings = {
   aggressiveness: number;
   maxDailyIncreasePct: number;
   maxDailyDecreasePct: number;
-  scaleUpCapPct: number;
   roasFloor: number | null;
   roasFloorInputMode: RoasFloorInputMode;
   contributionMarginPct: number | null;
   ctrFloorPct: number | null;
   cpaCeiling: number | null;
+  /** Multi-select: stop, email alert, both, or neither when ROAS floor is breached. */
+  roasFloorActions: RoasFloorAction[];
   cooldownHours: number;
   learningPhaseProtection: boolean;
   pauseOnFatigue: boolean;
@@ -41,16 +44,72 @@ export const DEFAULT_SPEND_AUTOMATION_SETTINGS: SpendAutomationSettings = {
   aggressiveness: 62,
   maxDailyIncreasePct: 18,
   maxDailyDecreasePct: 12,
-  scaleUpCapPct: 35,
   roasFloor: 2.4,
   roasFloorInputMode: "direct",
   contributionMarginPct: 41.67,
   ctrFloorPct: 1.2,
   cpaCeiling: 42,
+  roasFloorActions: ["stop_campaign"],
   cooldownHours: 24,
   learningPhaseProtection: true,
   pauseOnFatigue: true,
 };
+
+/** Namespaced alert key for shared `alert_subscriptions` / `alert_events`. */
+export const ADPILOT_ROAS_FLOOR_ALERT_KEY = "adpilot.roas_floor_breach";
+
+export const ROAS_FLOOR_ACTION_OPTIONS: Array<{
+  value: RoasFloorAction;
+  label: string;
+  hint: string;
+}> = [
+  {
+    value: "stop_campaign",
+    label: "Stop campaign",
+    hint: "Pause the campaign when ROAS drops below the floor",
+  },
+  {
+    value: "email_alert",
+    label: "Email alert",
+    hint: "Email subscribed workspace members",
+  },
+];
+
+const ROAS_FLOOR_ACTION_VALUES = new Set<RoasFloorAction>(
+  ROAS_FLOOR_ACTION_OPTIONS.map((option) => option.value),
+);
+
+export function normalizeRoasFloorActions(
+  raw: unknown,
+): RoasFloorAction[] {
+  if (!Array.isArray(raw)) {
+    return [...DEFAULT_SPEND_AUTOMATION_SETTINGS.roasFloorActions];
+  }
+
+  const next: RoasFloorAction[] = [];
+  for (const value of raw) {
+    if (
+      typeof value === "string" &&
+      ROAS_FLOOR_ACTION_VALUES.has(value as RoasFloorAction) &&
+      !next.includes(value as RoasFloorAction)
+    ) {
+      next.push(value as RoasFloorAction);
+    }
+  }
+
+  // Empty is allowed — monitor the floor with no stop/alert side effects.
+  return next;
+}
+
+export function toggleRoasFloorAction(
+  current: RoasFloorAction[],
+  action: RoasFloorAction,
+): RoasFloorAction[] {
+  if (current.includes(action)) {
+    return current.filter((value) => value !== action);
+  }
+  return [...current, action];
+}
 
 /** Break-even ROAS from contribution margin % (revenue after variable costs, before ad spend). */
 export function roasFloorFromContributionMargin(marginPct: number): number | null {
@@ -67,7 +126,12 @@ export function contributionMarginFromRoasFloor(roasFloor: number): number | nul
   return Math.round((100 / roasFloor) * 100) / 100;
 }
 
-export function getEffectiveRoasFloor(settings: SpendAutomationSettings): number | null {
+export function getEffectiveRoasFloor(
+  settings: Pick<
+    SpendAutomationSettings,
+    "roasFloor" | "roasFloorInputMode" | "contributionMarginPct"
+  >,
+): number | null {
   if (settings.roasFloorInputMode === "margin") {
     const fromMargin =
       settings.contributionMarginPct != null
@@ -159,7 +223,14 @@ export function spendSettingsEqual(
   const keys = Object.keys(
     DEFAULT_SPEND_AUTOMATION_SETTINGS,
   ) as Array<keyof SpendAutomationSettings>;
-  return keys.every((key) => a[key] === b[key]);
+  return keys.every((key) => {
+    const left = a[key];
+    const right = b[key];
+    if (Array.isArray(left) || Array.isArray(right)) {
+      return JSON.stringify(left) === JSON.stringify(right);
+    }
+    return left === right;
+  });
 }
 
 export function parseAutomationSettings(
@@ -169,10 +240,23 @@ export function parseAutomationSettings(
     return { ...DEFAULT_SPEND_AUTOMATION_SETTINGS };
   }
 
-  const input = raw as Partial<SpendAutomationSettings>;
-  const parsed = mergeAutomationSettings(DEFAULT_SPEND_AUTOMATION_SETTINGS, input);
+  const input = raw as Record<string, unknown>;
+  const knownKeys = Object.keys(
+    DEFAULT_SPEND_AUTOMATION_SETTINGS,
+  ) as Array<keyof SpendAutomationSettings>;
+  const filtered = Object.fromEntries(
+    knownKeys
+      .filter((key) => key in input)
+      .map((key) => [key, input[key as string]]),
+  ) as Partial<SpendAutomationSettings>;
+
+  const parsed = mergeAutomationSettings(
+    DEFAULT_SPEND_AUTOMATION_SETTINGS,
+    filtered,
+  );
   return syncRoasFloorSettings({
     ...parsed,
+    roasFloorActions: normalizeRoasFloorActions(parsed.roasFloorActions),
     cooldownHours: normalizeCooldownHours(parsed.cooldownHours),
     roasFloorInputMode: parsed.roasFloorInputMode ?? "direct",
   });
@@ -214,9 +298,52 @@ export function getAggressivenessLabel(value: number) {
   return "Aggressive";
 }
 
-export function getRiskScore(aggressiveness: number, maxDailyIncreasePct: number) {
-  const raw = aggressiveness * 0.55 + maxDailyIncreasePct * 1.8;
-  return Math.min(99, Math.max(8, Math.round(raw)));
+/** Composite 0–100 risk from aggressiveness, max daily growth, ROAS floor, and floor actions. */
+export function getRiskScore(
+  settings: Pick<
+    SpendAutomationSettings,
+    | "aggressiveness"
+    | "maxDailyIncreasePct"
+    | "roasFloor"
+    | "roasFloorInputMode"
+    | "contributionMarginPct"
+    | "roasFloorActions"
+  >,
+): number {
+  const aggressiveness = Math.min(100, Math.max(0, settings.aggressiveness));
+  const maxDailyIncreasePct = Math.min(
+    50,
+    Math.max(5, settings.maxDailyIncreasePct),
+  );
+  const effectiveFloor = getEffectiveRoasFloor(settings);
+  const floorValue =
+    effectiveFloor == null || !Number.isFinite(effectiveFloor) || effectiveFloor <= 0
+      ? 0
+      : effectiveFloor;
+
+  // Caps: aggressiveness ~42, growth ~24, weak/missing floor ~22, soft actions ~12.
+  const aggressivenessRisk = (aggressiveness / 100) * 42;
+  const growthRisk = ((maxDailyIncreasePct - 5) / 45) * 24;
+  // 0/null floor stays fully risky; stronger floors decay quickly.
+  const floorRisk = 22 * Math.exp(-floorValue / 1.6);
+
+  const actions = settings.roasFloorActions ?? [];
+  const hasStop = actions.includes("stop_campaign");
+  const hasAlert = actions.includes("email_alert");
+  // Stop only reduces risk when the floor can actually fire (> 0).
+  let actionRisk = 0;
+  if (floorValue > 0) {
+    if (!hasStop) {
+      actionRisk = hasAlert ? 10 : 12;
+    }
+  } else if (!hasStop && hasAlert) {
+    actionRisk = 6;
+  } else if (!hasStop && !hasAlert) {
+    actionRisk = 10;
+  }
+
+  const raw = aggressivenessRisk + growthRisk + floorRisk + actionRisk;
+  return Math.min(99, Math.max(5, Math.round(raw)));
 }
 
 export function getProjectedWeeklyUplift(

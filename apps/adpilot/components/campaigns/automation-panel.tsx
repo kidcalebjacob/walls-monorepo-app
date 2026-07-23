@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import { createPortal } from "react-dom";
 import Link from "next/link";
 import {
   Check,
@@ -50,6 +51,7 @@ import {
 
 import { SliderField } from "@/components/ui/slider-field";
 import { RoasFloorField } from "@/components/ui/roas-floor-field";
+import { RoasFloorActionsField } from "@/components/ui/roas-floor-actions-field";
 import {
   glassSegmentTrackClass,
   glassToggleChipActiveClass,
@@ -65,6 +67,10 @@ const rulesPanelClass = cn(
   "overflow-hidden rounded-[28px] px-4 py-5 md:px-6 md:py-6",
   panelGlassClass,
 );
+
+/** Full-viewport dimmer; keep blur light so content stays readable underneath. */
+const presetDialogOverlayClass =
+  "fixed inset-0 z-[200] flex items-center justify-center bg-black/25 p-4 backdrop-blur-[2px]";
 
 function microsToDollars(micros: number | null): string {
   if (micros == null || micros <= 0) return "";
@@ -200,6 +206,9 @@ type EntityAutomationSectionProps = {
   detail: EntityDetailResult;
   onAutomationUpdated: (automation: EntityDetailResult["automation"]) => void;
   onProfilesUpdated?: (profiles: AutomationProfile[]) => void;
+  onAgentInstructionsUpdated?: (
+    agentInstructions: EntityDetailResult["agentInstructions"],
+  ) => void;
   /** Which AdPilot panel to show inside the detail tabs. */
   panel: AutomationPanel;
 };
@@ -226,6 +235,7 @@ export function EntityAutomationSection({
   detail,
   onAutomationUpdated,
   onProfilesUpdated,
+  onAgentInstructionsUpdated,
   panel,
 }: EntityAutomationSectionProps) {
   const [adjustments, setAdjustments] = React.useState(detail.recentAdjustments);
@@ -242,6 +252,9 @@ export function EntityAutomationSection({
   const [settings, setSettings] = React.useState<SpendAutomationSettings>(
     detail.automation.effectiveSettings,
   );
+  const [agentInstructions, setAgentInstructions] = React.useState(
+    detail.agentInstructions,
+  );
   const [saving, setSaving] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
   const [presetMenuOpen, setPresetMenuOpen] = React.useState(false);
@@ -252,10 +265,17 @@ export function EntityAutomationSection({
   const [savingPreset, setSavingPreset] = React.useState(false);
   const dirtyRef = React.useRef(false);
   const saveSeqRef = React.useRef(0);
+  const syncInstructionsOnSaveRef = React.useRef(false);
   const presetNameInputRef = React.useRef<HTMLInputElement>(null);
+  const [portalReady, setPortalReady] = React.useState(false);
+
+  React.useEffect(() => {
+    setPortalReady(true);
+  }, []);
 
   React.useEffect(() => {
     setAdjustments(detail.recentAdjustments);
+    setAgentInstructions(detail.agentInstructions);
     if (dirtyRef.current) return;
     setProfiles(detail.profiles);
     setProfileId(resolveInitialProfileId(detail));
@@ -277,6 +297,7 @@ export function EntityAutomationSection({
 
   const applyPreset = (profile: AutomationProfile) => {
     markDirty();
+    syncInstructionsOnSaveRef.current = true;
     setProfileId(profile.id);
     setSettings(profile.settings);
     setPendingPreset(null);
@@ -323,6 +344,9 @@ export function EntityAutomationSection({
         description: `Saved from ${entityLabel} custom settings`,
         optimizationGoal,
         settings,
+        agentInstructions: agentInstructions.map((item) => ({
+          instructions: item.instructions,
+        })),
       }),
     });
 
@@ -362,6 +386,15 @@ export function EntityAutomationSection({
   }, [pendingPreset, savePresetOpen, savingPreset]);
 
   React.useEffect(() => {
+    if (!pendingPreset && !savePresetOpen) return;
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = previousOverflow;
+    };
+  }, [pendingPreset, savePresetOpen]);
+
+  React.useEffect(() => {
     if (!savePresetOpen) return;
     const frame = window.requestAnimationFrame(() => {
       presetNameInputRef.current?.focus();
@@ -384,6 +417,8 @@ export function EntityAutomationSection({
     const timeout = window.setTimeout(() => {
       dirtyRef.current = false;
       const seq = ++saveSeqRef.current;
+      const syncAgentInstructions = syncInstructionsOnSaveRef.current;
+      syncInstructionsOnSaveRef.current = false;
       void (async () => {
         setSaving(true);
         setError(null);
@@ -410,6 +445,7 @@ export function EntityAutomationSection({
             minDailyBudgetMicros: dollarsToMicros(minBudget),
             maxDailyBudgetMicros: dollarsToMicros(maxBudget),
             settingsOverride,
+            ...(syncAgentInstructions ? { syncAgentInstructions: true } : {}),
           }),
         });
 
@@ -419,6 +455,7 @@ export function EntityAutomationSection({
 
         if (!response.ok) {
           dirtyRef.current = true;
+          if (syncAgentInstructions) syncInstructionsOnSaveRef.current = true;
           const payload = (await response.json()) as { error?: string };
           setError(payload.error ?? "Failed to save automation settings.");
           return;
@@ -426,8 +463,13 @@ export function EntityAutomationSection({
 
         const payload = (await response.json()) as {
           automation: EntityDetailResult["automation"];
+          agentInstructions?: EntityDetailResult["agentInstructions"];
         };
         onAutomationUpdated(payload.automation);
+        if (payload.agentInstructions !== undefined) {
+          setAgentInstructions(payload.agentInstructions);
+          onAgentInstructionsUpdated?.(payload.agentInstructions);
+        }
       })();
     }, 200);
 
@@ -440,6 +482,7 @@ export function EntityAutomationSection({
     entityId,
     maxBudget,
     minBudget,
+    onAgentInstructionsUpdated,
     onAutomationUpdated,
     profileId,
     profiles,
@@ -489,10 +532,11 @@ export function EntityAutomationSection({
                   <button
                     type="button"
                     className={cn(
-                      "mt-4 flex w-full max-w-md items-center gap-3 rounded-2xl border border-black/[0.06] bg-white/55 px-3 py-2.5 text-left shadow-[inset_0_1px_0_rgba(255,255,255,0.95)] backdrop-blur-xl transition",
-                      "hover:bg-white/80",
+                      "mt-4 flex w-full max-w-md items-center gap-3 overflow-hidden rounded-[28px] px-4 py-4 text-left transition md:px-5",
+                      panelGlassClass,
+                      "hover:bg-white/90",
                       "outline-none focus:outline-none focus-visible:outline-none focus-visible:ring-0",
-                      presetMenuOpen && "bg-white/80",
+                      presetMenuOpen && "bg-white/90",
                     )}
                   >
                     <span className="min-w-0 flex-1">
@@ -595,20 +639,6 @@ export function EntityAutomationSection({
                   </div>
 
                   <DropdownMenuSeparator className="my-2 bg-neutral-100" />
-                  {isCustomPreset ? (
-                    <DropdownMenuItem
-                      onSelect={(event) => {
-                        event.preventDefault();
-                        openSavePresetDialog();
-                      }}
-                      className="cursor-pointer rounded-xl px-3 py-2.5 focus:bg-transparent hover:bg-neutral-50"
-                    >
-                      <div className="flex items-center gap-2 text-sm text-foreground">
-                        <Plus className="h-4 w-4 shrink-0 text-neutral-400" />
-                        <span className="font-medium">Save custom as preset…</span>
-                      </div>
-                    </DropdownMenuItem>
-                  ) : null}
                   <DropdownMenuItem
                     asChild
                     className="rounded-xl p-0 focus:bg-transparent"
@@ -641,129 +671,136 @@ export function EntityAutomationSection({
             ) : null}
           </div>
 
-          {savePresetOpen ? (
-            <div
-              className="fixed inset-0 z-[200] flex items-center justify-center bg-black/40 p-4 backdrop-blur-sm"
-              role="dialog"
-              aria-modal="true"
-              aria-labelledby="save-preset-title"
-              onClick={closeSavePresetDialog}
-            >
-              <div
-                className="w-full max-w-md rounded-2xl bg-kenoo-white p-5 shadow-xl"
-                onClick={(event) => event.stopPropagation()}
-              >
-                <h2
-                  id="save-preset-title"
-                  className="text-base font-semibold text-foreground"
+          {portalReady && savePresetOpen
+            ? createPortal(
+                <div
+                  className={presetDialogOverlayClass}
+                  role="dialog"
+                  aria-modal="true"
+                  aria-labelledby="save-preset-title"
+                  onClick={closeSavePresetDialog}
                 >
-                  Save custom preset
-                </h2>
-                <p className="mt-2 text-sm font-light leading-relaxed text-neutral-500">
-                  Name this preset to add it to your workspace library. This{" "}
-                  {entityLabel} will switch to the new preset and clear its custom
-                  overrides.
-                </p>
-                {error ? (
-                  <div className="mt-3 rounded-xl border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-800">
-                    {error}
+                  <div
+                    className="w-full max-w-md rounded-2xl bg-kenoo-white p-5 shadow-xl"
+                    onClick={(event) => event.stopPropagation()}
+                  >
+                    <h2
+                      id="save-preset-title"
+                      className="text-base font-semibold text-foreground"
+                    >
+                      Save custom preset
+                    </h2>
+                    <p className="mt-2 text-sm font-light leading-relaxed text-neutral-500">
+                      Name this preset to add it to your workspace library. This{" "}
+                      {entityLabel} will switch to the new preset and clear its
+                      custom overrides.
+                    </p>
+                    {error ? (
+                      <div className="mt-3 rounded-xl border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-800">
+                        {error}
+                      </div>
+                    ) : null}
+                    <div className="mt-4">
+                      <FloatingLabelInput
+                        ref={presetNameInputRef}
+                        label="Preset name"
+                        value={presetName}
+                        onChange={(e) => {
+                          setPresetName(e.target.value);
+                          if (error) setError(null);
+                        }}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter") {
+                            e.preventDefault();
+                            void saveCustomAsPreset();
+                          }
+                        }}
+                        autoComplete="off"
+                      />
+                    </div>
+                    <div className="mt-5 flex items-center justify-end gap-2">
+                      <Button
+                        type="button"
+                        disabled={savingPreset}
+                        onClick={closeSavePresetDialog}
+                        className={cn(secondaryButtonClass, "px-4")}
+                      >
+                        Cancel
+                      </Button>
+                      <Button
+                        type="button"
+                        disabled={savingPreset || !presetName.trim()}
+                        onClick={() => void saveCustomAsPreset()}
+                        className={cn(
+                          primaryButtonClass,
+                          "inline-flex items-center gap-2 px-4",
+                        )}
+                      >
+                        {savingPreset ? (
+                          <>
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                            Saving…
+                          </>
+                        ) : (
+                          "Save preset"
+                        )}
+                      </Button>
+                    </div>
                   </div>
-                ) : null}
-                <div className="mt-4">
-                  <FloatingLabelInput
-                    ref={presetNameInputRef}
-                    label="Preset name"
-                    value={presetName}
-                    onChange={(e) => {
-                      setPresetName(e.target.value);
-                      if (error) setError(null);
-                    }}
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter") {
-                        e.preventDefault();
-                        void saveCustomAsPreset();
-                      }
-                    }}
-                    autoComplete="off"
-                  />
-                </div>
-                <div className="mt-5 flex items-center justify-end gap-2">
-                  <Button
-                    type="button"
-                    disabled={savingPreset}
-                    onClick={closeSavePresetDialog}
-                    className={cn(secondaryButtonClass, "px-4")}
-                  >
-                    Cancel
-                  </Button>
-                  <Button
-                    type="button"
-                    disabled={savingPreset || !presetName.trim()}
-                    onClick={() => void saveCustomAsPreset()}
-                    className={cn(
-                      primaryButtonClass,
-                      "inline-flex items-center gap-2 px-4",
-                    )}
-                  >
-                    {savingPreset ? (
-                      <>
-                        <Loader2 className="h-4 w-4 animate-spin" />
-                        Saving…
-                      </>
-                    ) : (
-                      "Save preset"
-                    )}
-                  </Button>
-                </div>
-              </div>
-            </div>
-          ) : null}
+                </div>,
+                document.body,
+              )
+            : null}
 
-          {pendingPreset ? (
-            <div
-              className="fixed inset-0 z-[200] flex items-center justify-center bg-black/40 p-4 backdrop-blur-sm"
-              role="dialog"
-              aria-modal="true"
-              aria-labelledby="preset-change-title"
-              onClick={() => setPendingPreset(null)}
-            >
-              <div
-                className="w-full max-w-md rounded-2xl bg-kenoo-white p-5 shadow-xl"
-                onClick={(event) => event.stopPropagation()}
-              >
-                <h2
-                  id="preset-change-title"
-                  className="text-base font-semibold text-foreground"
+          {portalReady && pendingPreset
+            ? createPortal(
+                <div
+                  className={presetDialogOverlayClass}
+                  role="dialog"
+                  aria-modal="true"
+                  aria-labelledby="preset-change-title"
+                  onClick={() => setPendingPreset(null)}
                 >
-                  Replace custom settings?
-                </h2>
-                <p className="mt-2 text-sm font-light leading-relaxed text-neutral-500">
-                  Switching to{" "}
-                  <span className="font-medium text-foreground">
-                    {pendingPreset.name}
-                  </span>{" "}
-                  will discard the custom overrides on this {entityLabel} and
-                  replace them with that preset&apos;s settings.
-                </p>
-                <div className="mt-5 flex items-center justify-end gap-2">
-                  <Button
-                    type="button"
-                    onClick={() => setPendingPreset(null)}
-                    className={cn(secondaryButtonClass, "px-4")}
+                  <div
+                    className="w-full max-w-md rounded-2xl bg-kenoo-white p-5 shadow-xl"
+                    onClick={(event) => event.stopPropagation()}
                   >
-                    Keep custom
-                  </Button>
-                  <Button
-                    type="button"
-                    onClick={() => applyPreset(pendingPreset)}
-                    className={cn(primaryButtonClass, "px-4")}
-                  >
-                    Use preset
-                  </Button>
-                </div>
-              </div>
-            </div>
-          ) : null}
+                    <h2
+                      id="preset-change-title"
+                      className="text-base font-semibold text-foreground"
+                    >
+                      Replace custom settings?
+                    </h2>
+                    <p className="mt-2 text-sm font-light leading-relaxed text-neutral-500">
+                      Switching to{" "}
+                      <span className="font-medium text-foreground">
+                        {pendingPreset.name}
+                      </span>{" "}
+                      will discard the custom overrides on this {entityLabel} and
+                      replace them with that preset&apos;s settings and agentic
+                      instructions.
+                    </p>
+                    <div className="mt-5 flex items-center justify-end gap-2">
+                      <Button
+                        type="button"
+                        onClick={() => setPendingPreset(null)}
+                        className={cn(secondaryButtonClass, "px-4")}
+                      >
+                        Keep custom
+                      </Button>
+                      <Button
+                        type="button"
+                        onClick={() => applyPreset(pendingPreset)}
+                        className={cn(primaryButtonClass, "px-4")}
+                      >
+                        Use preset
+                      </Button>
+                    </div>
+                  </div>
+                </div>,
+                document.body,
+              )
+            : null}
 
           <div className={rulesPanelClass}>
             <p className="text-sm font-medium text-foreground">Budget bounds</p>
@@ -853,7 +890,7 @@ export function EntityAutomationSection({
               <div className="mt-5 grid gap-5 sm:grid-cols-2">
                 {optimizationGoal === "roas" ||
                 optimizationGoal === "conversions" ? (
-                  <div className="sm:col-span-2">
+                  <div className="sm:col-span-2 space-y-5">
                     <RoasFloorField
                       variant="detail"
                       settings={settings}
@@ -861,6 +898,12 @@ export function EntityAutomationSection({
                         markDirty();
                         setSettings((prev) => ({ ...prev, ...patch }));
                       }}
+                    />
+                    <RoasFloorActionsField
+                      value={settings.roasFloorActions}
+                      onChange={(roasFloorActions) =>
+                        updateSetting("roasFloorActions", roasFloorActions)
+                      }
                     />
                   </div>
                 ) : null}
@@ -963,8 +1006,8 @@ export function EntityAutomationSection({
                 onCheckedChange={(value) =>
                   updateSetting("learningPhaseProtection", value)
                 }
-                label="Learning phase protection"
-                description="Block scale-ups while Meta marks the ad set as learning limited."
+                label="Learning phase protection (recommended)"
+                description="Block price adjustments while in learning stages."
               />
               <LabeledSwitch
                 size="lg"
@@ -1005,7 +1048,11 @@ export function EntityAutomationSection({
         <AgentInstructionsSection
           entityId={entityId}
           entityLabel={entityLabel}
-          initialInstructions={detail.agentInstructions}
+          initialInstructions={agentInstructions}
+          onInstructionsChange={(next) => {
+            setAgentInstructions(next);
+            onAgentInstructionsUpdated?.(next);
+          }}
         />
       ) : null}
 
@@ -1078,16 +1125,29 @@ function AgentInstructionsSection({
   entityId,
   entityLabel,
   initialInstructions,
+  onInstructionsChange,
 }: {
   entityId: string;
   entityLabel: string;
   initialInstructions: AgentInstruction[];
+  onInstructionsChange?: (items: AgentInstruction[]) => void;
 }) {
   const [items, setItems] = React.useState(initialInstructions);
 
   React.useEffect(() => {
     setItems(initialInstructions);
   }, [initialInstructions]);
+
+  const handleItemsChange: React.Dispatch<
+    React.SetStateAction<AgentInstruction[]>
+  > = (updater) => {
+    setItems((current) => {
+      const next =
+        typeof updater === "function" ? updater(current) : updater;
+      onInstructionsChange?.(next);
+      return next;
+    });
+  };
 
   return (
     <DetailSection
@@ -1099,7 +1159,7 @@ function AgentInstructionsSection({
         entityId={entityId}
         entityLabel={entityLabel}
         items={items}
-        onItemsChange={setItems}
+        onItemsChange={handleItemsChange}
       />
     </DetailSection>
   );

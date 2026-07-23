@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import Link from "next/link";
-import { SlidersHorizontal } from "lucide-react";
+import { Bell, SlidersHorizontal } from "lucide-react";
 
 import { Button } from "@walls/ui/button";
 import { cn } from "@walls/utils";
@@ -139,6 +139,35 @@ export function SettingsPage() {
                 <Link href="/presets">
                   <SlidersHorizontal className="mr-2 h-4 w-4" />
                   Manage presets
+                </Link>
+              </Button>
+            </div>
+          </div>
+        </section>
+
+        <section>
+          <SectionLabel
+            title="Alerts"
+            description="Choose which organization members get email or text alerts for AdPilot events."
+          />
+          <div
+            className={cn(
+              "overflow-hidden rounded-[28px] px-4 py-5 md:px-6 md:py-6",
+              panelGlassClass,
+            )}
+          >
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+              <div className="min-w-0">
+                <p className="font-medium text-foreground">Manage alerts</p>
+                <p className="mt-1 text-sm font-light leading-6 text-neutral-500">
+                  Add recipients for ROAS floor breaches and other automation
+                  alerts across email and text.
+                </p>
+              </div>
+              <Button asChild className={cn(primaryButtonClass, "shrink-0 px-6")}>
+                <Link href="/alerts">
+                  <Bell className="mr-2 h-4 w-4" />
+                  Manage alerts
                 </Link>
               </Button>
             </div>

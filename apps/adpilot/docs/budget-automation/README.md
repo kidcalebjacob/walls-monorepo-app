@@ -30,9 +30,15 @@ Every decision is bounded by settings that already exist in the app.
 
 ### Workspace preset - `ad_automation_profiles`
 
-Reusable templates an operator configures in **Settings**. Each profile has an
-`optimization_goal` (`roas` | `ctr` | `cpa` | `conversions`) and a `settings`
-JSON blob (`SpendAutomationSettings`).
+Reusable templates an operator configures on the **Presets** page. Each profile
+has an `optimization_goal` (`roas` | `ctr` | `cpa` | `conversions`), a
+`settings` JSON blob (`SpendAutomationSettings`), and an `agent_instructions`
+JSON array of natural-language templates.
+
+When a preset is applied to a campaign or ad set, those templates are **copied**
+onto `ad_agent_instructions` for that entity (replacing existing ones). Later
+edits to the preset do not rewrite entity instructions until the preset is
+applied again.
 
 ### Per-entity enrollment - `ad_entity_automation`
 
@@ -79,8 +85,8 @@ Resolved as **preset settings + entity overrides**:
 | `aggressiveness` (0–100) | How hard we ramp winners |
 | `maxDailyIncreasePct` | Cap on % **increase** in one 24h window |
 | `maxDailyDecreasePct` | Cap on % **decrease** in one 24h window |
-| `scaleUpCapPct` | Cap on a single optimization jump |
 | `roasFloor` | Minimum acceptable ROAS (the "low-end stopper") |
+| `roasFloorActions` | Multi-select: `stop_campaign`, `email_alert` (one, both, or neither) |
 | `ctrFloorPct` | Minimum CTR (CTR-goal campaigns) |
 | `cpaCeiling` | Max cost per acquisition (CPA/conversion goals) |
 | `cooldownHours` | Wait time between moves |
@@ -95,7 +101,7 @@ provider (Meta) actually applied it.
 
 ---
 
-## 3. The low-end stopper (ROAS floor → deactivate)
+## 3. The low-end stopper (ROAS floor)
 
 **Rule (agreed):** For a **ROAS-outcome** campaign:
 
@@ -103,11 +109,30 @@ provider (Meta) actually applied it.
 IF optimization_goal == "roas"
 AND current_roas < roasFloor
 AND entity is NOT in its learning phase
-THEN deactivate the campaign
+THEN apply roasFloorActions
 ```
 
-Rationale: below the floor the campaign is no longer profitable. Rather than
-just trimming budget, it should **stop**. It is not making us money.
+`roasFloorActions` is a multi-select stored on the preset / entity override:
+
+| Action | Behavior |
+| --- | --- |
+| `stop_campaign` | Pause the campaign on Meta (existing deactivate path) |
+| `email_alert` | Notify subscribers by email |
+
+Default is `["stop_campaign"]`. Operators can choose stop only, email only, both, or neither.
+
+### Alert delivery (shared tables)
+
+When `email_alert` is present:
+
+1. Load enabled rows from `alert_subscriptions` where
+   `app_slug = 'adpilot'` and `alert_key = 'adpilot.roas_floor_breach'`.
+2. Email each subscriber's `users.email` (and later SMS when `notify_sms`).
+3. Insert an `alert_events` row with `subject` like
+   `{ "type": "ad_entity", "id": "<uuid>" }` and `channels_sent`.
+
+These tables are **platform-wide** (not AdPilot-only) so other apps can reuse
+the same subscription / event model with their own `app_slug` + `alert_key`.
 
 Details to lock down:
 
@@ -115,8 +140,8 @@ Details to lock down:
   `automation_status = 'paused'` (or a new `stopped`). We should **not** silently
   delete anything. **(TBD: pause vs. drop to `min_daily_budget`)**
 - **Learning phase exception:** while Meta reports the entity as learning
-  (and `learningPhaseProtection` is on), we do **not** deactivate - the ROAS is
-  not trustworthy yet.
+  (and `learningPhaseProtection` is on), we do **not** fire floor actions - the
+  ROAS is not trustworthy yet.
 - **Measurement window:** "current ROAS" needs a defined window (today only? a
   rolling 3-day? see §6 on candles). **(TBD)**
 
@@ -132,7 +157,7 @@ When an ad is winning, how high can spend go? Two modes:
    ad or campaign.
 
 The operator picks the mode per entity. Even in "infinite" mode, the
-per-window `maxDailyIncreasePct` and `scaleUpCapPct` still apply - infinite means
+per-window `maxDailyIncreasePct` still applies - infinite means
 "no absolute ceiling," not "unlimited jump in one day."
 
 **(TBD: is the default mode capped or infinite? Probably capped for safety.)**
@@ -155,7 +180,7 @@ These are non-negotiable and run before/after the agent:
 - **Bounds clamp:** any proposed budget is clamped to
   `[min_daily_budget, max_daily_budget]` (or `[min, ∞)` if uncapped).
 - **Per-window caps:** increase ≤ `maxDailyIncreasePct`, decrease ≤
-  `maxDailyDecreasePct`, single jump ≤ `scaleUpCapPct`.
+  `maxDailyDecreasePct`.
 - **Floor breach:** ROAS < `roasFloor` (and not learning) → §3 deactivate,
   skip any increase.
 - **Fatigue:** if `pauseOnFatigue` and frequency rising while CTR falls → block

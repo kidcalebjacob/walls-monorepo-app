@@ -757,10 +757,14 @@ export function AdPilotEnableToggle({
   entityId,
   automation,
   onAutomationUpdated,
+  onAgentInstructionsUpdated,
 }: {
   entityId: string;
   automation: EntityDetailResult["automation"];
   onAutomationUpdated: (automation: EntityDetailResult["automation"]) => void;
+  onAgentInstructionsUpdated?: (
+    agentInstructions: EntityDetailResult["agentInstructions"],
+  ) => void;
 }) {
   const enabled = automation.enabled;
   const [chromeMounted, setChromeMounted] = React.useState(enabled);
@@ -796,6 +800,7 @@ export function AdPilotEnableToggle({
 
         const payload = (await response.json()) as {
           automation: EntityDetailResult["automation"];
+          agentInstructions?: EntityDetailResult["agentInstructions"];
         };
         // First-time enable returns full profile-backed state. Subsequent toggles
         // use a settings-free fast path - keep the settings we already have.
@@ -813,6 +818,9 @@ export function AdPilotEnableToggle({
                 lastAdjustedAt: payload.automation.lastAdjustedAt,
               },
         );
+        if (payload.agentInstructions !== undefined) {
+          onAgentInstructionsUpdated?.(payload.agentInstructions);
+        }
       } catch {
         if (requestId !== requestIdRef.current) return;
         onAutomationUpdated(previous);

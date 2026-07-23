@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 
 import { updateAutomationProfile } from "@/lib/automation-server";
 import { getAdDataScope } from "@/lib/ad-scope";
+import type { ProfileAgentInstruction } from "@/lib/agent-instructions";
 import type {
   OptimizationGoal,
   SpendAutomationSettings,
@@ -17,6 +18,7 @@ type UpdateProfileBody = Partial<{
   isDefault: boolean;
   optimizationGoal: OptimizationGoal;
   settings: SpendAutomationSettings;
+  agentInstructions: ProfileAgentInstruction[];
 }>;
 
 export async function PATCH(request: Request, context: RouteContext) {

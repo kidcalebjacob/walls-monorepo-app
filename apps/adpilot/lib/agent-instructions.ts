@@ -27,6 +27,11 @@ export type AgentInstruction = {
   updatedAt: string | null;
 };
 
+/** Template stored on a workspace preset; copied onto entities when applied. */
+export type ProfileAgentInstruction = {
+  instructions: string;
+};
+
 export function resolveInstructionStatus(input: {
   startsAt: string | null;
   endsAt: string | null;
@@ -42,4 +47,31 @@ export function resolveInstructionStatus(input: {
     return "expired";
   }
   return "active";
+}
+
+export function parseProfileAgentInstructions(
+  value: unknown,
+): ProfileAgentInstruction[] {
+  if (!Array.isArray(value)) return [];
+
+  const parsed: ProfileAgentInstruction[] = [];
+  for (const entry of value) {
+    if (typeof entry === "string") {
+      const instructions = entry.trim();
+      if (instructions) parsed.push({ instructions });
+      continue;
+    }
+    if (!entry || typeof entry !== "object") continue;
+    const raw = (entry as { instructions?: unknown }).instructions;
+    if (typeof raw !== "string") continue;
+    const instructions = raw.trim();
+    if (instructions) parsed.push({ instructions });
+  }
+  return parsed;
+}
+
+export function normalizeProfileAgentInstructions(
+  value: unknown,
+): ProfileAgentInstruction[] {
+  return parseProfileAgentInstructions(value);
 }
