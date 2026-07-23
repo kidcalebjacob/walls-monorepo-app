@@ -8,7 +8,10 @@ import {
   ChevronRight,
   ChevronsUpDown,
   ChevronUp,
+  Mars,
+  Venus,
 } from "lucide-react";
+import { CircleFlag } from "react-circle-flags";
 
 import { cn } from "@walls/utils";
 
@@ -32,6 +35,52 @@ import { SegmentToggle } from "@/components/ui/segment-toggle";
 import { SectionLabel } from "./dashboard-metrics";
 
 const PAGE_SIZE = 10;
+
+function normalizeGender(gender: string | null): "male" | "female" | null {
+  const value = gender?.trim().toLowerCase();
+  if (value === "male") return "male";
+  if (value === "female") return "female";
+  return null;
+}
+
+function isIsoCountryCode(country: string | null): country is string {
+  return Boolean(country && /^[A-Za-z]{2}$/.test(country.trim()));
+}
+
+function SegmentCell({ row }: { row: AudienceBreakdownRow }) {
+  const gender = normalizeGender(row.gender);
+  const countryCode = isIsoCountryCode(row.country)
+    ? row.country.trim().toLowerCase()
+    : null;
+
+  return (
+    <span className="inline-flex items-center gap-2">
+      {gender === "male" ? (
+        <Mars
+          className="h-3.5 w-3.5 shrink-0 text-sky-600"
+          strokeWidth={2}
+          aria-hidden
+        />
+      ) : null}
+      {gender === "female" ? (
+        <Venus
+          className="h-3.5 w-3.5 shrink-0 text-rose-500"
+          strokeWidth={2}
+          aria-hidden
+        />
+      ) : null}
+      {countryCode ? (
+        <CircleFlag
+          countryCode={countryCode}
+          height="20"
+          title={`${countryCode.toUpperCase()} flag`}
+          className="h-5 w-5 shrink-0"
+        />
+      ) : null}
+      <span>{row.label}</span>
+    </span>
+  );
+}
 
 const COLUMNS = [
   { id: "segment", label: "Segment", align: "left" as const },
@@ -232,7 +281,7 @@ export function AudienceBreakdownsTable({
                     className="border-b border-neutral-100 last:border-b-0"
                   >
                     <td className="px-4 py-2.5 text-sm font-medium text-neutral-900">
-                      {row.label}
+                      <SegmentCell row={row} />
                     </td>
                     <td className="px-3 py-2.5 text-right text-sm font-light tabular-nums text-neutral-700">
                       <AnimatedMetricValue
