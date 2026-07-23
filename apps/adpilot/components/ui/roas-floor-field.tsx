@@ -4,6 +4,7 @@ import * as React from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { Percent, TrendingUp } from "lucide-react";
 
+import { FloatingLabelInput } from "@/components/ui/floating-label-input";
 import { Input } from "@walls/ui/input";
 import { Slider } from "@walls/ui/slider";
 import { cn } from "@walls/utils";
@@ -142,21 +143,17 @@ export function RoasFloorField({
             exit={{ opacity: 0, y: -6 }}
             transition={{ duration: 0.18, ease: "easeOut" }}
           >
-            <Input
+            <FloatingLabelInput
               type="number"
               min={0}
               step={0.1}
-              placeholder="No floor"
+              label="Minimum ROAS"
               value={settings.roasFloor ?? ""}
               onChange={(e) =>
                 applyPatch({
                   roasFloor: e.target.value ? Number(e.target.value) : null,
                 })
               }
-              className={cn(
-                "rounded-full border-neutral-200 font-light",
-                variant === "settings" ? "bg-neutral-50" : "bg-kenoo-white",
-              )}
             />
           </motion.div>
         ) : (
@@ -206,10 +203,7 @@ export function RoasFloorField({
                           : null,
                       })
                     }
-                    className={cn(
-                      "h-8 w-20 rounded-full border-neutral-200 px-3 text-right text-sm font-medium tabular-nums",
-                      variant === "settings" ? "bg-neutral-50" : "bg-kenoo-white",
-                    )}
+                    className="h-8 w-20 rounded-full border-neutral-200 bg-kenoo-white px-3 text-right text-sm font-medium tabular-nums"
                   />
                   <Percent className="h-3.5 w-3.5 text-neutral-400" aria-hidden />
                 </div>
