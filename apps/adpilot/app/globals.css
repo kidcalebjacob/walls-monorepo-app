@@ -199,3 +199,43 @@
     filter: none;
   }
 }
+
+@keyframes shimmer {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+.adpilot-chrome-progress {
+  background: linear-gradient(
+    90deg,
+    #c5e7ff 0%,
+    #ffffff 18%,
+    #ffd2e8 36%,
+    #e8e8ec 50%,
+    #d2ffe9 64%,
+    #d6e8ff 82%,
+    #c5e7ff 100%
+  );
+  background-size: 200% 100%;
+  animation: adpilot-chrome-progress-shift 2.2s linear infinite;
+  box-shadow:
+    0 0 12px rgba(197, 231, 255, 0.55),
+    0 0 4px rgba(255, 210, 232, 0.4);
+}
+
+@keyframes adpilot-chrome-progress-shift {
+  to {
+    background-position: 200% 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .adpilot-chrome-progress {
+    animation: none;
+    box-shadow: none;
+  }
+}

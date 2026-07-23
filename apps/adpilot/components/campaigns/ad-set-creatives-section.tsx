@@ -24,6 +24,10 @@ import type { DashboardObjectiveBucket } from "@/lib/meta-objectives";
 type AdSetCreativesSectionProps = {
   ads: AdSetAdSummary[];
   objectiveBucket: DashboardObjectiveBucket | null;
+  /** When true, skip the Creatives section title (e.g. parent tab already labels it). */
+  hideHeader?: boolean;
+  collapsible?: boolean;
+  defaultOpen?: boolean;
 };
 
 function primaryMetricForAd(
@@ -117,6 +121,9 @@ function creativeSubtitle(
 export function AdSetCreativesSection({
   ads,
   objectiveBucket,
+  hideHeader = false,
+  collapsible = true,
+  defaultOpen = false,
 }: AdSetCreativesSectionProps) {
   const [creativePreview, setCreativePreview] = React.useState<{
     adName: string;
@@ -126,7 +133,12 @@ export function AdSetCreativesSection({
 
   return (
     <>
-      <DetailSection title="Creatives">
+      <DetailSection
+        title="Creatives"
+        hideHeader={hideHeader}
+        collapsible={collapsible}
+        defaultOpen={defaultOpen}
+      >
         {ads.length === 0 ? (
           <p className="text-sm font-light text-neutral-500">
             No ads synced for this ad set yet.

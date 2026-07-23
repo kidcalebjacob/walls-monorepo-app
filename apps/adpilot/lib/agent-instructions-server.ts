@@ -2,15 +2,21 @@ import { createClient } from "@walls/supabase/server";
 
 import { type AdDataScope, adScopeFields, withAdScope } from "@/lib/ad-scope";
 import {
+  normalizeProfileAgentInstructions,
+  parseProfileAgentInstructions,
   resolveInstructionStatus,
   type AgentInstruction,
   type AgentInstructionStatus,
+  type ProfileAgentInstruction,
 } from "@/lib/agent-instructions";
 
 export {
+  normalizeProfileAgentInstructions,
+  parseProfileAgentInstructions,
   resolveInstructionStatus,
   type AgentInstruction,
   type AgentInstructionStatus,
+  type ProfileAgentInstruction,
 };
 
 const INSTRUCTION_COLUMNS =
@@ -225,4 +231,50 @@ export async function deleteEntityAgentInstruction(input: {
   );
 
   if (error) throw error;
+}
+
+/**
+ * Replace an entity's agent instructions with templates from a preset.
+ * Clears existing rows, then inserts the template texts as immediately-active
+ * instructions (no schedule window).
+ */
+export async function replaceEntityAgentInstructionsFromProfile(input: {
+  scope: AdDataScope;
+  entityId: string;
+  templates: ProfileAgentInstruction[];
+}): Promise<AgentInstruction[]> {
+  const templates = normalizeProfileAgentInstructions(input.templates);
+  const { accountConnectionId } = await assertAutomatableEntity({
+    scope: input.scope,
+    entityId: input.entityId,
+  });
+
+  const supabase = await createClient();
+
+  const { error: deleteError } = await withAdScope(
+    supabase.from("ad_agent_instructions").delete().eq("entity_id", input.entityId),
+    input.scope,
+  );
+  if (deleteError) throw deleteError;
+
+  if (templates.length === 0) return [];
+
+  const { data, error } = await supabase
+    .from("ad_agent_instructions")
+    .insert(
+      templates.map((template) => ({
+        ...adScopeFields(input.scope),
+        account_connection_id: accountConnectionId,
+        entity_id: input.entityId,
+        instructions: template.instructions,
+        starts_at: null,
+        ends_at: null,
+        is_active: true,
+        created_by_user_id: input.scope.userId,
+      })),
+    )
+    .select(INSTRUCTION_COLUMNS);
+
+  if (error) throw error;
+  return sortInstructions((data ?? []).map(mapInstruction));
 }

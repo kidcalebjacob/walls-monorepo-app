@@ -22,6 +22,7 @@ import {
   formatCompactNumber,
   formatCurrencyFromMicros,
   formatPercent,
+  formatResultCount,
   formatRoas,
 } from "@/lib/format-analytics";
 import {
@@ -669,9 +670,20 @@ export async function getAdSetDetail(input: {
 
 export function formatEntityDetailMetrics(metrics: EntityDetailMetrics) {
   return [
-    { label: "Spend", value: formatCurrencyFromMicros(metrics.spendMicros) },
+    { label: "Ad spend", value: formatCurrencyFromMicros(metrics.spendMicros) },
     { label: "Impressions", value: formatCompactNumber(metrics.impressions) },
     { label: "CTR", value: formatPercent(metrics.ctr) },
     { label: "ROAS", value: formatRoas(metrics.roas) },
+    {
+      label: "Website purchases",
+      value: formatResultCount(metrics.websitePurchases ?? 0),
+    },
+    {
+      label: "Purchase value",
+      value:
+        metrics.conversionValueMicros > 0
+          ? formatCurrencyFromMicros(metrics.conversionValueMicros)
+          : "-",
+    },
   ];
 }

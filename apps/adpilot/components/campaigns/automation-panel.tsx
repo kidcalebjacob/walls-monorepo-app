@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import { createPortal } from "react-dom";
 import Link from "next/link";
 import {
   Check,
@@ -26,10 +27,7 @@ import { Textarea } from "@walls/ui/textarea";
 import { cn } from "@walls/utils";
 
 import { AdPilotPreviewCard } from "@/components/campaigns/adpilot-preview";
-import {
-  DetailSection,
-  DetailSubLabel,
-} from "@/components/campaigns/entity-detail-shared";
+import { DetailSection } from "@/components/campaigns/entity-detail-shared";
 import { FloatingLabelDatePicker } from "@/components/ui/floating-label-date-picker";
 import { FloatingLabelInput } from "@/components/ui/floating-label-input";
 import type {
@@ -53,15 +51,26 @@ import {
 
 import { SliderField } from "@/components/ui/slider-field";
 import { RoasFloorField } from "@/components/ui/roas-floor-field";
+import { RoasFloorActionsField } from "@/components/ui/roas-floor-actions-field";
 import {
   glassSegmentTrackClass,
   glassToggleChipActiveClass,
   glassToggleChipBaseClass,
   glassToggleChipInactiveClass,
+  panelGlassClass,
   primaryButtonClass,
   secondaryButtonClass,
 } from "@/components/ui/button-styles";
 import { SegmentThumb } from "@/components/settings/segment-thumb";
+
+const rulesPanelClass = cn(
+  "overflow-hidden rounded-[28px] px-4 py-5 md:px-6 md:py-6",
+  panelGlassClass,
+);
+
+/** Full-viewport dimmer; keep blur light so content stays readable underneath. */
+const presetDialogOverlayClass =
+  "fixed inset-0 z-[200] flex items-center justify-center bg-black/25 p-4 backdrop-blur-[2px]";
 
 function microsToDollars(micros: number | null): string {
   if (micros == null || micros <= 0) return "";
@@ -174,11 +183,34 @@ function AdjustmentsList({ rows }: { rows: BudgetAdjustmentRow[] }) {
   );
 }
 
+export type AutomationPanel = "rules" | "instructions" | "preview" | "history";
+
+export const ADPILOT_MENU_ITEMS = [
+  { id: "rules" as const, label: "Rules" },
+  { id: "instructions" as const, label: "Agentic instructions" },
+  { id: "preview" as const, label: "Preview results" },
+];
+
+export function isAutomationPanel(value: string): value is AutomationPanel {
+  return (
+    value === "rules" ||
+    value === "instructions" ||
+    value === "preview" ||
+    value === "history"
+  );
+}
+
 type EntityAutomationSectionProps = {
   entityId: string;
   entityLabel: string;
   detail: EntityDetailResult;
   onAutomationUpdated: (automation: EntityDetailResult["automation"]) => void;
+  onProfilesUpdated?: (profiles: AutomationProfile[]) => void;
+  onAgentInstructionsUpdated?: (
+    agentInstructions: EntityDetailResult["agentInstructions"],
+  ) => void;
+  /** Which AdPilot panel to show inside the detail tabs. */
+  panel: AutomationPanel;
 };
 
 function resolveInitialProfileId(detail: EntityDetailResult): string | null {
@@ -190,13 +222,24 @@ function resolveInitialProfileId(detail: EntityDetailResult): string | null {
   );
 }
 
+function sortProfiles(profiles: AutomationProfile[]): AutomationProfile[] {
+  return [...profiles].sort((a, b) => {
+    if (a.isDefault !== b.isDefault) return a.isDefault ? -1 : 1;
+    return a.name.localeCompare(b.name);
+  });
+}
+
 export function EntityAutomationSection({
   entityId,
   entityLabel,
   detail,
   onAutomationUpdated,
+  onProfilesUpdated,
+  onAgentInstructionsUpdated,
+  panel,
 }: EntityAutomationSectionProps) {
   const [adjustments, setAdjustments] = React.useState(detail.recentAdjustments);
+  const [profiles, setProfiles] = React.useState(detail.profiles);
   const [profileId, setProfileId] = React.useState<string | null>(() =>
     resolveInitialProfileId(detail),
   );
@@ -209,24 +252,39 @@ export function EntityAutomationSection({
   const [settings, setSettings] = React.useState<SpendAutomationSettings>(
     detail.automation.effectiveSettings,
   );
+  const [agentInstructions, setAgentInstructions] = React.useState(
+    detail.agentInstructions,
+  );
   const [saving, setSaving] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
   const [presetMenuOpen, setPresetMenuOpen] = React.useState(false);
   const [pendingPreset, setPendingPreset] =
     React.useState<AutomationProfile | null>(null);
+  const [savePresetOpen, setSavePresetOpen] = React.useState(false);
+  const [presetName, setPresetName] = React.useState("");
+  const [savingPreset, setSavingPreset] = React.useState(false);
   const dirtyRef = React.useRef(false);
   const saveSeqRef = React.useRef(0);
+  const syncInstructionsOnSaveRef = React.useRef(false);
+  const presetNameInputRef = React.useRef<HTMLInputElement>(null);
+  const [portalReady, setPortalReady] = React.useState(false);
+
+  React.useEffect(() => {
+    setPortalReady(true);
+  }, []);
 
   React.useEffect(() => {
     setAdjustments(detail.recentAdjustments);
+    setAgentInstructions(detail.agentInstructions);
     if (dirtyRef.current) return;
+    setProfiles(detail.profiles);
     setProfileId(resolveInitialProfileId(detail));
     setMinBudget(microsToDollars(detail.automation.minDailyBudgetMicros));
     setMaxBudget(microsToDollars(detail.automation.maxDailyBudgetMicros));
     setSettings(detail.automation.effectiveSettings);
   }, [detail]);
 
-  const selectedProfile = detail.profiles.find((profile) => profile.id === profileId);
+  const selectedProfile = profiles.find((profile) => profile.id === profileId);
   const isCustomPreset =
     selectedProfile != null &&
     !spendSettingsEqual(settings, selectedProfile.settings);
@@ -239,6 +297,7 @@ export function EntityAutomationSection({
 
   const applyPreset = (profile: AutomationProfile) => {
     markDirty();
+    syncInstructionsOnSaveRef.current = true;
     setProfileId(profile.id);
     setSettings(profile.settings);
     setPendingPreset(null);
@@ -254,14 +313,94 @@ export function EntityAutomationSection({
     applyPreset(profile);
   };
 
+  const openSavePresetDialog = () => {
+    setPresetMenuOpen(false);
+    setPresetName("");
+    setError(null);
+    setSavePresetOpen(true);
+  };
+
+  const closeSavePresetDialog = () => {
+    if (savingPreset) return;
+    setSavePresetOpen(false);
+    setPresetName("");
+  };
+
+  const saveCustomAsPreset = async () => {
+    const name = presetName.trim();
+    if (!name) {
+      setError("Enter a name for this preset.");
+      return;
+    }
+
+    setSavingPreset(true);
+    setError(null);
+
+    const createResponse = await fetch("/api/automation/profiles", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        name,
+        description: `Saved from ${entityLabel} custom settings`,
+        optimizationGoal,
+        settings,
+        agentInstructions: agentInstructions.map((item) => ({
+          instructions: item.instructions,
+        })),
+      }),
+    });
+
+    if (!createResponse.ok) {
+      const payload = (await createResponse.json()) as { error?: string };
+      setSavingPreset(false);
+      setError(payload.error ?? "Failed to save preset.");
+      return;
+    }
+
+    const createPayload = (await createResponse.json()) as {
+      profile: AutomationProfile;
+    };
+    const created = createPayload.profile;
+    const nextProfiles = sortProfiles([...profiles, created]);
+
+    setProfiles(nextProfiles);
+    onProfilesUpdated?.(nextProfiles);
+    setProfileId(created.id);
+    setSettings(created.settings);
+    markDirty();
+    setSavingPreset(false);
+    setSavePresetOpen(false);
+    setPresetName("");
+  };
+
   React.useEffect(() => {
-    if (!pendingPreset) return;
+    if (!pendingPreset && !savePresetOpen) return;
     const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape") setPendingPreset(null);
+      if (event.key === "Escape") {
+        if (savePresetOpen) closeSavePresetDialog();
+        else setPendingPreset(null);
+      }
     };
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
-  }, [pendingPreset]);
+  }, [pendingPreset, savePresetOpen, savingPreset]);
+
+  React.useEffect(() => {
+    if (!pendingPreset && !savePresetOpen) return;
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = previousOverflow;
+    };
+  }, [pendingPreset, savePresetOpen]);
+
+  React.useEffect(() => {
+    if (!savePresetOpen) return;
+    const frame = window.requestAnimationFrame(() => {
+      presetNameInputRef.current?.focus();
+    });
+    return () => window.cancelAnimationFrame(frame);
+  }, [savePresetOpen]);
 
   const updateSetting = <K extends keyof SpendAutomationSettings>(
     key: K,
@@ -278,12 +417,14 @@ export function EntityAutomationSection({
     const timeout = window.setTimeout(() => {
       dirtyRef.current = false;
       const seq = ++saveSeqRef.current;
+      const syncAgentInstructions = syncInstructionsOnSaveRef.current;
+      syncInstructionsOnSaveRef.current = false;
       void (async () => {
         setSaving(true);
         setError(null);
 
         const baseSettings =
-          detail.profiles.find((profile) => profile.id === profileId)?.settings ??
+          profiles.find((profile) => profile.id === profileId)?.settings ??
           detail.automation.effectiveSettings;
 
         const settingsOverride = Object.fromEntries(
@@ -304,6 +445,7 @@ export function EntityAutomationSection({
             minDailyBudgetMicros: dollarsToMicros(minBudget),
             maxDailyBudgetMicros: dollarsToMicros(maxBudget),
             settingsOverride,
+            ...(syncAgentInstructions ? { syncAgentInstructions: true } : {}),
           }),
         });
 
@@ -313,6 +455,7 @@ export function EntityAutomationSection({
 
         if (!response.ok) {
           dirtyRef.current = true;
+          if (syncAgentInstructions) syncInstructionsOnSaveRef.current = true;
           const payload = (await response.json()) as { error?: string };
           setError(payload.error ?? "Failed to save automation settings.");
           return;
@@ -320,8 +463,13 @@ export function EntityAutomationSection({
 
         const payload = (await response.json()) as {
           automation: EntityDetailResult["automation"];
+          agentInstructions?: EntityDetailResult["agentInstructions"];
         };
         onAutomationUpdated(payload.automation);
+        if (payload.agentInstructions !== undefined) {
+          setAgentInstructions(payload.agentInstructions);
+          onAgentInstructionsUpdated?.(payload.agentInstructions);
+        }
       })();
     }, 200);
 
@@ -331,12 +479,13 @@ export function EntityAutomationSection({
     };
   }, [
     detail.automation.effectiveSettings,
-    detail.profiles,
     entityId,
     maxBudget,
     minBudget,
+    onAgentInstructionsUpdated,
     onAutomationUpdated,
     profileId,
+    profiles,
     settings,
   ]);
 
@@ -345,32 +494,35 @@ export function EntityAutomationSection({
 
   return (
     <div className="space-y-12">
-      {error ? (
+      {error && panel === "rules" ? (
         <div className="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-800">
           {error}
         </div>
       ) : null}
 
-      <DetailSection title="AdPilot budget control">
-        <div className="space-y-10">
+      {panel === "rules" ? (
+      <DetailSection title="Rules" hideHeader>
+        <div className="space-y-6">
           {!detail.automation.enabled ? (
-            <p className="text-xs font-light text-neutral-500">
-              AdPilot is off for this {entityLabel}. Turn it on with the AdPilot
-              toggle at the top of the page to let the worker adjust the daily
-              budget within the guardrails below.
-            </p>
+            <div className={rulesPanelClass}>
+              <p className="text-sm font-light text-neutral-500">
+                AdPilot is off for this {entityLabel}. Turn it on with the AdPilot
+                toggle at the top of the page to let the worker adjust the daily
+                budget within the guardrails below.
+              </p>
+            </div>
           ) : null}
 
-          <div>
-            <DetailSubLabel>Automation preset</DetailSubLabel>
+          <div className={rulesPanelClass}>
+            <p className="text-sm font-medium text-foreground">Automation preset</p>
             <p className="mt-1 text-xs font-light text-neutral-500">
               Start from a workspace preset or completely customize controls.
             </p>
-            {detail.profiles.length === 0 ? (
+            {profiles.length === 0 ? (
               <p className="mt-4 text-sm font-light text-neutral-500">
                 No presets yet.{" "}
-                <Link href="/settings" className="text-[var(--kenoo-sky)] hover:underline">
-                  Create one in Settings
+                <Link href="/presets" className="text-[var(--kenoo-sky)] hover:underline">
+                  Create one in Presets
                 </Link>{" "}
                 - or tune the defaults below for this {entityLabel}.
               </p>
@@ -380,10 +532,11 @@ export function EntityAutomationSection({
                   <button
                     type="button"
                     className={cn(
-                      "mt-4 flex w-full max-w-md items-center gap-3 rounded-xl bg-kenoo-white px-3 py-2.5 text-left transition",
-                      "hover:bg-neutral-50",
-                      "focus:outline-none",
-                      presetMenuOpen && "bg-neutral-50",
+                      "mt-4 flex w-full max-w-md items-center gap-3 overflow-hidden rounded-[28px] px-4 py-4 text-left transition md:px-5",
+                      panelGlassClass,
+                      "hover:bg-white/90",
+                      "outline-none focus:outline-none focus-visible:outline-none focus-visible:ring-0",
+                      presetMenuOpen && "bg-white/90",
                     )}
                   >
                     <span className="min-w-0 flex-1">
@@ -442,7 +595,7 @@ export function EntityAutomationSection({
                       </div>
                     ) : null}
 
-                    {detail.profiles.map((profile) => {
+                    {profiles.map((profile) => {
                       const isExactMatch =
                         !isCustomPreset && profileId === profile.id;
                       return (
@@ -491,7 +644,7 @@ export function EntityAutomationSection({
                     className="rounded-xl p-0 focus:bg-transparent"
                   >
                     <Link
-                      href="/settings"
+                      href="/presets"
                       className="flex cursor-pointer items-center gap-2 rounded-xl px-3 py-2.5 text-sm text-foreground hover:bg-neutral-50"
                     >
                       <Plus className="h-4 w-4 shrink-0 text-neutral-400" />
@@ -501,60 +654,160 @@ export function EntityAutomationSection({
                 </DropdownMenuContent>
               </DropdownMenu>
             )}
+
+            {isCustomPreset ? (
+              <div className="mt-3 flex max-w-md items-center justify-between gap-3">
+                <p className="text-xs font-light text-neutral-500">
+                  Settings differ from the selected preset.
+                </p>
+                <Button
+                  type="button"
+                  onClick={openSavePresetDialog}
+                  className={cn(secondaryButtonClass, "shrink-0 px-3 py-1.5 text-xs")}
+                >
+                  Save as preset
+                </Button>
+              </div>
+            ) : null}
           </div>
 
-          {pendingPreset ? (
-            <div
-              className="fixed inset-0 z-[200] flex items-center justify-center bg-black/40 p-4 backdrop-blur-sm"
-              role="dialog"
-              aria-modal="true"
-              aria-labelledby="preset-change-title"
-              onClick={() => setPendingPreset(null)}
-            >
-              <div
-                className="w-full max-w-md rounded-2xl bg-kenoo-white p-5 shadow-xl"
-                onClick={(event) => event.stopPropagation()}
-              >
-                <h2
-                  id="preset-change-title"
-                  className="text-base font-semibold text-foreground"
+          {portalReady && savePresetOpen
+            ? createPortal(
+                <div
+                  className={presetDialogOverlayClass}
+                  role="dialog"
+                  aria-modal="true"
+                  aria-labelledby="save-preset-title"
+                  onClick={closeSavePresetDialog}
                 >
-                  Replace custom settings?
-                </h2>
-                <p className="mt-2 text-sm font-light leading-relaxed text-neutral-500">
-                  Switching to{" "}
-                  <span className="font-medium text-foreground">
-                    {pendingPreset.name}
-                  </span>{" "}
-                  will discard the custom overrides on this {entityLabel} and
-                  replace them with that preset&apos;s settings.
-                </p>
-                <div className="mt-5 flex items-center justify-end gap-2">
-                  <Button
-                    type="button"
-                    onClick={() => setPendingPreset(null)}
-                    className={cn(secondaryButtonClass, "px-4")}
+                  <div
+                    className="w-full max-w-md rounded-2xl bg-kenoo-white p-5 shadow-xl"
+                    onClick={(event) => event.stopPropagation()}
                   >
-                    Keep custom
-                  </Button>
-                  <Button
-                    type="button"
-                    onClick={() => applyPreset(pendingPreset)}
-                    className={cn(primaryButtonClass, "px-4")}
-                  >
-                    Use preset
-                  </Button>
-                </div>
-              </div>
-            </div>
-          ) : null}
+                    <h2
+                      id="save-preset-title"
+                      className="text-base font-semibold text-foreground"
+                    >
+                      Save custom preset
+                    </h2>
+                    <p className="mt-2 text-sm font-light leading-relaxed text-neutral-500">
+                      Name this preset to add it to your workspace library. This{" "}
+                      {entityLabel} will switch to the new preset and clear its
+                      custom overrides.
+                    </p>
+                    {error ? (
+                      <div className="mt-3 rounded-xl border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-800">
+                        {error}
+                      </div>
+                    ) : null}
+                    <div className="mt-4">
+                      <FloatingLabelInput
+                        ref={presetNameInputRef}
+                        label="Preset name"
+                        value={presetName}
+                        onChange={(e) => {
+                          setPresetName(e.target.value);
+                          if (error) setError(null);
+                        }}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter") {
+                            e.preventDefault();
+                            void saveCustomAsPreset();
+                          }
+                        }}
+                        autoComplete="off"
+                      />
+                    </div>
+                    <div className="mt-5 flex items-center justify-end gap-2">
+                      <Button
+                        type="button"
+                        disabled={savingPreset}
+                        onClick={closeSavePresetDialog}
+                        className={cn(secondaryButtonClass, "px-4")}
+                      >
+                        Cancel
+                      </Button>
+                      <Button
+                        type="button"
+                        disabled={savingPreset || !presetName.trim()}
+                        onClick={() => void saveCustomAsPreset()}
+                        className={cn(
+                          primaryButtonClass,
+                          "inline-flex items-center gap-2 px-4",
+                        )}
+                      >
+                        {savingPreset ? (
+                          <>
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                            Saving…
+                          </>
+                        ) : (
+                          "Save preset"
+                        )}
+                      </Button>
+                    </div>
+                  </div>
+                </div>,
+                document.body,
+              )
+            : null}
 
-          <div>
-            <DetailSubLabel>Budget bounds</DetailSubLabel>
+          {portalReady && pendingPreset
+            ? createPortal(
+                <div
+                  className={presetDialogOverlayClass}
+                  role="dialog"
+                  aria-modal="true"
+                  aria-labelledby="preset-change-title"
+                  onClick={() => setPendingPreset(null)}
+                >
+                  <div
+                    className="w-full max-w-md rounded-2xl bg-kenoo-white p-5 shadow-xl"
+                    onClick={(event) => event.stopPropagation()}
+                  >
+                    <h2
+                      id="preset-change-title"
+                      className="text-base font-semibold text-foreground"
+                    >
+                      Replace custom settings?
+                    </h2>
+                    <p className="mt-2 text-sm font-light leading-relaxed text-neutral-500">
+                      Switching to{" "}
+                      <span className="font-medium text-foreground">
+                        {pendingPreset.name}
+                      </span>{" "}
+                      will discard the custom overrides on this {entityLabel} and
+                      replace them with that preset&apos;s settings and agentic
+                      instructions.
+                    </p>
+                    <div className="mt-5 flex items-center justify-end gap-2">
+                      <Button
+                        type="button"
+                        onClick={() => setPendingPreset(null)}
+                        className={cn(secondaryButtonClass, "px-4")}
+                      >
+                        Keep custom
+                      </Button>
+                      <Button
+                        type="button"
+                        onClick={() => applyPreset(pendingPreset)}
+                        className={cn(primaryButtonClass, "px-4")}
+                      >
+                        Use preset
+                      </Button>
+                    </div>
+                  </div>
+                </div>,
+                document.body,
+              )
+            : null}
+
+          <div className={rulesPanelClass}>
+            <p className="text-sm font-medium text-foreground">Budget bounds</p>
             <p className="mt-1 text-xs font-light text-neutral-500">
               Hard min/max daily budget (USD) the algorithm may not exceed.
             </p>
-            <div className="mt-4 grid gap-4 sm:grid-cols-2">
+            <div className="mt-5 grid gap-4 sm:grid-cols-2">
               <FloatingLabelInput
                 type="number"
                 min={0}
@@ -578,60 +831,129 @@ export function EntityAutomationSection({
                 }}
               />
             </div>
-            {optimizationGoal === "roas" || optimizationGoal === "conversions" ? (
-              <div className="mt-5 border-t border-neutral-100 pt-5">
-                <RoasFloorField
-                  variant="detail"
-                  settings={settings}
-                  onChange={(patch) => {
-                    markDirty();
-                    setSettings((prev) => ({ ...prev, ...patch }));
-                  }}
-                />
-              </div>
-            ) : null}
           </div>
 
-          <div className="space-y-8">
-            <SliderField
-              label="Spend aggressiveness"
-              hint="How quickly AdPilot ramps budget on strong performers"
-              value={settings.aggressiveness}
-              min={0}
-              max={100}
-              step={1}
-              onChange={(value) => updateSetting("aggressiveness", value)}
-              endLabels={{
-                left: "Conservative",
-                center: "Balanced",
-                right: "Aggressive",
-              }}
-            />
+          <div className={rulesPanelClass}>
+            <div className="space-y-6">
+              <SliderField
+                label="Spend aggressiveness"
+                hint="How quickly AdPilot ramps budget on strong performers"
+                value={settings.aggressiveness}
+                min={0}
+                max={100}
+                step={1}
+                onChange={(value) => updateSetting("aggressiveness", value)}
+                endLabels={{
+                  left: "Conservative",
+                  center: "Balanced",
+                  right: "Aggressive",
+                }}
+              />
 
-            <div className="grid gap-6 sm:grid-cols-2">
-              <SliderField
-                label="Max daily increase"
-                value={settings.maxDailyIncreasePct}
-                min={5}
-                max={50}
-                step={1}
-                suffix="%"
-                onChange={(value) => updateSetting("maxDailyIncreasePct", value)}
-                endLabels={{ left: "5%", right: "50%" }}
-              />
-              <SliderField
-                label="Max daily decrease"
-                value={settings.maxDailyDecreasePct}
-                min={5}
-                max={50}
-                step={1}
-                suffix="%"
-                onChange={(value) => updateSetting("maxDailyDecreasePct", value)}
-                endLabels={{ left: "5%", right: "50%" }}
-              />
+              <div className="grid gap-5 sm:grid-cols-2">
+                <SliderField
+                  label="Max daily increase"
+                  hint="Cap on % growth per 24h window"
+                  value={settings.maxDailyIncreasePct}
+                  min={5}
+                  max={50}
+                  step={1}
+                  suffix="%"
+                  onChange={(value) => updateSetting("maxDailyIncreasePct", value)}
+                  endLabels={{ left: "5%", right: "50%" }}
+                />
+                <SliderField
+                  label="Max daily decrease"
+                  hint="Cap on % reduction per 24h window"
+                  value={settings.maxDailyDecreasePct}
+                  min={5}
+                  max={50}
+                  step={1}
+                  suffix="%"
+                  onChange={(value) => updateSetting("maxDailyDecreasePct", value)}
+                  endLabels={{ left: "5%", right: "50%" }}
+                />
+              </div>
             </div>
+          </div>
 
-            <div>
+          <div className={rulesPanelClass}>
+            <p className="text-sm font-medium text-foreground">Guardrails</p>
+            <p className="mt-1 text-xs font-light text-neutral-500">
+              Hard stops that pause or slow scaling before efficiency drops.
+            </p>
+
+            {(optimizationGoal === "roas" ||
+              optimizationGoal === "conversions" ||
+              optimizationGoal === "ctr" ||
+              optimizationGoal === "cpa") && (
+              <div className="mt-5 grid gap-5 sm:grid-cols-2">
+                {optimizationGoal === "roas" ||
+                optimizationGoal === "conversions" ? (
+                  <div className="sm:col-span-2 space-y-5">
+                    <RoasFloorField
+                      variant="detail"
+                      settings={settings}
+                      onChange={(patch) => {
+                        markDirty();
+                        setSettings((prev) => ({ ...prev, ...patch }));
+                      }}
+                    />
+                    <RoasFloorActionsField
+                      value={settings.roasFloorActions}
+                      onChange={(roasFloorActions) =>
+                        updateSetting("roasFloorActions", roasFloorActions)
+                      }
+                    />
+                  </div>
+                ) : null}
+
+                {optimizationGoal === "ctr" ? (
+                  <div className="space-y-2">
+                    <FloatingLabelInput
+                      type="number"
+                      min={0}
+                      step={0.1}
+                      label="CTR floor (%)"
+                      value={settings.ctrFloorPct ?? ""}
+                      onChange={(e) =>
+                        updateSetting(
+                          "ctrFloorPct",
+                          e.target.value ? Number(e.target.value) : null,
+                        )
+                      }
+                    />
+                    <p className="text-xs font-light text-neutral-500">
+                      Minimum click-through rate before scaling continues
+                    </p>
+                  </div>
+                ) : null}
+
+                {optimizationGoal === "cpa" ||
+                optimizationGoal === "conversions" ? (
+                  <div className="space-y-2">
+                    <FloatingLabelInput
+                      type="number"
+                      min={0}
+                      step={1}
+                      label="CPA ceiling (USD)"
+                      value={settings.cpaCeiling ?? ""}
+                      onChange={(e) =>
+                        updateSetting(
+                          "cpaCeiling",
+                          e.target.value ? Number(e.target.value) : null,
+                        )
+                      }
+                    />
+                    <p className="text-xs font-light text-neutral-500">
+                      Max cost per acquisition (USD)
+                    </p>
+                  </div>
+                ) : null}
+              </div>
+            )}
+
+            <div className="mt-5">
               <p className="text-sm font-medium text-foreground">
                 Cooldown between budget changes
               </p>
@@ -673,48 +995,19 @@ export function EntityAutomationSection({
                 })}
               </div>
             </div>
+          </div>
 
-            {optimizationGoal === "ctr" ? (
-              <FloatingLabelInput
-                type="number"
-                min={0}
-                step={0.1}
-                label="CTR floor (%)"
-                value={settings.ctrFloorPct ?? ""}
-                onChange={(e) =>
-                  updateSetting(
-                    "ctrFloorPct",
-                    e.target.value ? Number(e.target.value) : null,
-                  )
-                }
-              />
-            ) : null}
-
-            {optimizationGoal === "cpa" || optimizationGoal === "conversions" ? (
-              <FloatingLabelInput
-                type="number"
-                min={0}
-                step={1}
-                label="CPA ceiling (USD)"
-                value={settings.cpaCeiling ?? ""}
-                onChange={(e) =>
-                  updateSetting(
-                    "cpaCeiling",
-                    e.target.value ? Number(e.target.value) : null,
-                  )
-                }
-              />
-            ) : null}
-
-            <div className="space-y-5 border-t border-neutral-200/70 pt-6">
+          <div className={rulesPanelClass}>
+            <p className="text-sm font-medium text-foreground">Safety</p>
+            <div className="mt-5 space-y-5">
               <LabeledSwitch
                 size="lg"
                 checked={settings.learningPhaseProtection}
                 onCheckedChange={(value) =>
                   updateSetting("learningPhaseProtection", value)
                 }
-                label="Learning phase protection"
-                description="Block scale-ups while Meta marks the ad set as learning limited."
+                label="Learning phase protection (recommended)"
+                description="Block price adjustments while in learning stages."
               />
               <LabeledSwitch
                 size="lg"
@@ -735,28 +1028,39 @@ export function EntityAutomationSection({
               </>
             ) : (
               <>Changes save automatically.</>
-
             )}
           </p>
         </div>
       </DetailSection>
+      ) : null}
 
-      <AdPilotPreviewCard
-        entityId={entityId}
-        onApplied={(adjustment) =>
-          setAdjustments((current) => [adjustment, ...current].slice(0, 10))
-        }
-      />
+      {panel === "preview" ? (
+        <AdPilotPreviewCard
+          entityId={entityId}
+          standalone
+          onApplied={(adjustment) =>
+            setAdjustments((current) => [adjustment, ...current].slice(0, 10))
+          }
+        />
+      ) : null}
 
-      <AgentInstructionsSection
-        entityId={entityId}
-        entityLabel={entityLabel}
-        initialInstructions={detail.agentInstructions}
-      />
+      {panel === "instructions" ? (
+        <AgentInstructionsSection
+          entityId={entityId}
+          entityLabel={entityLabel}
+          initialInstructions={agentInstructions}
+          onInstructionsChange={(next) => {
+            setAgentInstructions(next);
+            onAgentInstructionsUpdated?.(next);
+          }}
+        />
+      ) : null}
 
-      <DetailSection title="Budget history">
-        <AdjustmentsList rows={adjustments} />
-      </DetailSection>
+      {panel === "history" ? (
+        <DetailSection title="Budget history" hideHeader>
+          <AdjustmentsList rows={adjustments} />
+        </DetailSection>
+      ) : null}
     </div>
   );
 }
@@ -821,10 +1125,12 @@ function AgentInstructionsSection({
   entityId,
   entityLabel,
   initialInstructions,
+  onInstructionsChange,
 }: {
   entityId: string;
   entityLabel: string;
   initialInstructions: AgentInstruction[];
+  onInstructionsChange?: (items: AgentInstruction[]) => void;
 }) {
   const [items, setItems] = React.useState(initialInstructions);
 
@@ -832,26 +1138,28 @@ function AgentInstructionsSection({
     setItems(initialInstructions);
   }, [initialInstructions]);
 
-  const activeCount = items.filter(
-    (item) =>
-      resolveInstructionStatus({
-        startsAt: item.startsAt,
-        endsAt: item.endsAt,
-        isActive: item.isActive,
-      }) === "active",
-  ).length;
+  const handleItemsChange: React.Dispatch<
+    React.SetStateAction<AgentInstruction[]>
+  > = (updater) => {
+    setItems((current) => {
+      const next =
+        typeof updater === "function" ? updater(current) : updater;
+      onInstructionsChange?.(next);
+      return next;
+    });
+  };
 
   return (
     <DetailSection
-      title="Agent instructions"
+      title="Agentic instructions"
       description="Natural-language guidance the AdPilot agent reads when deciding how to move spend. Add as many as you like, each with its own schedule."
-      collapsedBadgeCount={activeCount}
+      hideHeader
     >
       <AgentInstructionsManager
         entityId={entityId}
         entityLabel={entityLabel}
         items={items}
-        onItemsChange={setItems}
+        onItemsChange={handleItemsChange}
       />
     </DetailSection>
   );

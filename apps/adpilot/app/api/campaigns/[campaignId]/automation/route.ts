@@ -15,6 +15,8 @@ type AutomationPatchBody = {
   cooldownHours?: number | null;
   minDailyBudgetMicros?: number | null;
   maxDailyBudgetMicros?: number | null;
+  /** Replace entity agent instructions with the selected preset's templates. */
+  syncAgentInstructions?: boolean;
 };
 
 export async function PATCH(request: Request, context: RouteContext) {
@@ -33,13 +35,16 @@ export async function PATCH(request: Request, context: RouteContext) {
   }
 
   try {
-    const automation = await upsertEntityAutomation({
+    const { automation, agentInstructions } = await upsertEntityAutomation({
       scope,
       entityId,
       patch: body,
     });
 
-    return NextResponse.json({ automation });
+    return NextResponse.json({
+      automation,
+      ...(agentInstructions !== undefined ? { agentInstructions } : {}),
+    });
   } catch (error) {
     const message =
       error instanceof Error ? error.message : "Failed to update automation";

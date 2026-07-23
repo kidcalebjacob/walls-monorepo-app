@@ -8,6 +8,7 @@ import {
   LayoutDashboard,
   Lock,
   Settings,
+  SlidersHorizontal,
   Target,
   Users,
 } from "lucide-react";
@@ -20,6 +21,7 @@ const navItems = [
   { href: "/", label: "Dashboard", icon: LayoutDashboard },
   { href: "/campaigns", label: "Campaigns", icon: Target },
   { href: "/audiences", label: "Audiences", icon: Users },
+  { href: "/presets", label: "Presets", icon: SlidersHorizontal },
   { href: "/settings", label: "Settings", icon: Settings },
 ] as const;
 

@@ -14,12 +14,13 @@ import {
 
 import { cn } from "@walls/utils";
 
-import { EntityAutomationSection } from "@/components/campaigns/automation-panel";
+import { EntityAutomationSection, ADPILOT_MENU_ITEMS, isAutomationPanel } from "@/components/campaigns/automation-panel";
 import {
   AdPilotEnableToggle,
   AdPilotRowBadge,
   DetailBreadcrumbs,
   DetailSection,
+  EntityDetailTabs,
   EntityMetricsGrid,
   LearningBadge,
   formatStatus,
@@ -48,6 +49,13 @@ const AD_SET_COLUMNS = [
 
 type AdSetSortColumn = (typeof AD_SET_COLUMNS)[number]["id"];
 type SortDirection = "asc" | "desc";
+type CampaignDetailTab =
+  | "stats"
+  | "adsets"
+  | "rules"
+  | "instructions"
+  | "preview"
+  | "history";
 
 const TEXT_SORT_COLUMNS = new Set<AdSetSortColumn>(["name", "status"]);
 
@@ -112,6 +120,7 @@ export function CampaignDetailPage() {
   const [error, setError] = React.useState<string | null>(null);
   const [sortColumn, setSortColumn] = React.useState<AdSetSortColumn>("spend");
   const [sortDirection, setSortDirection] = React.useState<SortDirection>("desc");
+  const [activeTab, setActiveTab] = React.useState<CampaignDetailTab>("stats");
 
   const loadDetail = React.useCallback(async () => {
     setLoading(true);
@@ -174,8 +183,23 @@ export function CampaignDetailPage() {
     );
   }
 
+  const tabs = [
+    { id: "stats" as const, label: "Stats" },
+    { id: "adsets" as const, label: "Ad sets" },
+    ...(detail.canAutomate
+      ? [
+          {
+            id: "adpilot",
+            label: "AdPilot",
+            items: ADPILOT_MENU_ITEMS,
+          },
+          { id: "history" as const, label: "Budget history" },
+        ]
+      : []),
+  ];
+
   return (
-    <div className="mx-auto w-full max-w-7xl px-6 pt-8 pb-10 md:px-10 md:pt-10">
+    <div className="mx-auto w-full max-w-7xl px-6 pt-4 pb-10 md:px-10 md:pt-5">
       <DetailBreadcrumbs
         items={[
           { label: "Campaigns", href: "/campaigns" },
@@ -217,19 +241,37 @@ export function CampaignDetailPage() {
               onAutomationUpdated={(automation) =>
                 setDetail((prev) => (prev ? { ...prev, automation } : prev))
               }
+              onAgentInstructionsUpdated={(agentInstructions) =>
+                setDetail((prev) =>
+                  prev ? { ...prev, agentInstructions } : prev,
+                )
+              }
             />
           ) : null}
         </div>
       </motion.div>
 
-      <div className="mb-8">
-        <EntityMetricsGrid metrics={detail.metrics} />
-      </div>
+      <EntityDetailTabs
+        tabs={tabs}
+        value={activeTab}
+        onValueChange={setActiveTab}
+        aria-label="Campaign sections"
+        className="mb-8"
+      />
 
-      <div className="space-y-12">
+      {activeTab === "stats" ? (
+        <EntityMetricsGrid
+          metrics={detail.metrics}
+          reachSaturation={detail.reachSaturation}
+        />
+      ) : null}
+
+      {activeTab === "adsets" ? (
         <DetailSection
           title="Ad sets"
           description="Performance for the last 30 days. Open an ad set to configure AdPilot for that specific budget."
+          hideHeader
+          collapsible={false}
         >
           {detail.adSets.length === 0 ? (
             <p className="py-8 text-center text-sm font-light text-neutral-400">
@@ -316,7 +358,8 @@ export function CampaignDetailPage() {
                       <td className="py-4 pr-4 text-xs font-light whitespace-nowrap text-neutral-500 tabular-nums">
                         <AnimatedMetricValue
                           value={
-                            adSet.dailyBudgetMicros != null && adSet.dailyBudgetMicros > 0
+                            adSet.dailyBudgetMicros != null &&
+                            adSet.dailyBudgetMicros > 0
                               ? formatCurrencyFromMicros(adSet.dailyBudgetMicros)
                               : "-"
                           }
@@ -340,16 +383,25 @@ export function CampaignDetailPage() {
             </div>
           )}
         </DetailSection>
+      ) : null}
 
+      {detail.canAutomate && isAutomationPanel(activeTab) ? (
         <EntityAutomationSection
           entityId={detail.id}
           entityLabel="campaign"
           detail={detail}
+          panel={activeTab}
           onAutomationUpdated={(automation) =>
             setDetail((prev) => (prev ? { ...prev, automation } : prev))
           }
+          onProfilesUpdated={(profiles) =>
+            setDetail((prev) => (prev ? { ...prev, profiles } : prev))
+          }
+          onAgentInstructionsUpdated={(agentInstructions) =>
+            setDetail((prev) => (prev ? { ...prev, agentInstructions } : prev))
+          }
         />
-      </div>
+      ) : null}
     </div>
   );
 }

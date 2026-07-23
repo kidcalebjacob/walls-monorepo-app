@@ -15,6 +15,7 @@ import {
 
 import type { DashboardAnalytics } from "@/lib/analytics-server";
 import { META_PROVIDER, META_SERVICE, type SafeAccountConnection } from "@/lib/connections";
+import { loadConnections } from "@/lib/connections-cache";
 import { ZERO_DASHBOARD_STATS } from "@/lib/dashboard-defaults";
 import type { TimeRangeValue } from "@/lib/time-range";
 
@@ -68,17 +69,12 @@ export function DashboardPage() {
   const autoSyncStarted = React.useRef(false);
 
   const loadDashboard = React.useCallback(async () => {
-    const [connectionsResponse, analyticsResponse] = await Promise.all([
-      fetch("/api/connections"),
+    const [nextConnections, analyticsResponse] = await Promise.all([
+      loadConnections().catch(() => [] as SafeAccountConnection[]),
       fetch(`/api/analytics?range=${timeRange}`),
     ]);
 
-    if (connectionsResponse.ok) {
-      const payload = (await connectionsResponse.json()) as {
-        connections?: SafeAccountConnection[];
-      };
-      setConnections(payload.connections ?? []);
-    }
+    setConnections(nextConnections);
 
     if (analyticsResponse.ok) {
       const payload = (await analyticsResponse.json()) as DashboardAnalytics;

@@ -17,7 +17,7 @@ import { GOOGLE_ADS_OAUTH_STATE_COOKIE } from "@/lib/start-google-ads-oauth";
 
 export async function GET(request: NextRequest) {
   const baseUrl = getAdpilotBaseUrl();
-  const settingsUrl = new URL("/settings", baseUrl);
+  const settingsUrl = new URL("/settings/connections/google", baseUrl);
 
   const error = request.nextUrl.searchParams.get("error");
   if (error) {
