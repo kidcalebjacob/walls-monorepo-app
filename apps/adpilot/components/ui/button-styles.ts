@@ -1,3 +1,7 @@
+/** Matches Dashboard frosted glass panels. */
+export const panelGlassClass =
+  "bg-white/80 backdrop-blur-xl shadow-[0_8px_28px_rgba(15,23,42,0.07),inset_0_1px_0_rgba(255,255,255,0.95)]";
+
 export const primaryButtonClass =
   "rounded-full border border-neutral-300/80 bg-white/70 px-5 font-medium tracking-tight text-neutral-700 shadow-[inset_0_1px_2px_rgba(0,0,0,0.04)] backdrop-blur-xl transition-all duration-300 ease-in-out hover:bg-white/90 hover:border-neutral-400/80 active:scale-[0.98]";
 

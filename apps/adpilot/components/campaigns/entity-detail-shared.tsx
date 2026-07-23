@@ -5,15 +5,24 @@ import Link from "next/link";
 import { AnimatePresence, motion } from "framer-motion";
 import {
   Bot,
+  Check,
+  ChevronDown,
   CircleDollarSign,
   Eye,
   ImageIcon,
   Minus,
   MousePointerClick,
   Plus,
+  ShoppingBag,
   TrendingUp,
 } from "lucide-react";
 
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@walls/ui/dropdown-menu";
 import { Switch } from "@walls/ui/switch";
 import { cn } from "@walls/utils";
 
@@ -33,6 +42,7 @@ import {
   formatCompactNumber,
   formatCurrencyFromMicros,
   formatPercent,
+  formatResultCount,
   formatRoas,
 } from "@/lib/format-analytics";
 
@@ -52,6 +62,7 @@ export function DetailSection({
   trailing,
   headerToggle = true,
   collapsedBadgeCount,
+  hideHeader = false,
 }: {
   title: string;
   description?: string;
@@ -74,6 +85,8 @@ export function DetailSection({
   headerToggle?: boolean;
   /** Glowing status dot left of the title when > 0 (e.g. active instruction count). */
   collapsedBadgeCount?: number;
+  /** Skip the title/rule row (e.g. when a parent tab already labels the content). */
+  hideHeader?: boolean;
 }) {
   const [uncontrolledOpen, setUncontrolledOpen] = React.useState(defaultOpen);
   const isControlled = openControlled !== undefined;
@@ -84,7 +97,7 @@ export function DetailSection({
     onOpenChange?.(next);
   };
 
-  const isOpen = collapsible ? open : true;
+  const isOpen = hideHeader || !collapsible ? true : open;
   const showActiveDot =
     collapsedBadgeCount != null && collapsedBadgeCount > 0;
 
@@ -104,6 +117,21 @@ export function DetailSection({
       </span>
     </span>
   );
+
+  const body = (
+    <div className="px-0.5 pt-0.5 pb-1">
+      {description ? (
+        <p className="mb-6 max-w-2xl text-sm font-light text-neutral-500">
+          {description}
+        </p>
+      ) : null}
+      {children}
+    </div>
+  );
+
+  if (hideHeader) {
+    return <section className={cn("scroll-mt-24", className)}>{body}</section>;
+  }
 
   return (
     <section className={cn("scroll-mt-24", className)}>
@@ -161,18 +189,161 @@ export function DetailSection({
             className="overflow-hidden"
           >
             {/* Inner padding wrapper keeps focus rings / glow from clipping */}
-            <div className="px-0.5 pt-0.5 pb-1">
-              {description ? (
-                <p className="mb-6 max-w-2xl text-sm font-light text-neutral-500">
-                  {description}
-                </p>
-              ) : null}
-              {children}
-            </div>
+            {body}
           </motion.div>
         ) : null}
       </AnimatePresence>
     </section>
+  );
+}
+
+export type EntityDetailTabItem<T extends string = string> = {
+  id: T;
+  label: string;
+};
+
+export type EntityDetailTab<T extends string = string> = {
+  /** Stable key for the tab or menu trigger. */
+  id: string;
+  label: string;
+  /**
+   * When set, this entry is a dropdown menu. Selecting an item calls
+   * `onValueChange` with that item's id. The parent `id` is never selected.
+   */
+  items?: EntityDetailTabItem<T>[];
+};
+
+/** Underline tab bar for campaign / ad set detail pages. */
+export function EntityDetailTabs<T extends string>({
+  tabs,
+  value,
+  onValueChange,
+  className,
+  "aria-label": ariaLabel = "Detail sections",
+}: {
+  tabs: EntityDetailTab<T>[];
+  value: T;
+  onValueChange: (value: T) => void;
+  className?: string;
+  "aria-label"?: string;
+}) {
+  const layoutId = React.useId();
+  const [openMenuId, setOpenMenuId] = React.useState<string | null>(null);
+
+  return (
+    <div
+      role="tablist"
+      aria-label={ariaLabel}
+      className={cn(
+        "flex gap-0.5 overflow-x-auto border-b border-neutral-200/80 scrollbar-hide",
+        className,
+      )}
+    >
+      {tabs.map((tab) => {
+        const items = tab.items;
+        const active = items
+          ? items.some((item) => item.id === value)
+          : tab.id === value;
+
+        const tabClassName = cn(
+          "relative -mb-px flex shrink-0 items-center gap-1 px-4 py-2.5 text-sm font-medium tracking-wide transition-colors",
+          "outline-none focus:outline-none focus-visible:outline-none focus-visible:ring-0",
+          active
+            ? "text-neutral-900"
+            : "text-neutral-400 hover:text-neutral-700",
+        );
+
+        const underline = active ? (
+          <motion.div
+            layoutId={`entity-detail-tab-underline-${layoutId}`}
+            className="absolute inset-x-3 bottom-0 h-0.5 rounded-full bg-neutral-900"
+            transition={{
+              type: "spring",
+              stiffness: 420,
+              damping: 34,
+              mass: 0.8,
+            }}
+          />
+        ) : null;
+
+        if (items && items.length > 0) {
+          const menuOpen = openMenuId === tab.id;
+          return (
+            <DropdownMenu
+              key={tab.id}
+              open={menuOpen}
+              onOpenChange={(open) => setOpenMenuId(open ? tab.id : null)}
+            >
+              <DropdownMenuTrigger asChild>
+                <button
+                  type="button"
+                  role="tab"
+                  aria-selected={active}
+                  aria-haspopup="menu"
+                  className={tabClassName}
+                >
+                  <span>{tab.label}</span>
+                  <ChevronDown
+                    className={cn(
+                      "h-3.5 w-3.5 shrink-0 transition-transform",
+                      menuOpen && "rotate-180",
+                    )}
+                    strokeWidth={2}
+                    aria-hidden
+                  />
+                  {underline}
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent
+                align="start"
+                sideOffset={4}
+                className={cn(
+                  "z-[200] min-w-[8rem] overflow-hidden rounded-[15px] border-0",
+                  "bg-white/90 p-1 font-light text-foreground shadow-md backdrop-blur-xl",
+                )}
+              >
+                {items.map((item) => {
+                  const itemActive = value === item.id;
+                  return (
+                    <DropdownMenuItem
+                      key={item.id}
+                      onSelect={() => onValueChange(item.id)}
+                      className={cn(
+                        "relative flex w-full cursor-pointer items-center rounded-[10px]",
+                        "py-1.5 pl-3 pr-9 text-sm font-light outline-none",
+                        "hover:bg-neutral-100 focus:bg-neutral-100 focus:text-foreground",
+                        itemActive && "bg-neutral-100",
+                      )}
+                    >
+                      <span className="truncate">{item.label}</span>
+                      {itemActive ? (
+                        <span className="absolute right-3 flex h-3.5 w-3.5 items-center justify-center">
+                          <Check className="h-4 w-4 text-[var(--kenoo-sky)]" />
+                        </span>
+                      ) : null}
+                    </DropdownMenuItem>
+                  );
+                })}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          );
+        }
+
+        return (
+          <button
+            key={tab.id}
+            type="button"
+            role="tab"
+            aria-selected={active}
+            onClick={() => onValueChange(tab.id as T)}
+            className={tabClassName}
+          >
+            {tab.label}
+            {underline}
+          </button>
+        );
+      })}
+    </div>
   );
 }
 
@@ -223,6 +394,8 @@ const ENTITY_METRIC_ACCENTS = [
   "var(--kenoo-blue)",
   "#00d1c1",
   "#7a04eb",
+  "#f59e0b",
+  "#10b981",
 ] as const;
 
 const ENTITY_METRIC_ICONS = [
@@ -230,37 +403,69 @@ const ENTITY_METRIC_ICONS = [
   Eye,
   MousePointerClick,
   TrendingUp,
+  ShoppingBag,
+  CircleDollarSign,
 ] as const;
+
+function hasReachSaturationData(saturation: ReachSaturation | null | undefined) {
+  if (!saturation) return false;
+  const hasReach =
+    saturation.lifetimeReach != null && saturation.lifetimeReach > 0;
+  const ceiling =
+    saturation.estimatedAudienceUpper ?? saturation.estimatedAudienceLower;
+  const hasEstimate = ceiling != null && ceiling > 0;
+  return hasReach || hasEstimate;
+}
 
 export function EntityMetricsGrid({
   metrics,
   reachSaturation,
+  afterFooter,
 }: {
   metrics: EntityDetailMetrics;
   reachSaturation?: ReachSaturation | null;
+  /** Content below the saturation bar (e.g. daily progress chart). */
+  afterFooter?: React.ReactNode;
 }) {
   const items = [
-    { label: "Spend", value: formatCurrencyFromMicros(metrics.spendMicros) },
+    { label: "Ad spend", value: formatCurrencyFromMicros(metrics.spendMicros) },
     { label: "Impressions", value: formatCompactNumber(metrics.impressions) },
     { label: "CTR", value: formatPercent(metrics.ctr) },
     { label: "ROAS", value: formatRoas(metrics.roas) },
+    {
+      label: "Website purchases",
+      value: formatResultCount(metrics.websitePurchases ?? 0),
+    },
+    {
+      label: "Purchase value",
+      value:
+        metrics.conversionValueMicros > 0
+          ? formatCurrencyFromMicros(metrics.conversionValueMicros)
+          : "-",
+    },
   ];
 
+  const saturation = hasReachSaturationData(reachSaturation)
+    ? reachSaturation!
+    : null;
+
   return (
-    <div className="space-y-6">
-      <HeroStatsBar>
-        {items.map((metric, index) => (
-          <HeroStat
-            key={metric.label}
-            label={metric.label}
-            value={metric.value}
-            icon={ENTITY_METRIC_ICONS[index] ?? CircleDollarSign}
-            accentColor={ENTITY_METRIC_ACCENTS[index] ?? ENTITY_METRIC_ACCENTS[0]}
-          />
-        ))}
-      </HeroStatsBar>
-      <ReachSaturationBar saturation={reachSaturation ?? null} />
-    </div>
+    <HeroStatsBar
+      footer={
+        saturation ? <ReachSaturationBar saturation={saturation} /> : null
+      }
+      afterFooter={afterFooter}
+    >
+      {items.map((metric, index) => (
+        <HeroStat
+          key={metric.label}
+          label={metric.label}
+          value={metric.value}
+          icon={ENTITY_METRIC_ICONS[index] ?? CircleDollarSign}
+          accentColor={ENTITY_METRIC_ACCENTS[index] ?? ENTITY_METRIC_ACCENTS[0]}
+        />
+      ))}
+    </HeroStatsBar>
   );
 }
 
@@ -283,18 +488,19 @@ function formatSaturationPercent(pct: number): string {
 }
 
 /**
- * Extrapolate remaining spend to fill the estimated audience at the current
+ * Extrapolate spend needed to reach a target saturation ratio at the current
  * spend-per-reach rate. Rough guide only - Meta won't deliver linearly.
  */
-function estimateRemainingSpendMicros(
+function estimateSpendToSaturationMicros(
   spendMicros: number,
-  saturationRatio: number,
+  currentRatio: number,
+  targetRatio: number,
 ): number | null {
-  if (spendMicros <= 0 || saturationRatio <= 0) return null;
-  if (saturationRatio >= 1) return 0;
-  const projectedTotal = spendMicros / saturationRatio;
-  if (!Number.isFinite(projectedTotal)) return null;
-  return Math.max(0, Math.round(projectedTotal - spendMicros));
+  if (spendMicros <= 0 || currentRatio <= 0 || targetRatio <= 0) return null;
+  if (currentRatio >= targetRatio) return 0;
+  const projectedAtTarget = spendMicros * (targetRatio / currentRatio);
+  if (!Number.isFinite(projectedAtTarget)) return null;
+  return Math.max(0, Math.round(projectedAtTarget - spendMicros));
 }
 
 /** Rough audience-saturation guideposts - hover markers on the reach bar. */
@@ -322,13 +528,15 @@ const SATURATION_GUIDES = [
   },
 ] as const;
 
+function nextSaturationMilestone(pct: number) {
+  return SATURATION_GUIDES.find((guide) => pct < guide.pct) ?? null;
+}
+
 function ReachSaturationBar({
   saturation,
 }: {
-  saturation: ReachSaturation | null;
+  saturation: ReachSaturation;
 }) {
-  if (!saturation) return null;
-
   const {
     lifetimeReach,
     lifetimeSpendMicros,
@@ -348,9 +556,14 @@ function ReachSaturationBar({
     hasReach && hasEstimate ? Math.min(1, lifetimeReach / ceiling) : null;
   const pct = saturationRatio != null ? saturationRatio * 100 : null;
 
-  const remainingSpendMicros =
-    saturationRatio != null
-      ? estimateRemainingSpendMicros(spendMicros, saturationRatio)
+  const nextMilestone = pct != null ? nextSaturationMilestone(pct) : null;
+  const spendToMilestoneMicros =
+    saturationRatio != null && nextMilestone != null
+      ? estimateSpendToSaturationMicros(
+          spendMicros,
+          saturationRatio,
+          nextMilestone.pct / 100,
+        )
       : null;
 
   const audienceLabel = formatAudienceBand(
@@ -360,14 +573,6 @@ function ReachSaturationBar({
 
   const estimateUnavailable =
     audienceEstimateReady === false || (!hasEstimate && hasReach);
-
-  const isFilled = remainingSpendMicros === 0;
-  const remainingValue =
-    remainingSpendMicros == null
-      ? "-"
-      : isFilled
-        ? "$0"
-        : formatCurrencyFromMicros(remainingSpendMicros);
 
   const segmentCount = 4;
   const overallPct = pct ?? 0;
@@ -380,12 +585,7 @@ function ReachSaturationBar({
   });
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 6 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: 0.2, duration: 0.35 }}
-      className="w-full"
-    >
+    <div className="w-full">
       <div className="flex items-center gap-4 sm:gap-5">
         <div className="w-16 shrink-0 sm:w-20">
           <p className="text-2xl font-black tabular-nums tracking-tight text-neutral-800 sm:text-3xl">
@@ -517,14 +717,18 @@ function ReachSaturationBar({
           )}
         </p>
 
-        <p className="text-sm font-light text-neutral-500">
-          <span className="font-semibold tabular-nums text-neutral-900">
-            {remainingValue}
-          </span>{" "}
-          <span className="text-[11px] uppercase tracking-[0.14em] text-neutral-400">
-            {isFilled ? "maxed out" : "potential left"}
-          </span>
-        </p>
+        {nextMilestone != null && spendToMilestoneMicros != null ? (
+          <p className="text-sm font-light text-neutral-500">
+            <span className="font-medium tabular-nums text-neutral-800">
+              {formatCurrencyFromMicros(spendToMilestoneMicros)}
+            </span>{" "}
+            left to {nextMilestone.pct}% saturation
+          </p>
+        ) : pct != null && pct >= 50 ? (
+          <p className="text-sm font-light text-neutral-500">
+            Past 50% saturation
+          </p>
+        ) : null}
       </div>
 
       {estimateUnavailable ? (
@@ -532,7 +736,7 @@ function ReachSaturationBar({
           Meta estimated audience size isn’t ready yet for this targeting.
         </p>
       ) : null}
-    </motion.div>
+    </div>
   );
 }
 

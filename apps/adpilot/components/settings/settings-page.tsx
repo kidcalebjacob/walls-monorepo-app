@@ -18,12 +18,12 @@ import {
 import { AdSpendControls } from "./ad-spend-controls";
 import {
   dangerButtonClass,
+  panelGlassClass,
   primaryButtonClass,
 } from "@/components/ui/button-styles";
 import { GoogleAdsIcon } from "./google-ads-icon";
 import { MetaIcon } from "./meta-icon";
 import { SectionLabel } from "./section-label";
-
 function formatMetaConnectionLabel(connection: SafeAccountConnection) {
   if (connection.provider_account_id) {
     return connection.provider_account_id.replace(/^act_/, "Ad account ");
@@ -102,9 +102,6 @@ export function SettingsPage() {
           <h1 className="mt-2 text-3xl font-semibold tracking-tight text-foreground">
             Settings
           </h1>
-          <p className="mt-2 text-sm font-light text-neutral-500">
-            Connect ad platforms and tune how AdPilot manages spend scaling.
-          </p>
         </header>
 
         {connected === "meta" && (
@@ -138,7 +135,12 @@ export function SettingsPage() {
           ) : (
             <div className="flex flex-col gap-4">
               {metaConnection ? (
-                <div className="rounded-3xl border border-neutral-200/70 bg-kenoo-white p-5 shadow-sm">
+                <div
+                  className={cn(
+                    "overflow-hidden rounded-[28px] px-4 py-5 md:px-6 md:py-6",
+                    panelGlassClass,
+                  )}
+                >
                   <div className="flex items-start gap-3">
                     <MetaIcon className="h-8 w-8 shrink-0" />
                     <div>
@@ -169,7 +171,12 @@ export function SettingsPage() {
                   </div>
                 </div>
               ) : (
-                <div className="rounded-3xl border border-dashed border-neutral-300 bg-kenoo-white p-6">
+                <div
+                  className={cn(
+                    "overflow-hidden rounded-[28px] px-4 py-5 md:px-6 md:py-6",
+                    panelGlassClass,
+                  )}
+                >
                   <div className="flex items-start gap-3">
                     <MetaIcon className="h-8 w-8 shrink-0" />
                     <div className="flex-1">
@@ -196,7 +203,12 @@ export function SettingsPage() {
               )}
 
               {googleConnection ? (
-                <div className="rounded-3xl border border-neutral-200/70 bg-kenoo-white p-5 shadow-sm">
+                <div
+                  className={cn(
+                    "overflow-hidden rounded-[28px] px-4 py-5 md:px-6 md:py-6",
+                    panelGlassClass,
+                  )}
+                >
                   <div className="flex items-start gap-3">
                     <GoogleAdsIcon className="h-8 w-8 shrink-0" />
                     <div>
@@ -232,7 +244,12 @@ export function SettingsPage() {
                   </div>
                 </div>
               ) : (
-                <div className="rounded-3xl border border-dashed border-neutral-300 bg-kenoo-white p-6">
+                <div
+                  className={cn(
+                    "overflow-hidden rounded-[28px] px-4 py-5 md:px-6 md:py-6",
+                    panelGlassClass,
+                  )}
+                >
                   <div className="flex items-start gap-3">
                     <GoogleAdsIcon className="h-8 w-8 shrink-0" />
                     <div className="flex-1">

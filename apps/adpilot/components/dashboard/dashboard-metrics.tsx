@@ -5,11 +5,11 @@ import { TrendingDown, TrendingUp, type LucideIcon } from "lucide-react";
 
 import { cn } from "@walls/utils";
 
+import { panelGlassClass } from "@/components/ui/button-styles";
+
 import { AnimatedMetricValue } from "./animated-metric-value";
 
-/** Matches Projects hub frosted glass panels. */
-export const panelGlassClass =
-  "bg-white/80 backdrop-blur-xl shadow-[0_8px_28px_rgba(15,23,42,0.07),inset_0_1px_0_rgba(255,255,255,0.95)]";
+export { panelGlassClass };
 
 function SectionLabel({ children }: { children: React.ReactNode }) {
   return (
@@ -33,28 +33,53 @@ function HeroStatSkeleton() {
 
 type HeroStatsBarProps = {
   children: React.ReactNode;
+  /** Optional section below the stats grid (e.g. reach saturation). */
+  footer?: React.ReactNode;
+  /** Optional section below the footer (e.g. daily progress chart). */
+  afterFooter?: React.ReactNode;
   className?: string;
 };
 
 /** One connected glass pill; children form a 3×2 grid (stacked on mobile). */
-function HeroStatsBar({ children, className }: HeroStatsBarProps) {
+function HeroStatsBar({
+  children,
+  footer,
+  afterFooter,
+  className,
+}: HeroStatsBarProps) {
   return (
     <motion.div
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       className={cn(
-        "grid grid-cols-1 overflow-hidden rounded-[28px]",
-        "sm:grid-cols-3",
-        // Mobile: horizontal rules between stacked stats
-        "[&>*]:border-b [&>*]:border-neutral-200/80 [&>*:last-child]:border-b-0",
-        // sm+: 3×2 with vertical + horizontal hairlines
-        "sm:[&>*]:border-r sm:[&>*:nth-child(3n)]:border-r-0",
-        "sm:[&>*:nth-last-child(-n+3)]:border-b-0",
+        "overflow-hidden rounded-[28px]",
         panelGlassClass,
         className,
       )}
     >
-      {children}
+      <div
+        className={cn(
+          "grid grid-cols-1",
+          "sm:grid-cols-3",
+          // Mobile: horizontal rules between stacked stats
+          "[&>*]:border-b [&>*]:border-neutral-200/80 [&>*:last-child]:border-b-0",
+          // sm+: 3×2 with vertical + horizontal hairlines
+          "sm:[&>*]:border-r sm:[&>*:nth-child(3n)]:border-r-0",
+          "sm:[&>*:nth-last-child(-n+3)]:border-b-0",
+        )}
+      >
+        {children}
+      </div>
+      {footer ? (
+        <div className="border-t border-neutral-200/80 px-4 py-4 md:px-5 md:py-5">
+          {footer}
+        </div>
+      ) : null}
+      {afterFooter ? (
+        <div className="border-t border-neutral-200/80 px-4 py-5 md:px-6 md:py-6">
+          {afterFooter}
+        </div>
+      ) : null}
     </motion.div>
   );
 }
@@ -94,11 +119,12 @@ function HeroStat({
         <HeroStatSkeleton />
       ) : (
         <div className="flex w-full min-w-0 items-center gap-3.5">
-          <div
-            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl"
-            style={{ backgroundColor: accentColor }}
-          >
-            <Icon className="h-4 w-4 text-white" strokeWidth={1.8} />
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-white/70 bg-white/55 shadow-[inset_0_1px_0_rgba(255,255,255,0.95),0_1px_2px_rgba(0,0,0,0.04)] backdrop-blur-xl backdrop-saturate-150">
+            <Icon
+              className="h-4 w-4"
+              strokeWidth={1.8}
+              style={{ color: accentColor }}
+            />
           </div>
 
           <div className="min-w-0 flex-1">

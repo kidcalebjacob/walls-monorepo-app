@@ -5,16 +5,25 @@ import { useParams, useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { ArrowLeft, Loader2 } from "lucide-react";
 
-import { EntityAutomationSection } from "@/components/campaigns/automation-panel";
+import { EntityAutomationSection, ADPILOT_MENU_ITEMS, isAutomationPanel } from "@/components/campaigns/automation-panel";
 import { AdSetCreativesSection } from "@/components/campaigns/ad-set-creatives-section";
 import { EntityDailyProgressSection } from "@/components/campaigns/entity-daily-progress-section";
 import {
   AdPilotEnableToggle,
   DetailBreadcrumbs,
+  EntityDetailTabs,
   EntityMetricsGrid,
 } from "@/components/campaigns/entity-detail-shared";
 import type { AdSetDetailResult } from "@/lib/entity-detail-server";
 import { formatCurrencyFromMicros } from "@/lib/format-analytics";
+
+type AdSetDetailTab =
+  | "stats"
+  | "creatives"
+  | "rules"
+  | "instructions"
+  | "preview"
+  | "history";
 
 export function AdSetDetailPage() {
   const params = useParams<{ campaignId: string; adSetId: string }>();
@@ -24,6 +33,7 @@ export function AdSetDetailPage() {
   const [detail, setDetail] = React.useState<AdSetDetailResult | null>(null);
   const [loading, setLoading] = React.useState(true);
   const [error, setError] = React.useState<string | null>(null);
+  const [activeTab, setActiveTab] = React.useState<AdSetDetailTab>("stats");
 
   const loadDetail = React.useCallback(async () => {
     setLoading(true);
@@ -71,9 +81,23 @@ export function AdSetDetailPage() {
   }
 
   const campaignName = detail.parentName ?? "Campaign";
+  const tabs = [
+    { id: "stats" as const, label: "Stats" },
+    { id: "creatives" as const, label: "Creatives" },
+    ...(detail.canAutomate
+      ? [
+          {
+            id: "adpilot",
+            label: "AdPilot",
+            items: ADPILOT_MENU_ITEMS,
+          },
+          { id: "history" as const, label: "Budget history" },
+        ]
+      : []),
+  ];
 
   return (
-    <div className="mx-auto w-full max-w-7xl px-6 pt-8 pb-10 md:px-10 md:pt-10">
+    <div className="mx-auto w-full max-w-7xl px-6 pt-4 pb-10 md:px-10 md:pt-5">
       <DetailBreadcrumbs
         items={[
           { label: "Campaigns", href: "/campaigns" },
@@ -114,30 +138,46 @@ export function AdSetDetailPage() {
         </div>
       </motion.div>
 
-      <div className="mb-8">
+      <EntityDetailTabs
+        tabs={tabs}
+        value={activeTab}
+        onValueChange={setActiveTab}
+        aria-label="Ad set sections"
+        className="mb-8"
+      />
+
+      {activeTab === "stats" ? (
         <EntityMetricsGrid
           metrics={detail.metrics}
           reachSaturation={detail.reachSaturation}
+          afterFooter={
+            <EntityDailyProgressSection
+              progress={detail.dailyProgress}
+              embedded
+            />
+          }
         />
-      </div>
+      ) : null}
 
-      <div className="space-y-12">
+      {activeTab === "creatives" ? (
         <AdSetCreativesSection
           ads={detail.ads}
           objectiveBucket={detail.objectiveBucket}
+          hideHeader
         />
+      ) : null}
 
+      {detail.canAutomate && isAutomationPanel(activeTab) ? (
         <EntityAutomationSection
           entityId={detail.id}
           entityLabel="ad set"
           detail={detail}
+          panel={activeTab}
           onAutomationUpdated={(automation) =>
             setDetail((prev) => (prev ? { ...prev, automation } : prev))
           }
         />
-
-        <EntityDailyProgressSection progress={detail.dailyProgress} />
-      </div>
+      ) : null}
     </div>
   );
 }

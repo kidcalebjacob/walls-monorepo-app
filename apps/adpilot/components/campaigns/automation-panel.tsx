@@ -26,10 +26,7 @@ import { Textarea } from "@walls/ui/textarea";
 import { cn } from "@walls/utils";
 
 import { AdPilotPreviewCard } from "@/components/campaigns/adpilot-preview";
-import {
-  DetailSection,
-  DetailSubLabel,
-} from "@/components/campaigns/entity-detail-shared";
+import { DetailSection } from "@/components/campaigns/entity-detail-shared";
 import { FloatingLabelDatePicker } from "@/components/ui/floating-label-date-picker";
 import { FloatingLabelInput } from "@/components/ui/floating-label-input";
 import type {
@@ -58,10 +55,16 @@ import {
   glassToggleChipActiveClass,
   glassToggleChipBaseClass,
   glassToggleChipInactiveClass,
+  panelGlassClass,
   primaryButtonClass,
   secondaryButtonClass,
 } from "@/components/ui/button-styles";
 import { SegmentThumb } from "@/components/settings/segment-thumb";
+
+const rulesPanelClass = cn(
+  "overflow-hidden rounded-[28px] px-4 py-5 md:px-6 md:py-6",
+  panelGlassClass,
+);
 
 function microsToDollars(micros: number | null): string {
   if (micros == null || micros <= 0) return "";
@@ -174,11 +177,30 @@ function AdjustmentsList({ rows }: { rows: BudgetAdjustmentRow[] }) {
   );
 }
 
+export type AutomationPanel = "rules" | "instructions" | "preview" | "history";
+
+export const ADPILOT_MENU_ITEMS = [
+  { id: "rules" as const, label: "Rules" },
+  { id: "instructions" as const, label: "Agentic instructions" },
+  { id: "preview" as const, label: "Preview results" },
+];
+
+export function isAutomationPanel(value: string): value is AutomationPanel {
+  return (
+    value === "rules" ||
+    value === "instructions" ||
+    value === "preview" ||
+    value === "history"
+  );
+}
+
 type EntityAutomationSectionProps = {
   entityId: string;
   entityLabel: string;
   detail: EntityDetailResult;
   onAutomationUpdated: (automation: EntityDetailResult["automation"]) => void;
+  /** Which AdPilot panel to show inside the detail tabs. */
+  panel: AutomationPanel;
 };
 
 function resolveInitialProfileId(detail: EntityDetailResult): string | null {
@@ -195,6 +217,7 @@ export function EntityAutomationSection({
   entityLabel,
   detail,
   onAutomationUpdated,
+  panel,
 }: EntityAutomationSectionProps) {
   const [adjustments, setAdjustments] = React.useState(detail.recentAdjustments);
   const [profileId, setProfileId] = React.useState<string | null>(() =>
@@ -345,24 +368,27 @@ export function EntityAutomationSection({
 
   return (
     <div className="space-y-12">
-      {error ? (
+      {error && panel === "rules" ? (
         <div className="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-800">
           {error}
         </div>
       ) : null}
 
-      <DetailSection title="AdPilot budget control">
-        <div className="space-y-10">
+      {panel === "rules" ? (
+      <DetailSection title="Rules" hideHeader>
+        <div className="space-y-6">
           {!detail.automation.enabled ? (
-            <p className="text-xs font-light text-neutral-500">
-              AdPilot is off for this {entityLabel}. Turn it on with the AdPilot
-              toggle at the top of the page to let the worker adjust the daily
-              budget within the guardrails below.
-            </p>
+            <div className={rulesPanelClass}>
+              <p className="text-sm font-light text-neutral-500">
+                AdPilot is off for this {entityLabel}. Turn it on with the AdPilot
+                toggle at the top of the page to let the worker adjust the daily
+                budget within the guardrails below.
+              </p>
+            </div>
           ) : null}
 
-          <div>
-            <DetailSubLabel>Automation preset</DetailSubLabel>
+          <div className={rulesPanelClass}>
+            <p className="text-sm font-medium text-foreground">Automation preset</p>
             <p className="mt-1 text-xs font-light text-neutral-500">
               Start from a workspace preset or completely customize controls.
             </p>
@@ -380,10 +406,10 @@ export function EntityAutomationSection({
                   <button
                     type="button"
                     className={cn(
-                      "mt-4 flex w-full max-w-md items-center gap-3 rounded-xl bg-kenoo-white px-3 py-2.5 text-left transition",
-                      "hover:bg-neutral-50",
-                      "focus:outline-none",
-                      presetMenuOpen && "bg-neutral-50",
+                      "mt-4 flex w-full max-w-md items-center gap-3 rounded-2xl border border-black/[0.06] bg-white/55 px-3 py-2.5 text-left shadow-[inset_0_1px_0_rgba(255,255,255,0.95)] backdrop-blur-xl transition",
+                      "hover:bg-white/80",
+                      "outline-none focus:outline-none focus-visible:outline-none focus-visible:ring-0",
+                      presetMenuOpen && "bg-white/80",
                     )}
                   >
                     <span className="min-w-0 flex-1">
@@ -549,12 +575,12 @@ export function EntityAutomationSection({
             </div>
           ) : null}
 
-          <div>
-            <DetailSubLabel>Budget bounds</DetailSubLabel>
+          <div className={rulesPanelClass}>
+            <p className="text-sm font-medium text-foreground">Budget bounds</p>
             <p className="mt-1 text-xs font-light text-neutral-500">
               Hard min/max daily budget (USD) the algorithm may not exceed.
             </p>
-            <div className="mt-4 grid gap-4 sm:grid-cols-2">
+            <div className="mt-5 grid gap-4 sm:grid-cols-2">
               <FloatingLabelInput
                 type="number"
                 min={0}
@@ -578,60 +604,123 @@ export function EntityAutomationSection({
                 }}
               />
             </div>
-            {optimizationGoal === "roas" || optimizationGoal === "conversions" ? (
-              <div className="mt-5 border-t border-neutral-100 pt-5">
-                <RoasFloorField
-                  variant="detail"
-                  settings={settings}
-                  onChange={(patch) => {
-                    markDirty();
-                    setSettings((prev) => ({ ...prev, ...patch }));
-                  }}
-                />
-              </div>
-            ) : null}
           </div>
 
-          <div className="space-y-8">
-            <SliderField
-              label="Spend aggressiveness"
-              hint="How quickly AdPilot ramps budget on strong performers"
-              value={settings.aggressiveness}
-              min={0}
-              max={100}
-              step={1}
-              onChange={(value) => updateSetting("aggressiveness", value)}
-              endLabels={{
-                left: "Conservative",
-                center: "Balanced",
-                right: "Aggressive",
-              }}
-            />
+          <div className={rulesPanelClass}>
+            <div className="space-y-6">
+              <SliderField
+                label="Spend aggressiveness"
+                hint="How quickly AdPilot ramps budget on strong performers"
+                value={settings.aggressiveness}
+                min={0}
+                max={100}
+                step={1}
+                onChange={(value) => updateSetting("aggressiveness", value)}
+                endLabels={{
+                  left: "Conservative",
+                  center: "Balanced",
+                  right: "Aggressive",
+                }}
+              />
 
-            <div className="grid gap-6 sm:grid-cols-2">
-              <SliderField
-                label="Max daily increase"
-                value={settings.maxDailyIncreasePct}
-                min={5}
-                max={50}
-                step={1}
-                suffix="%"
-                onChange={(value) => updateSetting("maxDailyIncreasePct", value)}
-                endLabels={{ left: "5%", right: "50%" }}
-              />
-              <SliderField
-                label="Max daily decrease"
-                value={settings.maxDailyDecreasePct}
-                min={5}
-                max={50}
-                step={1}
-                suffix="%"
-                onChange={(value) => updateSetting("maxDailyDecreasePct", value)}
-                endLabels={{ left: "5%", right: "50%" }}
-              />
+              <div className="grid gap-5 sm:grid-cols-2">
+                <SliderField
+                  label="Max daily increase"
+                  hint="Cap on % growth per 24h window"
+                  value={settings.maxDailyIncreasePct}
+                  min={5}
+                  max={50}
+                  step={1}
+                  suffix="%"
+                  onChange={(value) => updateSetting("maxDailyIncreasePct", value)}
+                  endLabels={{ left: "5%", right: "50%" }}
+                />
+                <SliderField
+                  label="Max daily decrease"
+                  hint="Cap on % reduction per 24h window"
+                  value={settings.maxDailyDecreasePct}
+                  min={5}
+                  max={50}
+                  step={1}
+                  suffix="%"
+                  onChange={(value) => updateSetting("maxDailyDecreasePct", value)}
+                  endLabels={{ left: "5%", right: "50%" }}
+                />
+              </div>
             </div>
+          </div>
 
-            <div>
+          <div className={rulesPanelClass}>
+            <p className="text-sm font-medium text-foreground">Guardrails</p>
+            <p className="mt-1 text-xs font-light text-neutral-500">
+              Hard stops that pause or slow scaling before efficiency drops.
+            </p>
+
+            {(optimizationGoal === "roas" ||
+              optimizationGoal === "conversions" ||
+              optimizationGoal === "ctr" ||
+              optimizationGoal === "cpa") && (
+              <div className="mt-5 grid gap-5 sm:grid-cols-2">
+                {optimizationGoal === "roas" ||
+                optimizationGoal === "conversions" ? (
+                  <div className="sm:col-span-2">
+                    <RoasFloorField
+                      variant="detail"
+                      settings={settings}
+                      onChange={(patch) => {
+                        markDirty();
+                        setSettings((prev) => ({ ...prev, ...patch }));
+                      }}
+                    />
+                  </div>
+                ) : null}
+
+                {optimizationGoal === "ctr" ? (
+                  <div className="space-y-2">
+                    <FloatingLabelInput
+                      type="number"
+                      min={0}
+                      step={0.1}
+                      label="CTR floor (%)"
+                      value={settings.ctrFloorPct ?? ""}
+                      onChange={(e) =>
+                        updateSetting(
+                          "ctrFloorPct",
+                          e.target.value ? Number(e.target.value) : null,
+                        )
+                      }
+                    />
+                    <p className="text-xs font-light text-neutral-500">
+                      Minimum click-through rate before scaling continues
+                    </p>
+                  </div>
+                ) : null}
+
+                {optimizationGoal === "cpa" ||
+                optimizationGoal === "conversions" ? (
+                  <div className="space-y-2">
+                    <FloatingLabelInput
+                      type="number"
+                      min={0}
+                      step={1}
+                      label="CPA ceiling (USD)"
+                      value={settings.cpaCeiling ?? ""}
+                      onChange={(e) =>
+                        updateSetting(
+                          "cpaCeiling",
+                          e.target.value ? Number(e.target.value) : null,
+                        )
+                      }
+                    />
+                    <p className="text-xs font-light text-neutral-500">
+                      Max cost per acquisition (USD)
+                    </p>
+                  </div>
+                ) : null}
+              </div>
+            )}
+
+            <div className="mt-5">
               <p className="text-sm font-medium text-foreground">
                 Cooldown between budget changes
               </p>
@@ -673,40 +762,11 @@ export function EntityAutomationSection({
                 })}
               </div>
             </div>
+          </div>
 
-            {optimizationGoal === "ctr" ? (
-              <FloatingLabelInput
-                type="number"
-                min={0}
-                step={0.1}
-                label="CTR floor (%)"
-                value={settings.ctrFloorPct ?? ""}
-                onChange={(e) =>
-                  updateSetting(
-                    "ctrFloorPct",
-                    e.target.value ? Number(e.target.value) : null,
-                  )
-                }
-              />
-            ) : null}
-
-            {optimizationGoal === "cpa" || optimizationGoal === "conversions" ? (
-              <FloatingLabelInput
-                type="number"
-                min={0}
-                step={1}
-                label="CPA ceiling (USD)"
-                value={settings.cpaCeiling ?? ""}
-                onChange={(e) =>
-                  updateSetting(
-                    "cpaCeiling",
-                    e.target.value ? Number(e.target.value) : null,
-                  )
-                }
-              />
-            ) : null}
-
-            <div className="space-y-5 border-t border-neutral-200/70 pt-6">
+          <div className={rulesPanelClass}>
+            <p className="text-sm font-medium text-foreground">Safety</p>
+            <div className="mt-5 space-y-5">
               <LabeledSwitch
                 size="lg"
                 checked={settings.learningPhaseProtection}
@@ -735,28 +795,35 @@ export function EntityAutomationSection({
               </>
             ) : (
               <>Changes save automatically.</>
-
             )}
           </p>
         </div>
       </DetailSection>
+      ) : null}
 
-      <AdPilotPreviewCard
-        entityId={entityId}
-        onApplied={(adjustment) =>
-          setAdjustments((current) => [adjustment, ...current].slice(0, 10))
-        }
-      />
+      {panel === "preview" ? (
+        <AdPilotPreviewCard
+          entityId={entityId}
+          standalone
+          onApplied={(adjustment) =>
+            setAdjustments((current) => [adjustment, ...current].slice(0, 10))
+          }
+        />
+      ) : null}
 
-      <AgentInstructionsSection
-        entityId={entityId}
-        entityLabel={entityLabel}
-        initialInstructions={detail.agentInstructions}
-      />
+      {panel === "instructions" ? (
+        <AgentInstructionsSection
+          entityId={entityId}
+          entityLabel={entityLabel}
+          initialInstructions={detail.agentInstructions}
+        />
+      ) : null}
 
-      <DetailSection title="Budget history">
-        <AdjustmentsList rows={adjustments} />
-      </DetailSection>
+      {panel === "history" ? (
+        <DetailSection title="Budget history" hideHeader>
+          <AdjustmentsList rows={adjustments} />
+        </DetailSection>
+      ) : null}
     </div>
   );
 }
@@ -832,20 +899,11 @@ function AgentInstructionsSection({
     setItems(initialInstructions);
   }, [initialInstructions]);
 
-  const activeCount = items.filter(
-    (item) =>
-      resolveInstructionStatus({
-        startsAt: item.startsAt,
-        endsAt: item.endsAt,
-        isActive: item.isActive,
-      }) === "active",
-  ).length;
-
   return (
     <DetailSection
-      title="Agent instructions"
+      title="Agentic instructions"
       description="Natural-language guidance the AdPilot agent reads when deciding how to move spend. Add as many as you like, each with its own schedule."
-      collapsedBadgeCount={activeCount}
+      hideHeader
     >
       <AgentInstructionsManager
         entityId={entityId}

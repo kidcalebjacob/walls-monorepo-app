@@ -14,12 +14,13 @@ import {
 
 import { cn } from "@walls/utils";
 
-import { EntityAutomationSection } from "@/components/campaigns/automation-panel";
+import { EntityAutomationSection, ADPILOT_MENU_ITEMS, isAutomationPanel } from "@/components/campaigns/automation-panel";
 import {
   AdPilotEnableToggle,
   AdPilotRowBadge,
   DetailBreadcrumbs,
   DetailSection,
+  EntityDetailTabs,
   EntityMetricsGrid,
   LearningBadge,
   formatStatus,
@@ -48,6 +49,12 @@ const AD_SET_COLUMNS = [
 
 type AdSetSortColumn = (typeof AD_SET_COLUMNS)[number]["id"];
 type SortDirection = "asc" | "desc";
+type CampaignDetailTab =
+  | "stats"
+  | "rules"
+  | "instructions"
+  | "preview"
+  | "history";
 
 const TEXT_SORT_COLUMNS = new Set<AdSetSortColumn>(["name", "status"]);
 
@@ -112,6 +119,7 @@ export function CampaignDetailPage() {
   const [error, setError] = React.useState<string | null>(null);
   const [sortColumn, setSortColumn] = React.useState<AdSetSortColumn>("spend");
   const [sortDirection, setSortDirection] = React.useState<SortDirection>("desc");
+  const [activeTab, setActiveTab] = React.useState<CampaignDetailTab>("stats");
 
   const loadDetail = React.useCallback(async () => {
     setLoading(true);
@@ -174,8 +182,22 @@ export function CampaignDetailPage() {
     );
   }
 
+  const tabs = [
+    { id: "stats" as const, label: "Stats" },
+    ...(detail.canAutomate
+      ? [
+          {
+            id: "adpilot",
+            label: "AdPilot",
+            items: ADPILOT_MENU_ITEMS,
+          },
+          { id: "history" as const, label: "Budget history" },
+        ]
+      : []),
+  ];
+
   return (
-    <div className="mx-auto w-full max-w-7xl px-6 pt-8 pb-10 md:px-10 md:pt-10">
+    <div className="mx-auto w-full max-w-7xl px-6 pt-4 pb-10 md:px-10 md:pt-5">
       <DetailBreadcrumbs
         items={[
           { label: "Campaigns", href: "/campaigns" },
@@ -222,134 +244,150 @@ export function CampaignDetailPage() {
         </div>
       </motion.div>
 
-      <div className="mb-8">
-        <EntityMetricsGrid metrics={detail.metrics} />
-      </div>
+      <EntityDetailTabs
+        tabs={tabs}
+        value={activeTab}
+        onValueChange={setActiveTab}
+        aria-label="Campaign sections"
+        className="mb-8"
+      />
 
-      <div className="space-y-12">
-        <DetailSection
-          title="Ad sets"
-          description="Performance for the last 30 days. Open an ad set to configure AdPilot for that specific budget."
-        >
-          {detail.adSets.length === 0 ? (
-            <p className="py-8 text-center text-sm font-light text-neutral-400">
-              No ad sets synced for this campaign yet.
-            </p>
-          ) : (
-            <div className="overflow-x-auto scrollbar-hide">
-              <table className="w-full min-w-[720px] text-sm">
-                <thead>
-                  <tr className="border-b border-neutral-200/70 text-left text-xs font-medium tracking-wide text-neutral-400 uppercase">
-                    {AD_SET_COLUMNS.map((column) => {
-                      const active = sortColumn === column.id;
-                      const SortIcon = !active
-                        ? ChevronsUpDown
-                        : sortDirection === "asc"
-                          ? ChevronUp
-                          : ChevronDown;
+      {activeTab === "stats" ? (
+        <div className="space-y-12">
+          <EntityMetricsGrid
+            metrics={detail.metrics}
+            reachSaturation={detail.reachSaturation}
+          />
 
-                      return (
-                        <th
-                          key={column.id}
-                          scope="col"
-                          className="py-3 pr-4"
-                          aria-sort={
-                            active
-                              ? sortDirection === "asc"
-                                ? "ascending"
-                                : "descending"
-                              : "none"
-                          }
-                        >
-                          <button
-                            type="button"
-                            onClick={() => handleSort(column.id)}
-                            className={cn(
-                              "inline-flex items-center gap-1 border-0 bg-transparent p-0 font-medium tracking-wide uppercase transition-colors hover:text-neutral-700",
-                              active ? "text-neutral-700" : "text-neutral-400",
-                            )}
+          <DetailSection
+            title="Ad sets"
+            description="Performance for the last 30 days. Open an ad set to configure AdPilot for that specific budget."
+            collapsible={false}
+          >
+            {detail.adSets.length === 0 ? (
+              <p className="py-8 text-center text-sm font-light text-neutral-400">
+                No ad sets synced for this campaign yet.
+              </p>
+            ) : (
+              <div className="overflow-x-auto scrollbar-hide">
+                <table className="w-full min-w-[720px] text-sm">
+                  <thead>
+                    <tr className="border-b border-neutral-200/70 text-left text-xs font-medium tracking-wide text-neutral-400 uppercase">
+                      {AD_SET_COLUMNS.map((column) => {
+                        const active = sortColumn === column.id;
+                        const SortIcon = !active
+                          ? ChevronsUpDown
+                          : sortDirection === "asc"
+                            ? ChevronUp
+                            : ChevronDown;
+
+                        return (
+                          <th
+                            key={column.id}
+                            scope="col"
+                            className="py-3 pr-4"
+                            aria-sort={
+                              active
+                                ? sortDirection === "asc"
+                                  ? "ascending"
+                                  : "descending"
+                                : "none"
+                            }
                           >
-                            <span>{column.label}</span>
-                            <SortIcon
+                            <button
+                              type="button"
+                              onClick={() => handleSort(column.id)}
                               className={cn(
-                                "h-3 w-3 shrink-0",
-                                active ? "opacity-100" : "opacity-40",
+                                "inline-flex items-center gap-1 border-0 bg-transparent p-0 font-medium tracking-wide uppercase transition-colors hover:text-neutral-700",
+                                active ? "text-neutral-700" : "text-neutral-400",
                               )}
-                              strokeWidth={1.75}
-                              aria-hidden
-                            />
-                          </button>
-                        </th>
-                      );
-                    })}
-                  </tr>
-                </thead>
-                <tbody>
-                  {sortedAdSets.map((adSet) => (
-                    <tr
-                      key={adSet.id}
-                      className="border-b border-neutral-100 transition-colors hover:bg-kenoo-white"
-                    >
-                      <td className="py-4 pr-4">
-                        <div className="flex min-w-0 items-center gap-2">
-                          <Link
-                            href={`/campaigns/${campaignId}/ad-sets/${adSet.id}`}
-                            className="truncate text-sm font-medium text-neutral-800 transition-colors hover:text-[var(--kenoo-sky)]"
-                          >
-                            {adSet.name}
-                          </Link>
-                          {adSet.adpilotEnabled ? <AdPilotRowBadge /> : null}
-                          <LearningBadge status={adSet.learningStatus} />
-                        </div>
-                      </td>
-                      <td className="py-4 pr-4 text-xs font-light whitespace-nowrap text-neutral-500">
-                        <span className="inline-flex items-center gap-1.5">
-                          {isActiveStatus(adSet.status) ? (
-                            <span
-                              className="h-2 w-2 flex-shrink-0 rounded-full bg-[var(--kenoo-sky)]"
-                              aria-hidden
-                            />
-                          ) : null}
-                          {formatStatus(adSet.status)}
-                        </span>
-                      </td>
-                      <td className="py-4 pr-4 text-xs font-light whitespace-nowrap text-neutral-500 tabular-nums">
-                        <AnimatedMetricValue
-                          value={
-                            adSet.dailyBudgetMicros != null && adSet.dailyBudgetMicros > 0
-                              ? formatCurrencyFromMicros(adSet.dailyBudgetMicros)
-                              : "-"
-                          }
-                        />
-                      </td>
-                      <td className="py-4 pr-4 text-xs font-medium whitespace-nowrap text-neutral-800 tabular-nums">
-                        <AnimatedMetricValue
-                          value={formatCurrencyFromMicros(adSet.spendMicros)}
-                        />
-                      </td>
-                      <td className="py-4 pr-4 text-xs font-light whitespace-nowrap text-neutral-500 tabular-nums">
-                        <AnimatedMetricValue value={formatPercent(adSet.ctr)} />
-                      </td>
-                      <td className="py-4 pr-4 text-xs font-light whitespace-nowrap text-neutral-500 tabular-nums">
-                        {formatRoas(adSet.roas)}
-                      </td>
+                            >
+                              <span>{column.label}</span>
+                              <SortIcon
+                                className={cn(
+                                  "h-3 w-3 shrink-0",
+                                  active ? "opacity-100" : "opacity-40",
+                                )}
+                                strokeWidth={1.75}
+                                aria-hidden
+                              />
+                            </button>
+                          </th>
+                        );
+                      })}
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
-        </DetailSection>
+                  </thead>
+                  <tbody>
+                    {sortedAdSets.map((adSet) => (
+                      <tr
+                        key={adSet.id}
+                        className="border-b border-neutral-100 transition-colors hover:bg-kenoo-white"
+                      >
+                        <td className="py-4 pr-4">
+                          <div className="flex min-w-0 items-center gap-2">
+                            <Link
+                              href={`/campaigns/${campaignId}/ad-sets/${adSet.id}`}
+                              className="truncate text-sm font-medium text-neutral-800 transition-colors hover:text-[var(--kenoo-sky)]"
+                            >
+                              {adSet.name}
+                            </Link>
+                            {adSet.adpilotEnabled ? <AdPilotRowBadge /> : null}
+                            <LearningBadge status={adSet.learningStatus} />
+                          </div>
+                        </td>
+                        <td className="py-4 pr-4 text-xs font-light whitespace-nowrap text-neutral-500">
+                          <span className="inline-flex items-center gap-1.5">
+                            {isActiveStatus(adSet.status) ? (
+                              <span
+                                className="h-2 w-2 flex-shrink-0 rounded-full bg-[var(--kenoo-sky)]"
+                                aria-hidden
+                              />
+                            ) : null}
+                            {formatStatus(adSet.status)}
+                          </span>
+                        </td>
+                        <td className="py-4 pr-4 text-xs font-light whitespace-nowrap text-neutral-500 tabular-nums">
+                          <AnimatedMetricValue
+                            value={
+                              adSet.dailyBudgetMicros != null &&
+                              adSet.dailyBudgetMicros > 0
+                                ? formatCurrencyFromMicros(adSet.dailyBudgetMicros)
+                                : "-"
+                            }
+                          />
+                        </td>
+                        <td className="py-4 pr-4 text-xs font-medium whitespace-nowrap text-neutral-800 tabular-nums">
+                          <AnimatedMetricValue
+                            value={formatCurrencyFromMicros(adSet.spendMicros)}
+                          />
+                        </td>
+                        <td className="py-4 pr-4 text-xs font-light whitespace-nowrap text-neutral-500 tabular-nums">
+                          <AnimatedMetricValue value={formatPercent(adSet.ctr)} />
+                        </td>
+                        <td className="py-4 pr-4 text-xs font-light whitespace-nowrap text-neutral-500 tabular-nums">
+                          {formatRoas(adSet.roas)}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </DetailSection>
+        </div>
+      ) : null}
 
+      {detail.canAutomate && isAutomationPanel(activeTab) ? (
         <EntityAutomationSection
           entityId={detail.id}
           entityLabel="campaign"
           detail={detail}
+          panel={activeTab}
           onAutomationUpdated={(automation) =>
             setDetail((prev) => (prev ? { ...prev, automation } : prev))
           }
         />
-      </div>
+      ) : null}
     </div>
   );
 }
