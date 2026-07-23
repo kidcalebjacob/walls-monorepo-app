@@ -307,7 +307,7 @@ function HeatCell({
     >
       {isPeak ? (
         <Crown
-          className="pointer-events-none absolute inset-0 m-auto h-[55%] w-[55%] text-white drop-shadow-[0_1px_2px_rgba(0,0,0,0.35)]"
+          className="pointer-events-none absolute inset-0 m-auto h-[55%] w-[55%] text-white/55 drop-shadow-[0_1px_2px_rgba(0,0,0,0.25)]"
           strokeWidth={2.25}
           aria-hidden
         />
