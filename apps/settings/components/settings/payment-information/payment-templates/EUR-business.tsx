@@ -1,8 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Label } from "@/components/ui/label";
-import { Input } from "@/components/ui/input";
+import { FloatingLabelInput } from "@/components/ui/floating-label-input";
 import { PaymentDetails } from "@/types/payment.types";
 import { Briefcase } from "lucide-react";
 import PaymentTemplate from "./payment-templates";
@@ -50,39 +49,27 @@ export default function EurBusinessTemplate({
     >
       <div className="space-y-4">
         <div className="space-y-3">
-          <div className="space-y-2">
-            <Label htmlFor="contact-email">Contact Email</Label>
-            <Input
-              id="contact-email"
-              type="email"
-              value={formData.contactEmail}
-              onChange={(e) => handleInputChange(e, "contactEmail")}
-              placeholder="business@example.com"
-              className="w-full bg-neutral-100 backdrop-blur-md shadow-inner border border-neutral-200/50 text-neutral-600 font-normal pl-4 pr-4 h-14 rounded-xl focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent"
-            />
-          </div>
+          <FloatingLabelInput
+            id="contact-email"
+            type="email"
+            label="Contact Email"
+            value={formData.contactEmail}
+            onChange={(e) => handleInputChange(e, "contactEmail")}
+          />
           
-          <div className="space-y-2">
-            <Label htmlFor="business-name">Name of Business / Organization</Label>
-            <Input
-              id="business-name"
-              value={formData.businessName}
-              onChange={(e) => handleInputChange(e, "businessName")}
-              placeholder="Business Name GmbH"
-              className="w-full bg-neutral-100 backdrop-blur-md shadow-inner border border-neutral-200/50 text-neutral-600 font-normal pl-4 pr-4 h-14 rounded-xl focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent"
-            />
-          </div>
+          <FloatingLabelInput
+            id="business-name"
+            label="Name of Business / Organization"
+            value={formData.businessName}
+            onChange={(e) => handleInputChange(e, "businessName")}
+          />
           
-          <div className="space-y-2">
-            <Label htmlFor="iban">IBAN</Label>
-            <Input
-              id="iban"
-              value={formData.iban}
-              onChange={(e) => handleInputChange(e, "iban")}
-              placeholder="DE89 3704 0044 0532 0130 00"
-              className="w-full bg-neutral-100 backdrop-blur-md shadow-inner border border-neutral-200/50 text-neutral-600 font-normal pl-4 pr-4 h-14 rounded-xl focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent"
-            />
-          </div>
+          <FloatingLabelInput
+            id="iban"
+            label="IBAN"
+            value={formData.iban}
+            onChange={(e) => handleInputChange(e, "iban")}
+          />
         </div>
       </div>
     </PaymentTemplate>

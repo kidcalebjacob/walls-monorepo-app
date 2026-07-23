@@ -1,8 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Label } from "@/components/ui/label";
-import { Input } from "@/components/ui/input";
+import { FloatingLabelInput } from "@/components/ui/floating-label-input";
 import { PaymentDetails } from "@/types/payment.types";
 import { Briefcase } from "lucide-react";
 import PaymentTemplate from "./payment-templates";
@@ -52,51 +51,35 @@ export default function GbpBusinessTemplate({
       <div className="space-y-4">
         <div className="space-y-3">
           <div className="grid grid-cols-1 gap-3">
-            <div className="space-y-2">
-              <Label htmlFor="contact-email">Email</Label>
-              <Input
-                id="contact-email"
-                type="email"
-                value={formData.contactEmail}
-                onChange={(e) => handleInputChange(e, "contactEmail")}
-                placeholder="business@example.com"
-                className="w-full bg-neutral-100 backdrop-blur-md shadow-inner border border-neutral-200/50 text-neutral-600 font-normal pl-4 pr-4 h-14 rounded-xl focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent"
-              />
-            </div>
+            <FloatingLabelInput
+              id="contact-email"
+              type="email"
+              label="Email"
+              value={formData.contactEmail}
+              onChange={(e) => handleInputChange(e, "contactEmail")}
+            />
             
-            <div className="space-y-2">
-              <Label htmlFor="business-name">Name of the Business / Organisation</Label>
-              <Input
-                id="business-name"
-                value={formData.businessName}
-                onChange={(e) => handleInputChange(e, "businessName")}
-                placeholder="Business Name Ltd"
-                className="w-full bg-neutral-100 backdrop-blur-md shadow-inner border border-neutral-200/50 text-neutral-600 font-normal pl-4 pr-4 h-14 rounded-xl focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent"
-              />
-            </div>
-          </div>
-          
-          <div className="space-y-2">
-            <Label htmlFor="sort-code">UK Sort Code</Label>
-            <Input
-              id="sort-code"
-              value={formData.sortCode}
-              onChange={(e) => handleInputChange(e, "sortCode")}
-              placeholder="12-34-56"
-              className="w-full bg-neutral-100 backdrop-blur-md shadow-inner border border-neutral-200/50 text-neutral-600 font-normal pl-4 pr-4 h-14 rounded-xl focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent"
+            <FloatingLabelInput
+              id="business-name"
+              label="Name of the Business / Organisation"
+              value={formData.businessName}
+              onChange={(e) => handleInputChange(e, "businessName")}
             />
           </div>
           
-          <div className="space-y-2">
-            <Label htmlFor="account-number">Account Number</Label>
-            <Input
-              id="account-number"
-              value={formData.accountNumber}
-              onChange={(e) => handleInputChange(e, "accountNumber")}
-              placeholder="12345678"
-              className="w-full bg-neutral-100 backdrop-blur-md shadow-inner border border-neutral-200/50 text-neutral-600 font-normal pl-4 pr-4 h-14 rounded-xl focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent"
-            />
-          </div>
+          <FloatingLabelInput
+            id="sort-code"
+            label="UK Sort Code"
+            value={formData.sortCode}
+            onChange={(e) => handleInputChange(e, "sortCode")}
+          />
+          
+          <FloatingLabelInput
+            id="account-number"
+            label="Account Number"
+            value={formData.accountNumber}
+            onChange={(e) => handleInputChange(e, "accountNumber")}
+          />
         </div>
       </div>
     </PaymentTemplate>

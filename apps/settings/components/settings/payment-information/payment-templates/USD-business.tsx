@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { Label } from "@/components/ui/label";
-import { Input } from "@/components/ui/input";
+import { FloatingLabelInput } from "@/components/ui/floating-label-input";
 import {
   Select,
   SelectContent,
@@ -80,52 +80,36 @@ export default function UsdBusinessTemplate({
       <div className="space-y-4">
         <div className="space-y-3">
           <div className="grid grid-cols-1 gap-3">
-            <div className="space-y-2">
-              <Label htmlFor="contact-email">Contact Email</Label>
-              <Input
-                id="contact-email"
-                type="email"
-                value={formData.contactEmail}
-                onChange={(e) => handleInputChange(e, "contactEmail")}
-                placeholder="business@example.com"
-                className="w-full bg-neutral-100 backdrop-blur-md shadow-inner border border-neutral-200/50 text-neutral-600 font-normal pl-4 pr-4 h-14 rounded-xl focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent"
-              />
-            </div>
+            <FloatingLabelInput
+              id="contact-email"
+              type="email"
+              label="Contact Email"
+              value={formData.contactEmail}
+              onChange={(e) => handleInputChange(e, "contactEmail")}
+            />
             
-            <div className="space-y-2">
-              <Label htmlFor="business-name">Name of Business / Organization</Label>
-              <Input
-                id="business-name"
-                value={formData.businessName}
-                onChange={(e) => handleInputChange(e, "businessName")}
-                placeholder="Business Name, LLC"
-                className="w-full bg-neutral-100 backdrop-blur-md shadow-inner border border-neutral-200/50 text-neutral-600 font-normal pl-4 pr-4 h-14 rounded-xl focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent"
-              />
-            </div>
+            <FloatingLabelInput
+              id="business-name"
+              label="Name of Business / Organization"
+              value={formData.businessName}
+              onChange={(e) => handleInputChange(e, "businessName")}
+            />
           </div>
           
           <div className="grid grid-cols-2 gap-3">
-            <div className="space-y-2">
-              <Label htmlFor="routing-number">Routing Number</Label>
-              <Input
-                id="routing-number"
-                value={formData.routingNumber}
-                onChange={(e) => handleInputChange(e, "routingNumber")}
-                placeholder="123456789"
-                className="w-full bg-neutral-100 backdrop-blur-md shadow-inner border border-neutral-200/50 text-neutral-600 font-normal pl-4 pr-4 h-14 rounded-xl focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent"
-              />
-            </div>
+            <FloatingLabelInput
+              id="routing-number"
+              label="Routing Number"
+              value={formData.routingNumber}
+              onChange={(e) => handleInputChange(e, "routingNumber")}
+            />
             
-            <div className="space-y-2">
-              <Label htmlFor="account-number">Account Number</Label>
-              <Input
-                id="account-number"
-                value={formData.accountNumber}
-                onChange={(e) => handleInputChange(e, "accountNumber")}
-                placeholder="987654321"
-                className="w-full bg-neutral-100 backdrop-blur-md shadow-inner border border-neutral-200/50 text-neutral-600 font-normal pl-4 pr-4 h-14 rounded-xl focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent"
-              />
-            </div>
+            <FloatingLabelInput
+              id="account-number"
+              label="Account Number"
+              value={formData.accountNumber}
+              onChange={(e) => handleInputChange(e, "accountNumber")}
+            />
           </div>
           
           <div className="space-y-2">
@@ -150,61 +134,41 @@ export default function UsdBusinessTemplate({
         <h3 className="text-lg font-medium mb-2">Recipient Address</h3>
           
         <div className="space-y-3">
-          <div className="space-y-2">
-            <Label htmlFor="country">Country</Label>
-            <Input
-              id="country"
-              value={formData.country}
-              onChange={(e) => handleInputChange(e, "country")}
-              placeholder="United States"
-              disabled
-              className="w-full bg-neutral-100 backdrop-blur-md shadow-inner border border-neutral-200/50 text-neutral-600 font-normal pl-4 pr-4 h-14 rounded-xl cursor-not-allowed opacity-75"
-            />
-          </div>
+          <FloatingLabelInput
+            id="country"
+            label="Country"
+            value={formData.country}
+            onChange={(e) => handleInputChange(e, "country")}
+            disabled
+          />
           
-          <div className="space-y-2">
-            <Label htmlFor="city">City</Label>
-            <Input
-              id="city"
-              value={formData.city}
-              onChange={(e) => handleInputChange(e, "city")}
-              placeholder="New York"
-              className="w-full bg-neutral-100 backdrop-blur-md shadow-inner border border-neutral-200/50 text-neutral-600 font-normal pl-4 pr-4 h-14 rounded-xl focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent"
-            />
-          </div>
+          <FloatingLabelInput
+            id="city"
+            label="City"
+            value={formData.city}
+            onChange={(e) => handleInputChange(e, "city")}
+          />
           
-          <div className="space-y-2">
-            <Label htmlFor="state">State</Label>
-            <Input
-              id="state"
-              value={formData.state}
-              onChange={(e) => handleInputChange(e, "state")}
-              placeholder="TX (State Abbreviation)"
-              className="w-full bg-neutral-100 backdrop-blur-md shadow-inner border border-neutral-200/50 text-neutral-600 font-normal pl-4 pr-4 h-14 rounded-xl focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent"
-            />
-          </div>
+          <FloatingLabelInput
+            id="state"
+            label="State"
+            value={formData.state}
+            onChange={(e) => handleInputChange(e, "state")}
+          />
           
-          <div className="space-y-2">
-            <Label htmlFor="address">Recipient Address</Label>
-            <Input
-              id="address"
-              value={formData.address}
-              onChange={(e) => handleInputChange(e, "address")}
-              placeholder="123 Business Street, Suite 100"
-              className="w-full bg-neutral-100 backdrop-blur-md shadow-inner border border-neutral-200/50 text-neutral-600 font-normal pl-4 pr-4 h-14 rounded-xl focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent"
-            />
-          </div>
+          <FloatingLabelInput
+            id="address"
+            label="Recipient Address"
+            value={formData.address}
+            onChange={(e) => handleInputChange(e, "address")}
+          />
           
-          <div className="space-y-2">
-            <Label htmlFor="post-code">Post Code</Label>
-            <Input
-              id="post-code"
-              value={formData.postCode}
-              onChange={(e) => handleInputChange(e, "postCode")}
-              placeholder="10001"
-              className="w-full bg-neutral-100 backdrop-blur-md shadow-inner border border-neutral-200/50 text-neutral-600 font-normal pl-4 pr-4 h-14 rounded-xl focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent"
-            />
-          </div>
+          <FloatingLabelInput
+            id="post-code"
+            label="Post Code"
+            value={formData.postCode}
+            onChange={(e) => handleInputChange(e, "postCode")}
+          />
         </div>
       </div>
     </PaymentTemplate>

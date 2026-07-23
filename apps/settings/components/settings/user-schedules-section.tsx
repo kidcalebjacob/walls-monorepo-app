@@ -12,6 +12,7 @@ import {
 import { Plus, Trash2 } from "lucide-react";
 import { getSupabaseClient } from "@/lib/auth";
 import { wallsToast } from "@/components/ui/walls-toast";
+import { FloatingLabelInput } from "@/components/ui/floating-label-input";
 
 export type ScheduleKind = "work" | "personal" | "custom";
 
@@ -833,34 +834,29 @@ export const UserSchedulesSection = forwardRef<
       {selected && (
         <div className="space-y-5">
           {selected.kind === "custom" && (
-            <div>
-              <label htmlFor="schedule-name" className={labelClass}>
-                Name
-              </label>
-              <div className="flex items-end gap-3">
-                <input
-                  id="schedule-name"
-                  type="text"
-                  value={selected.name}
-                  onChange={(e) =>
-                    updateSelected((current) => ({
-                      ...current,
-                      name: e.target.value,
-                    }))
-                  }
-                  className={fieldClass}
-                  placeholder="Schedule name"
-                />
-                <button
-                  type="button"
-                  onClick={removeCustom}
-                  className="mb-2 inline-flex items-center gap-1 text-xs font-light text-neutral-400 hover:text-red-500"
-                  aria-label="Delete schedule"
-                >
-                  <Trash2 className="h-3.5 w-3.5" />
-                  Delete
-                </button>
-              </div>
+            <div className="flex items-end gap-3">
+              <FloatingLabelInput
+                id="schedule-name"
+                type="text"
+                label="Schedule name"
+                value={selected.name}
+                onChange={(e) =>
+                  updateSelected((current) => ({
+                    ...current,
+                    name: e.target.value,
+                  }))
+                }
+                containerClassName="min-w-0 flex-1"
+              />
+              <button
+                type="button"
+                onClick={removeCustom}
+                className="mb-2 inline-flex items-center gap-1 text-xs font-light text-neutral-400 hover:text-red-500"
+                aria-label="Delete schedule"
+              >
+                <Trash2 className="h-3.5 w-3.5" />
+                Delete
+              </button>
             </div>
           )}
 

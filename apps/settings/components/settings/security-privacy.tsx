@@ -5,7 +5,7 @@ import { wallsToast } from "@/components/ui/walls-toast";
 import { useCallback, useEffect, useState } from "react";
 import { useAuth, getSupabaseClient } from "@/lib/auth";
 import { Button } from "@/components/ui/button";
-import { Label } from "@/components/ui/label";
+import { FloatingLabelInput } from "@/components/ui/floating-label-input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Toaster } from "@/components/ui/toaster";
 import { Eye, EyeOff, Loader2, Plug, Shield, ShieldCheck } from "lucide-react";
@@ -418,83 +418,83 @@ export default function SecurityPrivacyPage() {
               </p>
 
               <div className="space-y-3">
-                {/* Current password */}
-                <div className="space-y-1.5">
-                  <Label htmlFor="current-password" className="text-[11px] font-normal uppercase tracking-[0.16em] text-neutral-500">
-                    Current password
-                  </Label>
-                  <div className="relative">
-                    <input
-                      id="current-password"
-                      type={showCurrentPassword ? "text" : "password"}
-                      value={currentPassword}
-                      onChange={(e) => setCurrentPassword(e.target.value)}
-                      disabled={passwordLoading}
-                      placeholder="••••••••"
-                      className="w-full bg-neutral-100 backdrop-blur-md shadow-inner border border-neutral-200/50 text-neutral-800 font-normal px-4 pr-10 py-3 rounded-xl focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent disabled:opacity-60"
-                    />
+                <FloatingLabelInput
+                  id="current-password"
+                  type={showCurrentPassword ? "text" : "password"}
+                  label="Current password"
+                  value={currentPassword}
+                  onChange={(e) => setCurrentPassword(e.target.value)}
+                  disabled={passwordLoading}
+                  endAdornment={
                     <button
                       type="button"
                       onClick={() => setShowCurrentPassword((v) => !v)}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-neutral-500 hover:text-foreground transition-colors"
+                      className="text-neutral-500 transition-colors hover:text-foreground"
+                      aria-label={
+                        showCurrentPassword ? "Hide password" : "Show password"
+                      }
                     >
-                      {showCurrentPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                      {showCurrentPassword ? (
+                        <EyeOff className="h-4 w-4" />
+                      ) : (
+                        <Eye className="h-4 w-4" />
+                      )}
                     </button>
-                  </div>
-                </div>
+                  }
+                />
 
-            {/* New password */}
-            <div className="space-y-1.5">
-              <Label htmlFor="new-password" className="text-[11px] font-normal uppercase tracking-[0.16em] text-neutral-500">
-                New password
-              </Label>
-              <div className="relative">
-                <input
+                <FloatingLabelInput
                   id="new-password"
                   type={showNewPassword ? "text" : "password"}
+                  label="New password"
                   value={newPassword}
                   onChange={(e) => setNewPassword(e.target.value)}
                   disabled={passwordLoading}
-                  placeholder="••••••••"
-                  className="w-full bg-neutral-100 backdrop-blur-md shadow-inner border border-neutral-200/50 text-neutral-800 font-normal px-4 pr-10 py-3 rounded-xl focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent disabled:opacity-60"
+                  endAdornment={
+                    <button
+                      type="button"
+                      onClick={() => setShowNewPassword((v) => !v)}
+                      className="text-neutral-500 transition-colors hover:text-foreground"
+                      aria-label={
+                        showNewPassword ? "Hide password" : "Show password"
+                      }
+                    >
+                      {showNewPassword ? (
+                        <EyeOff className="h-4 w-4" />
+                      ) : (
+                        <Eye className="h-4 w-4" />
+                      )}
+                    </button>
+                  }
                 />
-                <button
-                  type="button"
-                  onClick={() => setShowNewPassword((v) => !v)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-neutral-500 hover:text-foreground transition-colors"
-                >
-                  {showNewPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                </button>
-              </div>
-            </div>
 
-            {/* Confirm new password */}
-            <div className="space-y-1.5">
-              <Label htmlFor="confirm-password" className="text-[11px] font-normal uppercase tracking-[0.16em] text-neutral-500">
-                Confirm new password
-              </Label>
-              <div className="relative">
-                <input
+                <FloatingLabelInput
                   id="confirm-password"
                   type={showConfirmPassword ? "text" : "password"}
+                  label="Confirm new password"
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
                   disabled={passwordLoading}
-                  placeholder="••••••••"
                   onKeyDown={(e) => {
                     if (e.key === "Enter" && !passwordLoading) handlePasswordChange();
                   }}
-                  className="w-full bg-neutral-100 backdrop-blur-md shadow-inner border border-neutral-200/50 text-neutral-800 font-normal px-4 pr-10 py-3 rounded-xl focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent disabled:opacity-60"
+                  endAdornment={
+                    <button
+                      type="button"
+                      onClick={() => setShowConfirmPassword((v) => !v)}
+                      className="text-neutral-500 transition-colors hover:text-foreground"
+                      aria-label={
+                        showConfirmPassword ? "Hide password" : "Show password"
+                      }
+                    >
+                      {showConfirmPassword ? (
+                        <EyeOff className="h-4 w-4" />
+                      ) : (
+                        <Eye className="h-4 w-4" />
+                      )}
+                    </button>
+                  }
                 />
-                <button
-                  type="button"
-                  onClick={() => setShowConfirmPassword((v) => !v)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-neutral-500 hover:text-foreground transition-colors"
-                >
-                  {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                </button>
-              </div>
-            </div>
 
             {passwordError && (
               <p className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2">

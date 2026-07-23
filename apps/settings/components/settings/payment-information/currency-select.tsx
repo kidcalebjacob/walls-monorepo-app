@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import CurrencyCard, { Currency } from "./currency-card";
-import { Input } from "@/components/ui/input";
+import { FloatingLabelInput } from "@/components/ui/floating-label-input";
 import { Search } from "lucide-react";
 import { motion } from "framer-motion";
 
@@ -68,22 +68,18 @@ export default function CurrencySelect({
   );
 
   return (
-    <div className="w-full flex flex-col flex-1 min-h-0 overflow-hidden">
-      <div className="relative flex-shrink-0 sticky top-0 z-10 bg-background">
-        <div className="absolute inset-y-0 left-0 pl-4 flex items-center gap-3 pointer-events-none z-10">
-          <Search className="h-5 w-5 text-neutral-500" />
-          <div className="h-6 w-px bg-neutral-300" />
-        </div>
-        <Input
+    <div className="flex w-full min-h-0 flex-1 flex-col overflow-hidden">
+      <div className="sticky top-0 z-10 flex-shrink-0 bg-background pb-2">
+        <FloatingLabelInput
           type="text"
-          placeholder="Search currency"
+          label="Search currency"
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
-          className="w-full bg-neutral-100 backdrop-blur-md shadow-inner border border-neutral-200/50 text-neutral-600 font-normal pl-16 pr-4 h-14 rounded-xl focus:outline-none focus:ring-0 focus:border-neutral-200/50"
+          startAdornment={<Search className="h-4 w-4 text-neutral-500" aria-hidden />}
         />
       </div>
       
-      <div className="space-y-4 w-full overflow-y-auto flex-1 pt-4 pb-16">
+      <div className="w-full flex-1 space-y-4 overflow-y-auto pb-16 pt-2">
         {filteredCurrencies.map((currency, index) => (
           <motion.div
             key={currency.id}
@@ -102,12 +98,6 @@ export default function CurrencySelect({
             />
           </motion.div>
         ))}
-        
-        {filteredCurrencies.length === 0 && (
-          <div className="text-center py-4 text-muted-foreground">
-            No currencies found matching "{searchTerm}"
-          </div>
-        )}
       </div>
     </div>
   );

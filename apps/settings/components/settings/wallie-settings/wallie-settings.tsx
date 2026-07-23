@@ -5,7 +5,7 @@ import { cn } from "@/lib/utils";
 import { getSupabaseClient, useAuth } from "@/lib/auth";
 import { wallsToast } from "@/components/ui/walls-toast";
 import { Toaster } from "@/components/ui/toaster";
-import { Input as BorderlessInput } from "@/components/ui/borderless-input";
+import { FloatingLabelInput } from "@/components/ui/floating-label-input";
 import { motion, AnimatePresence } from "framer-motion";
 import { Check, X, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -80,8 +80,6 @@ const EMOJI_OPTIONS: { value: boolean; label: string; helper: string }[] = [
   { value: true, label: "Use emojis", helper: "Add personality with emojis." },
 ];
 
-const fieldClass =
-  "border-0 border-b border-neutral-200 rounded-none px-0 py-2 font-light focus:outline-none focus-visible:outline-none focus-visible:ring-0 focus:ring-0 focus:border-b-[var(--kenoo-sky)] bg-transparent w-full placeholder:text-neutral-300";
 const labelClass = "text-xs font-normal text-neutral-400 tracking-wide block mb-1";
 const textareaClass =
   "border-0 border-b border-neutral-200 rounded-none px-0 py-2 font-light focus:outline-none focus-visible:outline-none focus-visible:ring-0 focus:ring-0 focus:border-b-[var(--kenoo-sky)] bg-transparent w-full resize-none text-sm placeholder:text-neutral-300";
@@ -403,25 +401,21 @@ export default function WallieSettingsPage() {
               >
                 {/* Profile Name */}
                 <div className="mb-4">
-                  <label className={labelClass}>Profile name</label>
-                  <BorderlessInput
+                  <FloatingLabelInput
                     type="text"
+                    label="Profile name"
                     value={current.name}
                     onChange={(e) => setField("name", e.target.value)}
-                    placeholder={AGENT_TABS.find((t) => t.value === activeTab)?.label ?? "Profile name"}
-                    className={fieldClass}
                   />
                 </div>
 
                 {/* Description */}
                 <div className="mb-4">
-                  <label className={labelClass}>Description</label>
-                  <BorderlessInput
+                  <FloatingLabelInput
                     type="text"
+                    label="Description"
                     value={current.description}
                     onChange={(e) => setField("description", e.target.value)}
-                    placeholder="Optional — what is this profile for?"
-                    className={fieldClass}
                   />
                 </div>
 

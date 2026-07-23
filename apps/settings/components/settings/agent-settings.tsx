@@ -20,7 +20,7 @@ import {
 } from "@/components/ui/select";
 import { COMMON_TIMEZONES, TimezoneGroup } from "@/types/timezone.types";
 import { SquareImageCrop } from "@/components/ui/square-image-crop";
-import { Input as BorderlessInput } from "@/components/ui/borderless-input";
+import { FloatingLabelInput } from "@/components/ui/floating-label-input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { getSupabaseClient } from "@/lib/auth";
 import { motion, AnimatePresence } from "framer-motion";
@@ -608,47 +608,29 @@ const AgentSettingsPage = () => {
                   
                   {/* Name Fields - Right Side, Separate Rows */}
                   <div className="flex-1 space-y-4">
-                    <div>
-                      <label htmlFor="first-name" className={labelClass}>
-                        First name
-                      </label>
-                      <BorderlessInput
-                        id="first-name"
-                        type="text"
-                        value={firstName}
-                        onChange={(e) => setFirstName(e.target.value)}
-                        className={fieldClass}
-                        placeholder="First name"
-                      />
-                    </div>
-                    
-                    <div>
-                      <label htmlFor="last-name" className={labelClass}>
-                        Last name
-                      </label>
-                      <BorderlessInput
-                        id="last-name"
-                        type="text"
-                        value={lastName}
-                        onChange={(e) => setLastName(e.target.value)}
-                        className={fieldClass}
-                        placeholder="Last name"
-                      />
-                    </div>
+                    <FloatingLabelInput
+                      id="first-name"
+                      type="text"
+                      label="First name"
+                      value={firstName}
+                      onChange={(e) => setFirstName(e.target.value)}
+                    />
+                    <FloatingLabelInput
+                      id="last-name"
+                      type="text"
+                      label="Last name"
+                      value={lastName}
+                      onChange={(e) => setLastName(e.target.value)}
+                    />
                   </div>
                 </div>
                 
                 {/* Date of Birth Field - Full Width */}
-                <div>
-                  <label htmlFor="date-of-birth" className={labelClass}>
-                    Date of Birth
-                  </label>
-                  <CalendarForm
-                    existingDob={existingDob}
-                    dob={dob}
-                    setDob={setDob}
-                  />
-                </div>
+                <CalendarForm
+                  existingDob={existingDob}
+                  dob={dob}
+                  setDob={setDob}
+                />
               </div>
 
               {/* Contact Information Divider */}
@@ -662,80 +644,50 @@ const AgentSettingsPage = () => {
                 <div className="flex gap-4">
                   {/* Left Column - Email Fields */}
                   <div className="flex-1 space-y-4">
-                    <div>
-                      <label htmlFor="personal-email" className={labelClass}>
-                        Personal email
-                      </label>
-                      <BorderlessInput
-                        id="personal-email"
-                        type="email"
-                        value={personalEmail}
-                        onChange={(e) => setPersonalEmail(e.target.value)}
-                        className={fieldClass}
-                        placeholder="Personal email address"
-                      />
-                    </div>
-                    
-                    <div>
-                      <label htmlFor="agency-email" className={labelClass}>
-                        Agency email
-                      </label>
-                      <div className="relative">
-                        <BorderlessInput
-                          id="agency-email"
-                          type="email"
-                          value={agencyEmail}
-                          readOnly
-                          className={readonlyFieldClass}
-                          placeholder="Agency email address"
-                        />
-                        <Lock className="absolute right-0 top-1/2 -translate-y-1/2 h-4 w-4 text-neutral-500" />
-                      </div>
-                    </div>
+                    <FloatingLabelInput
+                      id="personal-email"
+                      type="email"
+                      label="Personal email"
+                      value={personalEmail}
+                      onChange={(e) => setPersonalEmail(e.target.value)}
+                    />
+                    <FloatingLabelInput
+                      id="agency-email"
+                      type="email"
+                      label="Agency email"
+                      value={agencyEmail}
+                      readOnly
+                      endAdornment={
+                        <Lock className="h-4 w-4 text-neutral-500" aria-hidden />
+                      }
+                    />
                   </div>
 
                   {/* Right Column - LinkedIn and Phone */}
                   <div className="flex-1 space-y-4">
-                    <div>
-                      <label htmlFor="linkedin" className={labelClass}>
-                        LinkedIn URL
-                      </label>
-                      <BorderlessInput
-                        id="linkedin"
-                        type="url"
-                        placeholder="https://linkedin.com/in/your-profile"
-                        value={linkedInUrl}
-                        onChange={(e) => setLinkedInUrl(e.target.value)}
-                        className={fieldClass}
-                      />
-                    </div>
-
-                    <div>
-                      <label htmlFor="phone-number" className={labelClass}>
-                        Phone Number
-                      </label>
-                      <BorderlessInput
-                        id="phone-number"
-                        type="tel"
-                        placeholder="+13103878027"
-                        value={phoneNumber}
-                        onChange={(e) => setPhoneNumber(e.target.value)}
-                        className={fieldClass}
-                      />
-                    </div>
+                    <FloatingLabelInput
+                      id="linkedin"
+                      type="url"
+                      label="LinkedIn URL"
+                      value={linkedInUrl}
+                      onChange={(e) => setLinkedInUrl(e.target.value)}
+                    />
+                    <FloatingLabelInput
+                      id="phone-number"
+                      type="tel"
+                      label="Phone Number"
+                      value={phoneNumber}
+                      onChange={(e) => setPhoneNumber(e.target.value)}
+                    />
                   </div>
                 </div>
 
                 <div>
-                  <label htmlFor="address" className={labelClass}>
-                    Address
-                  </label>
                   <AutocompleteComponent
                     key={addressResetKey}
                     setAddressNew={setAddressNew}
                     existingAddress={existingAddress}
-                    inputClassName={fieldClass}
-                    placeholder="Enter address"
+                    label="Address"
                   />
                 </div>
               </div>

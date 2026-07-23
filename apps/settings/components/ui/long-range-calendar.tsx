@@ -1,5 +1,7 @@
 "use client";
 
+import { FloatingLabelInput } from "@/components/ui/floating-label-input";
+
 interface LongRangeCalendarProps {
   selected?: Date;
   onSelect?: (date: Date | undefined) => void;
@@ -22,12 +24,12 @@ export function LongRangeCalendar({
   const max = disableFuture ? toDateInputValue(new Date()) : undefined;
 
   return (
-    <input
+    <FloatingLabelInput
       type="date"
+      label="Date of birth"
       value={value}
       max={max}
       autoFocus
-      className="w-full rounded-2xl border border-neutral-200 bg-white p-4 text-sm font-light"
       onChange={(event) => {
         const nextValue = event.target.value;
         if (!nextValue) {
