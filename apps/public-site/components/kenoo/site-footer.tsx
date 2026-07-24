@@ -4,6 +4,7 @@ import Link from "next/link";
 import { KENOO_PORTAL_URL } from "@/lib/urls";
 
 const footerLinks = [
+  { href: "/product", label: "Products" },
   { href: "/solutions", label: "Solutions" },
   { href: "/resources", label: "Resources" },
   { href: "/enterprise", label: "Enterprise" },

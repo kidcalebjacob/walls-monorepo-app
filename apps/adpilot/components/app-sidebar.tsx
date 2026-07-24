@@ -25,7 +25,7 @@ const navItems = [
   { href: "/settings", label: "Settings", icon: Settings },
 ] as const;
 
-export function AppSidebar({ headerVisible = true }: { headerVisible?: boolean }) {
+export function AppSidebar() {
   const { isLoading } = useAuth();
   const pathname = usePathname();
   const { isCollapsed, setIsCollapsed, setIsHoverExpanded, isExpanded } =
@@ -36,10 +36,9 @@ export function AppSidebar({ headerVisible = true }: { headerVisible?: boolean }
   return (
     <div
       className={cn(
-        "fixed left-0 z-40 hidden md:flex",
+        // Locked full-height so the centered rail stays put when the header auto-hides.
+        "fixed left-0 top-0 z-40 hidden h-screen md:flex",
         "pointer-events-none items-center justify-start pl-3",
-        "transition-[padding-top] duration-300 ease-in-out",
-        headerVisible ? "top-16 h-[calc(100vh-4rem)]" : "top-0 h-screen",
       )}
       onMouseEnter={() => setIsHoverExpanded(true)}
       onMouseLeave={() => setIsHoverExpanded(false)}

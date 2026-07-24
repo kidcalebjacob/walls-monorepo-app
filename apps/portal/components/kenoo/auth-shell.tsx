@@ -1,7 +1,5 @@
 import type { ReactNode } from "react";
 
-import { KenooWordmark } from "@walls/ui/kenoo-wordmark";
-
 type AuthShellProps = {
   children: ReactNode;
   /** Wider content (e.g. post-login app launcher). */
@@ -16,10 +14,6 @@ export function AuthShell({
 }: AuthShellProps) {
   return (
     <div className="relative flex min-h-screen items-center justify-center bg-kenoo-canvas px-6 py-12">
-      <div className="absolute top-4 left-4 z-20 sm:left-6">
-        <KenooWordmark className="h-6 sm:h-7" />
-      </div>
-
       {topRight ? (
         <div className="absolute top-4 right-4 z-20 sm:right-6">{topRight}</div>
       ) : null}

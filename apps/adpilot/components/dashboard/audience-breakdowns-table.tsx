@@ -158,7 +158,7 @@ export function AudienceBreakdownsTable({
   className,
 }: AudienceBreakdownsTableProps) {
   const [breakdownType, setBreakdownType] =
-    React.useState<AudienceBreakdownType>("age");
+    React.useState<AudienceBreakdownType>("gender");
   const [page, setPage] = React.useState(0);
   const [sortColumn, setSortColumn] = React.useState<SortColumnId>("roas");
   const [sortDirection, setSortDirection] =

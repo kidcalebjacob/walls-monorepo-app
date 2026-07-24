@@ -12,18 +12,20 @@ type AppSidebarLayoutProps = {
 };
 
 function AppSidebarContent({ children, className }: AppSidebarLayoutProps) {
-  const { isCollapsed, isHoverExpanded } = useAppSidebar();
-  const isExpanded = !isCollapsed || isHoverExpanded;
+  const { isCollapsed } = useAppSidebar();
+  // Offset only when the rail is pinned open. Hover expansion overlays the
+  // page so charts/maps (MapLibre) aren't resized mid-transition.
+  const isPinnedOpen = !isCollapsed;
   const headerVisible = useAppHeaderVisible();
 
   return (
     <>
-      <AppSidebar headerVisible={headerVisible} />
+      <AppSidebar />
       <div
         className={cn(
           "flex h-screen min-w-0 flex-col overflow-hidden bg-kenoo-white transition-[margin-left,padding-top] duration-300",
           headerVisible ? "pt-16" : "pt-0",
-          isExpanded ? "md:ml-[13.25rem]" : "md:ml-[5.25rem]",
+          isPinnedOpen ? "md:ml-[13.25rem]" : "md:ml-[5.25rem]",
           className,
         )}
       >

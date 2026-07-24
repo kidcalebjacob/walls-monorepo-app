@@ -32,8 +32,8 @@ type Totals = {
 
 function emptyByType(): Record<AudienceBreakdownType, AudienceBreakdownRow[]> {
   return {
-    age: [],
     gender: [],
+    age: [],
     age_gender: [],
     country: [],
   };

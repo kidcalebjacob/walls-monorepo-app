@@ -220,7 +220,7 @@ export function DashboardPage() {
             data={
               analytics?.audienceBreakdowns ?? {
                 hasData: false,
-                byType: { age: [], gender: [], age_gender: [], country: [] },
+                byType: { gender: [], age: [], age_gender: [], country: [] },
               }
             }
           />
@@ -235,7 +235,7 @@ export function DashboardPage() {
             data={
               analytics?.audienceBreakdowns ?? {
                 hasData: false,
-                byType: { age: [], gender: [], age_gender: [], country: [] },
+                byType: { gender: [], age: [], age_gender: [], country: [] },
               }
             }
           />

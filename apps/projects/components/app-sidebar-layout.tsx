@@ -13,8 +13,10 @@ type AppSidebarLayoutProps = {
 };
 
 function AppSidebarContent({ children, className }: AppSidebarLayoutProps) {
-  const { isCollapsed, isHoverExpanded } = useAppSidebar();
-  const isExpanded = !isCollapsed || isHoverExpanded;
+  const { isCollapsed } = useAppSidebar();
+  // Inset only when the rail is pinned open. Hover expansion overlays the
+  // page so padded content isn't resized mid-transition.
+  const isPinnedOpen = !isCollapsed;
   const headerVisible = useAppHeaderVisible();
 
   return (
@@ -39,7 +41,7 @@ function AppSidebarContent({ children, className }: AppSidebarLayoutProps) {
         )}
         style={
           {
-            "--app-sidebar-inset": isExpanded ? "13.25rem" : "5.25rem",
+            "--app-sidebar-inset": isPinnedOpen ? "13.25rem" : "5.25rem",
           } as CSSProperties
         }
       >

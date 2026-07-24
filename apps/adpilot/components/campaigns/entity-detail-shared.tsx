@@ -10,6 +10,7 @@ import {
   CircleDollarSign,
   Eye,
   ImageIcon,
+  Info,
   Minus,
   MousePointerClick,
   Plus,
@@ -582,10 +583,13 @@ function hasReachSaturationData(saturation: ReachSaturation | null | undefined) 
 export function EntityMetricsGrid({
   metrics,
   reachSaturation,
+  dailyBudgetMicros,
   afterFooter,
 }: {
   metrics: EntityDetailMetrics;
   reachSaturation?: ReachSaturation | null;
+  /** Current daily budget — used for saturation spend-pace tooltip. */
+  dailyBudgetMicros?: number | null;
   /** Content below the saturation bar (e.g. daily progress chart). */
   afterFooter?: React.ReactNode;
 }) {
@@ -614,7 +618,12 @@ export function EntityMetricsGrid({
   return (
     <HeroStatsBar
       footer={
-        saturation ? <ReachSaturationBar saturation={saturation} /> : null
+        saturation ? (
+          <ReachSaturationBar
+            saturation={saturation}
+            dailyBudgetMicros={dailyBudgetMicros}
+          />
+        ) : null
       }
       afterFooter={afterFooter}
     >
@@ -694,10 +703,49 @@ function nextSaturationMilestone(pct: number) {
   return SATURATION_GUIDES.find((guide) => pct < guide.pct) ?? null;
 }
 
+/** Rough duration to burn remaining spend at the current daily budget. */
+function formatDaysAtDailyBudget(
+  spendMicros: number,
+  dailyBudgetMicros: number,
+): string | null {
+  if (spendMicros <= 0 || dailyBudgetMicros <= 0) return null;
+  const daysExact = spendMicros / dailyBudgetMicros;
+  if (!Number.isFinite(daysExact) || daysExact <= 0) return null;
+
+  if (daysExact < 1) {
+    const hours = Math.max(1, Math.round(daysExact * 24));
+    return `About ${hours} hour${hours === 1 ? "" : "s"} at your current daily budget`;
+  }
+
+  const totalDays = Math.max(1, Math.round(daysExact));
+  return `About ${formatSpendDuration(totalDays)} at your current daily budget`;
+}
+
+/** Format a day count as "3 days", "2 months and 3 days", "1 year and 2 months", etc. */
+function formatSpendDuration(totalDays: number): string {
+  const years = Math.floor(totalDays / 365);
+  const afterYears = totalDays % 365;
+  const months = Math.floor(afterYears / 30);
+  const days = afterYears % 30;
+
+  const parts: string[] = [];
+  if (years > 0) parts.push(`${years} year${years === 1 ? "" : "s"}`);
+  if (months > 0) parts.push(`${months} month${months === 1 ? "" : "s"}`);
+  if (days > 0 || parts.length === 0) {
+    parts.push(`${days} day${days === 1 ? "" : "s"}`);
+  }
+
+  if (parts.length === 1) return parts[0]!;
+  if (parts.length === 2) return `${parts[0]} and ${parts[1]}`;
+  return `${parts[0]}, ${parts[1]}, and ${parts[2]}`;
+}
+
 function ReachSaturationBar({
   saturation,
+  dailyBudgetMicros,
 }: {
   saturation: ReachSaturation;
+  dailyBudgetMicros?: number | null;
 }) {
   const {
     lifetimeReach,
@@ -726,6 +774,18 @@ function ReachSaturationBar({
           saturationRatio,
           nextMilestone.pct / 100,
         )
+      : null;
+  const daysAtBudgetLabel =
+    spendToMilestoneMicros != null &&
+    dailyBudgetMicros != null &&
+    dailyBudgetMicros > 0
+      ? formatDaysAtDailyBudget(spendToMilestoneMicros, dailyBudgetMicros)
+      : null;
+  const budgetForTooltip =
+    daysAtBudgetLabel != null &&
+    dailyBudgetMicros != null &&
+    dailyBudgetMicros > 0
+      ? dailyBudgetMicros
       : null;
 
   const audienceLabel = formatAudienceBand(
@@ -880,11 +940,40 @@ function ReachSaturationBar({
         </p>
 
         {nextMilestone != null && spendToMilestoneMicros != null ? (
-          <p className="text-sm font-light text-neutral-500">
-            <span className="font-medium tabular-nums text-neutral-800">
-              {formatCurrencyFromMicros(spendToMilestoneMicros)}
-            </span>{" "}
-            left to {nextMilestone.pct}% saturation
+          <p className="inline-flex items-center gap-1.5 text-sm font-light text-neutral-500">
+            {daysAtBudgetLabel && budgetForTooltip != null ? (
+              <span className="group/pace relative inline-flex">
+                <button
+                  type="button"
+                  className="inline-flex cursor-help items-center justify-center rounded-full text-neutral-400 outline-none transition-colors hover:text-neutral-600 focus-visible:text-neutral-600"
+                  aria-label={daysAtBudgetLabel}
+                >
+                  <Info className="h-3.5 w-3.5" strokeWidth={2} />
+                </button>
+                <span
+                  role="tooltip"
+                  className={cn(
+                    "pointer-events-none absolute bottom-[calc(100%+8px)] right-0 z-20 w-52",
+                    "rounded-xl border border-neutral-200/80 bg-white/95 px-3 py-2 text-left shadow-lg backdrop-blur-sm",
+                    "opacity-0 transition-opacity duration-150",
+                    "group-hover/pace:opacity-100 group-focus-within/pace:opacity-100",
+                  )}
+                >
+                  <span className="block text-[11px] font-light leading-snug text-neutral-600">
+                    {daysAtBudgetLabel}
+                    <span className="mt-0.5 block tabular-nums text-neutral-400">
+                      {formatCurrencyFromMicros(budgetForTooltip)} / day
+                    </span>
+                  </span>
+                </span>
+              </span>
+            ) : null}
+            <span>
+              <span className="font-medium tabular-nums text-neutral-800">
+                {formatCurrencyFromMicros(spendToMilestoneMicros)}
+              </span>{" "}
+              left to {nextMilestone.pct}% saturation
+            </span>
           </p>
         ) : pct != null && pct >= 50 ? (
           <p className="text-sm font-light text-neutral-500">

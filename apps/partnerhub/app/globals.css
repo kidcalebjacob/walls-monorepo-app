@@ -1,0 +1,247 @@
+@import "tailwindcss";
+@import "@walls/ui/kenoo-theme.css";
+
+@source "../../../packages/ui/src";
+@source "../components";
+
+:root {
+  --background: var(--kenoo-white);
+  --foreground: #0a0a0a;
+  --card: var(--kenoo-white);
+  --muted: #737373;
+  --muted-foreground: #737373;
+  --accent: #f3f3f3;
+  --accent-foreground: #0a0a0a;
+  --border: #e8e8e8;
+  --input: #e8e8e8;
+  --ring-offset-background: var(--kenoo-white);
+  --popover: var(--kenoo-white);
+  --popover-foreground: #0a0a0a;
+}
+
+@theme inline {
+  --color-background: var(--kenoo-white);
+  --color-foreground: #0a0a0a;
+  --color-card: var(--kenoo-white);
+  --color-muted: #737373;
+  --color-muted-foreground: #737373;
+  --color-accent: #f3f3f3;
+  --color-accent-foreground: #0a0a0a;
+  --color-border: #e8e8e8;
+  --color-input: #e8e8e8;
+  --color-ring-offset-background: var(--kenoo-white);
+  --color-popover: var(--kenoo-white);
+  --color-popover-foreground: #0a0a0a;
+  --color-kenoo-blue: var(--kenoo-blue);
+  --color-kenoo-yellow: var(--kenoo-yellow);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+@layer base {
+  html[data-app="partnerhub"],
+  html[data-app="partnerhub"] body {
+    height: 100%;
+    overflow: hidden;
+    background-color: var(--kenoo-white);
+    color: #0a0a0a;
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    font-family: var(--font-sans), Arial, Helvetica, sans-serif;
+  }
+
+  button:not(:disabled),
+  [role="button"]:not([aria-disabled="true"]),
+  a[href],
+  label[for],
+  select:not(:disabled),
+  summary,
+  input[type="button"]:not(:disabled),
+  input[type="submit"]:not(:disabled),
+  input[type="reset"]:not(:disabled),
+  input[type="checkbox"]:not(:disabled),
+  input[type="radio"]:not(:disabled),
+  [role="link"],
+  [role="menuitem"]:not([data-disabled]),
+  [role="menuitemcheckbox"]:not([data-disabled]),
+  [role="menuitemradio"]:not([data-disabled]),
+  [role="option"]:not([data-disabled]),
+  [role="tab"]:not([aria-disabled="true"]),
+  [data-slot="trigger"] {
+    cursor: pointer;
+  }
+
+  button:disabled,
+  [aria-disabled="true"],
+  input:disabled,
+  select:disabled,
+  textarea:disabled {
+    cursor: not-allowed;
+  }
+
+  input:focus,
+  input:focus-visible,
+  textarea:focus,
+  textarea:focus-visible,
+  select:focus,
+  select:focus-visible,
+  button:focus,
+  button:focus-visible,
+  [role="button"]:focus,
+  [role="button"]:focus-visible {
+    outline: none !important;
+    outline-offset: 0;
+    /* Kill focus rings (Tailwind ring-* uses box-shadow). Hover insets live on child nodes. */
+    box-shadow: none !important;
+  }
+
+  [role="combobox"]:focus,
+  [role="combobox"]:focus-visible {
+    outline: none !important;
+    outline-offset: 0;
+  }
+
+  input:focus,
+  input:focus-visible,
+  textarea:focus,
+  textarea:focus-visible,
+  select:focus,
+  select:focus-visible,
+  [role="combobox"]:focus,
+  [role="combobox"]:focus-visible {
+    box-shadow: none;
+  }
+
+  input,
+  textarea,
+  select,
+  [role="combobox"] {
+    box-shadow: none;
+  }
+
+  input[type="number"] {
+    -moz-appearance: textfield;
+    appearance: textfield;
+  }
+
+  input[type="number"]::-webkit-outer-spin-button,
+  input[type="number"]::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
+}
+
+@layer utilities {
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* Clears the floating sidebar; use on page toolbars / list content. */
+  .app-sidebar-pad {
+    padding-left: 2rem;
+  }
+
+  @media (min-width: 768px) {
+    .app-sidebar-pad {
+      padding-left: calc(var(--app-sidebar-inset, 5.25rem) + 2rem);
+      transition: padding-left 300ms ease-in-out;
+    }
+  }
+}
+
+/* Chrome glow orbit — matches AdPilot Generate / Active chrome */
+@property --walls-chrome-reveal {
+  syntax: "<angle>";
+  inherits: false;
+  initial-value: 0deg;
+}
+
+@keyframes walls-chrome-orbit {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes walls-chrome-flow-in {
+  0% {
+    opacity: 0;
+    --walls-chrome-reveal: 0deg;
+    filter: brightness(2.4) saturate(1.5);
+  }
+  28% {
+    opacity: 1;
+    filter: brightness(1.7) saturate(1.3);
+  }
+  100% {
+    opacity: 1;
+    --walls-chrome-reveal: 360deg;
+    filter: brightness(1) saturate(1);
+  }
+}
+
+.walls-chrome-orbit {
+  will-change: transform, filter, opacity;
+  background: conic-gradient(
+    from 0deg,
+    #ffffff 0deg,
+    #c5e7ff 40deg,
+    #e8e8ec 80deg,
+    #ffffff 120deg,
+    #ffd2e8 160deg,
+    #bdbdc6 200deg,
+    #ffffff 240deg,
+    #d2ffe9 280deg,
+    #d6e8ff 320deg,
+    #ffffff 360deg
+  );
+  -webkit-mask-image: conic-gradient(
+    from -90deg,
+    #000 0deg,
+    #000 var(--walls-chrome-reveal),
+    transparent var(--walls-chrome-reveal)
+  );
+  mask-image: conic-gradient(
+    from -90deg,
+    #000 0deg,
+    #000 var(--walls-chrome-reveal),
+    transparent var(--walls-chrome-reveal)
+  );
+  animation:
+    walls-chrome-flow-in 1.2s cubic-bezier(0.16, 1, 0.3, 1) forwards,
+    walls-chrome-orbit 7s linear 1.05s infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .walls-chrome-orbit {
+    --walls-chrome-reveal: 360deg;
+    animation: none;
+    opacity: 1;
+    filter: none;
+  }
+}
+
+/* PartnerHub header accent (legacy chrome; kept for any leftover usages) */
+.partnerhub-header-accent {
+  background: linear-gradient(90deg, var(--kenoo-sky), var(--kenoo-yellow));
+}
+
+/* Temporary walls-* aliases for pasted PartnerHub UI */
+:root {
+  --walls-sky: var(--kenoo-sky);
+  --walls-yellow: var(--kenoo-yellow);
+}
+
+@theme inline {
+  --color-walls-sky: var(--kenoo-sky);
+  --color-walls-yellow: var(--kenoo-yellow);
+}

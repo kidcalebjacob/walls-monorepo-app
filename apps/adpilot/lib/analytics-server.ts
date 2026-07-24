@@ -597,7 +597,7 @@ export async function getDashboardAnalytics(
       daysHours: { hasData: false, cells: [] },
       audienceBreakdowns: {
         hasData: false,
-        byType: { age: [], gender: [], age_gender: [], country: [] },
+        byType: { gender: [], age: [], age_gender: [], country: [] },
       },
       frequencyBreakdowns: { hasData: false, totalReach: 0, buckets: [] },
     };

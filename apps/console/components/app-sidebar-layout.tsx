@@ -12,8 +12,10 @@ type AppSidebarLayoutProps = {
 };
 
 function AppSidebarContent({ children, className }: AppSidebarLayoutProps) {
-  const { isCollapsed, isHoverExpanded } = useConsoleSidebar();
-  const isExpanded = !isCollapsed || isHoverExpanded;
+  const { isCollapsed } = useConsoleSidebar();
+  // Offset only when the rail is pinned open. Hover expansion overlays the
+  // page so content isn't resized mid-transition.
+  const isPinnedOpen = !isCollapsed;
   const headerVisible = useAppHeaderVisible();
 
   return (
@@ -23,7 +25,7 @@ function AppSidebarContent({ children, className }: AppSidebarLayoutProps) {
         className={cn(
           "flex min-h-screen min-w-0 flex-col bg-gray-50 transition-[margin-left,padding-top] duration-300",
           headerVisible ? "pt-16" : "pt-0",
-          isExpanded ? "md:ml-40" : "md:ml-16",
+          isPinnedOpen ? "md:ml-40" : "md:ml-16",
           className,
         )}
       >

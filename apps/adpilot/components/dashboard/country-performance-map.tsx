@@ -231,7 +231,16 @@ export function CountryPerformanceMap({
 
     let cancelled = false;
     let resizeObserver: ResizeObserver | null = null;
+    let resizeRaf = 0;
+    let resizeSettleTimer = 0;
     let map: MapLibreMap | null = null;
+
+    const clearScheduledResize = () => {
+      if (resizeRaf) cancelAnimationFrame(resizeRaf);
+      resizeRaf = 0;
+      window.clearTimeout(resizeSettleTimer);
+      resizeSettleTimer = 0;
+    };
 
     void (async () => {
       const maplibre = await import("maplibre-gl");
@@ -435,14 +444,28 @@ export function CountryPerformanceMap({
         }
       });
 
-      resizeObserver = new ResizeObserver(() => {
-        map?.resize();
-      });
+      // Batch resizes to animation frames and settle after continuous
+      // layout changes (pinned sidebar / header) so WebGL doesn't flicker.
+      const scheduleResize = () => {
+        if (resizeRaf) cancelAnimationFrame(resizeRaf);
+        resizeRaf = requestAnimationFrame(() => {
+          resizeRaf = 0;
+          map?.resize();
+        });
+        window.clearTimeout(resizeSettleTimer);
+        resizeSettleTimer = window.setTimeout(() => {
+          resizeSettleTimer = 0;
+          map?.resize();
+        }, 320);
+      };
+
+      resizeObserver = new ResizeObserver(scheduleResize);
       resizeObserver.observe(el);
     })();
 
     return () => {
       cancelled = true;
+      clearScheduledResize();
       resizeObserver?.disconnect();
       map?.remove();
       mapRef.current = null;

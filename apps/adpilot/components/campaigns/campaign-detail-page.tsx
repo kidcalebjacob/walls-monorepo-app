@@ -269,6 +269,7 @@ export function CampaignDetailPage() {
         <EntityMetricsGrid
           metrics={detail.metrics}
           reachSaturation={detail.reachSaturation}
+          dailyBudgetMicros={detail.dailyBudgetMicros}
         />
       ) : null}
 

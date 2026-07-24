@@ -24,11 +24,11 @@ const instrumentSans = Instrument_Sans({
 
 export const metadata: Metadata = createWallsMetadata({
   title: {
-    default: "Kenoo | Business OS",
+    default: "Kenoo | Smart Business Software, Made Simple",
     template: "%s | Kenoo",
   },
   description:
-    "Kenoo is an AI-native business OS for business, finance, and health. Powerful tools, simply designed.",
+    "Kenoo is an AI-native software suite for business, finance, and health. Complex work, made incredibly simple.",
   metadataBase: new URL("https://kenoo.io"),
 });
 

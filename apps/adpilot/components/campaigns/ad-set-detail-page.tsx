@@ -166,6 +166,7 @@ export function AdSetDetailPage() {
         <EntityMetricsGrid
           metrics={detail.metrics}
           reachSaturation={detail.reachSaturation}
+          dailyBudgetMicros={detail.dailyBudgetMicros}
           afterFooter={
             <EntityDailyProgressSection
               progress={detail.dailyProgress}

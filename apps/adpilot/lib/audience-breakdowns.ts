@@ -6,8 +6,8 @@ import {
 import { formatCpaFromMicros } from "@/lib/entity-daily-progress";
 
 export const AUDIENCE_BREAKDOWN_TYPES = [
-  "age",
   "gender",
+  "age",
   "age_gender",
   "country",
 ] as const;
@@ -18,8 +18,8 @@ export const AUDIENCE_BREAKDOWN_OPTIONS: Array<{
   value: AudienceBreakdownType;
   label: string;
 }> = [
-  { value: "age", label: "Age" },
   { value: "gender", label: "Gender" },
+  { value: "age", label: "Age" },
   { value: "age_gender", label: "Age & Gender" },
   { value: "country", label: "Country" },
 ];
