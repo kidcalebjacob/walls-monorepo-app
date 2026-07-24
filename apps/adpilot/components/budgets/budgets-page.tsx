@@ -1065,6 +1065,7 @@ function PeriodDetail({
                   label: m.label,
                 }))}
                 onChange={(metricKey) => {
+                  if (!metricKey) return;
                   const defaults = metricObjectiveDefaults(metricKey);
                   setObjectiveForm((f) => ({
                     ...f,
@@ -1120,6 +1121,7 @@ function PeriodDetail({
                     objectiveForm.metricKey,
                   )}
                   onChange={(targetTier) => {
+                    if (!targetTier) return;
                     if (targetTier === "custom") {
                       setObjectiveForm((f) => ({
                         ...f,

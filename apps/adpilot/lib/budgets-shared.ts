@@ -218,7 +218,7 @@ export const OBJECTIVE_TARGET_TIERS = ["good", "great", "excellent"] as const;
 
 export type ObjectiveTargetTier = (typeof OBJECTIVE_TARGET_TIERS)[number];
 
-export type ObjectiveTargetTier = Record<ObjectiveTargetTier, number>;
+export type ObjectiveTargetTiers = Record<ObjectiveTargetTier, number>;
 
 export const OBJECTIVE_TARGET_TIER_LABELS: Record<ObjectiveTargetTier, string> =
   {
@@ -237,7 +237,7 @@ export const OBJECTIVE_METRIC_OPTIONS: Array<{
   defaultUnit: string | null;
   defaultOperator: BudgetTargetOperator;
   /** Tiered starter targets; null for custom metrics. */
-  targetTiers: ObjectiveTargetTier | null;
+  targetTiers: ObjectiveTargetTiers | null;
 }> = [
   {
     value: "roas",
